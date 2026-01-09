@@ -154,6 +154,29 @@ export class AgoraService {
       VALUES (?, ?, ?, ?, 'active')
     `).run(uuidv4(), sessionId, agentId, now);
 
+    // Update summoned_agents in agora_sessions
+    const session = this.db.prepare(`
+      SELECT summoned_agents FROM agora_sessions WHERE id = ?
+    `).get(sessionId) as { summoned_agents: string | null } | undefined;
+
+    if (session) {
+      let summonedAgents: string[] = [];
+      try {
+        summonedAgents = JSON.parse(session.summoned_agents || '[]');
+        // Filter out null values
+        summonedAgents = summonedAgents.filter(id => id !== null);
+      } catch {
+        summonedAgents = [];
+      }
+
+      if (!summonedAgents.includes(agentId)) {
+        summonedAgents.push(agentId);
+        this.db.prepare(`
+          UPDATE agora_sessions SET summoned_agents = ? WHERE id = ?
+        `).run(JSON.stringify(summonedAgents), sessionId);
+      }
+    }
+
     // Update agent state
     this.db.prepare(`
       UPDATE agent_states
