@@ -6,11 +6,12 @@ interface BlockchainSource {
   id: string;
   name: string;
   chain: string;
-  type: 'price' | 'governance' | 'defi' | 'nft';
+  type: 'price' | 'governance' | 'defi' | 'nft' | 'gas' | 'l2' | 'onchain';
   endpoint: string;
   enabled: boolean;
   lastFetched?: string;
   fetchInterval: number; // in minutes
+  apiKeyEnv?: string; // Environment variable name for API key
 }
 
 export class BlockchainCollectorService {
@@ -22,22 +23,45 @@ export class BlockchainCollectorService {
 
   // Default blockchain data sources
   private defaultSources: Omit<BlockchainSource, 'id'>[] = [
+    // === Price Data (CoinGecko - Free API) ===
     {
-      name: 'ETH Price',
-      chain: 'ethereum',
+      name: 'CoinGecko Prices',
+      chain: 'multi',
       type: 'price',
-      endpoint: 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd&include_24hr_change=true',
+      endpoint: 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,bitcoin,solana,matic-network,arbitrum&vs_currencies=usd&include_24hr_change=true&include_market_cap=true',
       enabled: true,
-      fetchInterval: 5, // 5 minutes
+      fetchInterval: 5,
+    },
+    // === Price Data (CoinMarketCap - Requires API key) ===
+    {
+      name: 'CoinMarketCap Top 10',
+      chain: 'multi',
+      type: 'price',
+      endpoint: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10',
+      enabled: false, // Set to true when COINMARKETCAP_API_KEY is configured
+      fetchInterval: 5,
+      apiKeyEnv: 'COINMARKETCAP_API_KEY',
+    },
+    // === Etherscan (Requires API key for higher rate limits) ===
+    {
+      name: 'Etherscan Gas',
+      chain: 'ethereum',
+      type: 'gas',
+      endpoint: 'https://api.etherscan.io/api?module=gastracker&action=gasoracle',
+      enabled: false, // Set to true when ETHERSCAN_API_KEY is configured
+      fetchInterval: 2,
+      apiKeyEnv: 'ETHERSCAN_API_KEY',
     },
     {
-      name: 'ETH Gas',
+      name: 'Etherscan ETH Supply',
       chain: 'ethereum',
-      type: 'defi',
-      endpoint: 'https://api.etherscan.io/api?module=gastracker&action=gasoracle',
-      enabled: false, // Requires API key
-      fetchInterval: 2,
+      type: 'onchain',
+      endpoint: 'https://api.etherscan.io/api?module=stats&action=ethsupply2',
+      enabled: false,
+      fetchInterval: 60,
+      apiKeyEnv: 'ETHERSCAN_API_KEY',
     },
+    // === DeFi Data (DefiLlama - Free API) ===
     {
       name: 'DeFi TVL',
       chain: 'multi',
@@ -45,6 +69,50 @@ export class BlockchainCollectorService {
       endpoint: 'https://api.llama.fi/v2/protocols',
       enabled: true,
       fetchInterval: 30,
+    },
+    {
+      name: 'DeFi Chains TVL',
+      chain: 'multi',
+      type: 'defi',
+      endpoint: 'https://api.llama.fi/v2/chains',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    {
+      name: 'DeFi Stablecoins',
+      chain: 'multi',
+      type: 'defi',
+      endpoint: 'https://stablecoins.llama.fi/stablecoins?includePrices=true',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    // === L2 Data (L2Beat - Requires API key) ===
+    {
+      name: 'L2Beat TVL',
+      chain: 'l2',
+      type: 'l2',
+      endpoint: 'https://l2beat.com/api/scaling/tvl',
+      enabled: false, // L2Beat API requires authentication
+      fetchInterval: 60,
+    },
+    // === Fear & Greed Index (Alternative.me - Free) ===
+    {
+      name: 'Fear & Greed Index',
+      chain: 'multi',
+      type: 'price',
+      endpoint: 'https://api.alternative.me/fng/?limit=1',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === NFT Data (OpenSea - Requires API key) ===
+    {
+      name: 'OpenSea Stats',
+      chain: 'ethereum',
+      type: 'nft',
+      endpoint: 'https://api.opensea.io/api/v2/collections?order_by=seven_day_volume&limit=10',
+      enabled: false,
+      fetchInterval: 60,
+      apiKeyEnv: 'OPENSEA_API_KEY',
     },
   ];
 
@@ -153,11 +221,36 @@ export class BlockchainCollectorService {
     try {
       console.log(`[Blockchain] Fetching: ${source.name}`);
 
+      // Build headers with API key if required
+      const headers: Record<string, string> = {
+        'User-Agent': 'Algora/1.0 Governance Signal Collector',
+        'Accept': 'application/json',
+      };
+
+      // Add API key if required
+      if (source.apiKeyEnv) {
+        const apiKey = process.env[source.apiKeyEnv];
+        if (!apiKey) {
+          console.warn(`[Blockchain] ${source.name}: API key not configured (${source.apiKeyEnv})`);
+          return 0;
+        }
+
+        // Different APIs use different header formats
+        if (source.apiKeyEnv === 'COINMARKETCAP_API_KEY') {
+          headers['X-CMC_PRO_API_KEY'] = apiKey;
+        } else if (source.apiKeyEnv === 'ETHERSCAN_API_KEY') {
+          // Etherscan uses query param, append to endpoint
+          const separator = source.endpoint.includes('?') ? '&' : '?';
+          source = { ...source, endpoint: `${source.endpoint}${separator}apikey=${apiKey}` };
+        } else if (source.apiKeyEnv === 'OPENSEA_API_KEY') {
+          headers['X-API-KEY'] = apiKey;
+        } else {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        }
+      }
+
       const response = await fetch(source.endpoint, {
-        headers: {
-          'User-Agent': 'Algora/1.0 Governance Signal Collector',
-          'Accept': 'application/json',
-        },
+        headers,
         signal: AbortSignal.timeout(30000),
       });
 
@@ -178,6 +271,18 @@ export class BlockchainCollectorService {
         case 'governance':
           newSignals = await this.processGovernanceData(source, data);
           break;
+        case 'gas':
+          newSignals = await this.processGasData(source, data);
+          break;
+        case 'l2':
+          newSignals = await this.processL2Data(source, data);
+          break;
+        case 'onchain':
+          newSignals = await this.processOnchainData(source, data);
+          break;
+        case 'nft':
+          newSignals = await this.processNFTData(source, data);
+          break;
       }
 
       // Update last fetched time
@@ -196,10 +301,57 @@ export class BlockchainCollectorService {
   }
 
   private async processPriceData(source: BlockchainSource, data: any): Promise<number> {
-    // Handle CoinGecko price format
-    if (data.ethereum) {
-      const price = data.ethereum.usd;
-      const change24h = data.ethereum.usd_24h_change;
+    let newSignals = 0;
+
+    // Handle Fear & Greed Index
+    if (data.data && data.data[0]?.value) {
+      const fng = data.data[0];
+      const value = parseInt(fng.value);
+      const classification = fng.value_classification;
+      const originalId = `blockchain:fng:${new Date().toISOString().split('T')[0]}`;
+
+      const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+      if (!existing) {
+        let severity = 'low';
+        if (value <= 25 || value >= 75) severity = 'high';
+        else if (value <= 40 || value >= 60) severity = 'medium';
+
+        const signal = {
+          id: uuidv4(),
+          original_id: originalId,
+          source: `blockchain:${source.name}`,
+          timestamp: new Date().toISOString(),
+          category: 'market',
+          severity,
+          value,
+          unit: 'index',
+          description: `Fear & Greed Index: ${value} (${classification})`,
+          metadata: JSON.stringify({ value, classification, timestamp: fng.timestamp }),
+        };
+        this.insertSignal(signal);
+        newSignals++;
+      }
+      return newSignals;
+    }
+
+    // Handle CoinGecko multi-coin price format
+    const coinNames: Record<string, string> = {
+      ethereum: 'ETH',
+      bitcoin: 'BTC',
+      solana: 'SOL',
+      'matic-network': 'MATIC',
+      arbitrum: 'ARB',
+    };
+
+    for (const [coinId, coinData] of Object.entries(data)) {
+      if (typeof coinData !== 'object' || !coinData) continue;
+      const coin = coinData as any;
+
+      const price = coin.usd;
+      const change24h = coin.usd_24h_change;
+      const symbol = coinNames[coinId] || coinId.toUpperCase();
+
+      if (!price || change24h === undefined) continue;
 
       // Determine severity based on price change
       let severity = 'low';
@@ -209,13 +361,9 @@ export class BlockchainCollectorService {
 
       // Create signal only if significant change
       if (Math.abs(change24h) >= 2) {
-        const originalId = `blockchain:price:eth:${new Date().toISOString().split('T')[0]}`;
+        const originalId = `blockchain:price:${coinId}:${new Date().toISOString().split('T')[0]}`;
 
-        // Check if we already have a price signal for today
-        const existing = this.db.prepare(
-          'SELECT id FROM signals WHERE original_id = ?'
-        ).get(originalId);
-
+        const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
         if (!existing) {
           const direction = change24h > 0 ? 'up' : 'down';
           const signal = {
@@ -227,21 +375,212 @@ export class BlockchainCollectorService {
             severity,
             value: price,
             unit: 'USD',
-            description: `ETH price ${direction} ${Math.abs(change24h).toFixed(2)}% in 24h. Current: $${price.toFixed(2)}`,
+            description: `${symbol} price ${direction} ${Math.abs(change24h).toFixed(2)}% in 24h. Current: $${price.toLocaleString()}`,
             metadata: JSON.stringify({
               chain: source.chain,
-              asset: 'ETH',
+              asset: symbol,
+              coinId,
               price,
               change24h,
+              marketCap: coin.usd_market_cap,
             }),
           };
+          this.insertSignal(signal);
+          newSignals++;
+        }
+      }
+    }
 
+    // Handle CoinMarketCap format
+    if (data.data && Array.isArray(data.data)) {
+      for (const coin of data.data) {
+        const price = coin.quote?.USD?.price;
+        const change24h = coin.quote?.USD?.percent_change_24h;
+        const symbol = coin.symbol;
+
+        if (!price || change24h === undefined) continue;
+
+        let severity = 'low';
+        if (Math.abs(change24h) > 10) severity = 'critical';
+        else if (Math.abs(change24h) > 5) severity = 'high';
+        else if (Math.abs(change24h) > 2) severity = 'medium';
+
+        if (Math.abs(change24h) >= 2) {
+          const originalId = `blockchain:cmc:${coin.slug}:${new Date().toISOString().split('T')[0]}`;
+          const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+
+          if (!existing) {
+            const direction = change24h > 0 ? 'up' : 'down';
+            const signal = {
+              id: uuidv4(),
+              original_id: originalId,
+              source: `blockchain:${source.name}`,
+              timestamp: new Date().toISOString(),
+              category: 'market',
+              severity,
+              value: price,
+              unit: 'USD',
+              description: `${symbol} price ${direction} ${Math.abs(change24h).toFixed(2)}% in 24h. Current: $${price.toLocaleString()}`,
+              metadata: JSON.stringify({
+                name: coin.name,
+                symbol,
+                slug: coin.slug,
+                price,
+                change24h,
+                marketCap: coin.quote?.USD?.market_cap,
+                rank: coin.cmc_rank,
+              }),
+            };
+            this.insertSignal(signal);
+            newSignals++;
+          }
+        }
+      }
+    }
+
+    return newSignals;
+  }
+
+  private async processGasData(source: BlockchainSource, data: any): Promise<number> {
+    // Handle Etherscan gas oracle format
+    if (data.result && data.result.SafeGasPrice) {
+      const { SafeGasPrice, ProposeGasPrice, FastGasPrice } = data.result;
+      const fast = parseInt(FastGasPrice);
+
+      // Only signal on unusual gas prices
+      let severity = 'low';
+      if (fast > 100) severity = 'critical';
+      else if (fast > 50) severity = 'high';
+      else if (fast > 30) severity = 'medium';
+
+      if (fast > 30) {
+        const originalId = `blockchain:gas:${new Date().toISOString().split('T')[0]}:${Math.floor(Date.now() / 3600000)}`; // hourly
+
+        const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+        if (!existing) {
+          const signal = {
+            id: uuidv4(),
+            original_id: originalId,
+            source: `blockchain:${source.name}`,
+            timestamp: new Date().toISOString(),
+            category: 'gas',
+            severity,
+            value: fast,
+            unit: 'gwei',
+            description: `High Ethereum gas: ${fast} gwei (Fast), ${ProposeGasPrice} gwei (Standard), ${SafeGasPrice} gwei (Safe)`,
+            metadata: JSON.stringify({
+              safe: parseInt(SafeGasPrice),
+              standard: parseInt(ProposeGasPrice),
+              fast,
+            }),
+          };
           this.insertSignal(signal);
           return 1;
         }
       }
     }
+    return 0;
+  }
 
+  private async processL2Data(source: BlockchainSource, data: any): Promise<number> {
+    // Handle L2Beat TVL format
+    if (data.projects) {
+      let newSignals = 0;
+      const topL2s = Object.entries(data.projects)
+        .map(([name, info]: [string, any]) => ({ name, ...info }))
+        .filter((l2: any) => l2.tvl > 1e9) // TVL > $1B
+        .slice(0, 5);
+
+      for (const l2 of topL2s) {
+        // Only report significant changes (would need historical data)
+        // For now, just report current state periodically
+        const originalId = `blockchain:l2:${l2.name}:${new Date().toISOString().split('T')[0]}`;
+        const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+
+        if (!existing) {
+          const signal = {
+            id: uuidv4(),
+            original_id: originalId,
+            source: `blockchain:${source.name}`,
+            timestamp: new Date().toISOString(),
+            category: 'l2',
+            severity: 'low',
+            value: l2.tvl,
+            unit: 'USD',
+            description: `${l2.name} L2 TVL: $${(l2.tvl / 1e9).toFixed(2)}B`,
+            metadata: JSON.stringify({ name: l2.name, tvl: l2.tvl }),
+          };
+          this.insertSignal(signal);
+          newSignals++;
+        }
+      }
+      return newSignals;
+    }
+    return 0;
+  }
+
+  private async processOnchainData(source: BlockchainSource, data: any): Promise<number> {
+    // Handle Etherscan supply format
+    if (data.result && source.name.includes('Supply')) {
+      const supply = parseFloat(data.result) / 1e18; // Convert from wei
+      const originalId = `blockchain:supply:eth:${new Date().toISOString().split('T')[0]}`;
+
+      const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+      if (!existing) {
+        const signal = {
+          id: uuidv4(),
+          original_id: originalId,
+          source: `blockchain:${source.name}`,
+          timestamp: new Date().toISOString(),
+          category: 'onchain',
+          severity: 'low',
+          value: supply,
+          unit: 'ETH',
+          description: `ETH total supply: ${supply.toLocaleString()} ETH`,
+          metadata: JSON.stringify({ supply }),
+        };
+        this.insertSignal(signal);
+        return 1;
+      }
+    }
+    return 0;
+  }
+
+  private async processNFTData(source: BlockchainSource, data: any): Promise<number> {
+    // Handle OpenSea collections format
+    if (data.collections && Array.isArray(data.collections)) {
+      let newSignals = 0;
+      for (const collection of data.collections.slice(0, 5)) {
+        const volume = collection.stats?.seven_day_volume || 0;
+        if (volume > 100) { // > 100 ETH weekly volume
+          const originalId = `blockchain:nft:${collection.slug}:${new Date().toISOString().split('T')[0]}`;
+          const existing = this.db.prepare('SELECT id FROM signals WHERE original_id = ?').get(originalId);
+
+          if (!existing) {
+            const signal = {
+              id: uuidv4(),
+              original_id: originalId,
+              source: `blockchain:${source.name}`,
+              timestamp: new Date().toISOString(),
+              category: 'nft',
+              severity: 'low',
+              value: volume,
+              unit: 'ETH',
+              description: `Top NFT: ${collection.name} - ${volume.toFixed(2)} ETH weekly volume`,
+              metadata: JSON.stringify({
+                name: collection.name,
+                slug: collection.slug,
+                volume,
+                floorPrice: collection.stats?.floor_price,
+              }),
+            };
+            this.insertSignal(signal);
+            newSignals++;
+          }
+        }
+      }
+      return newSignals;
+    }
     return 0;
   }
 

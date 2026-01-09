@@ -41,28 +41,132 @@ export class RSSCollectorService {
   private intervalIds: Map<string, NodeJS.Timeout> = new Map();
   private isRunning: boolean = false;
 
-  // Default governance-related RSS feeds
+  // Default RSS feeds across multiple categories
   private defaultFeeds: Omit<RSSFeed, 'id'>[] = [
+    // === AI Category ===
+    {
+      name: 'OpenAI Blog',
+      url: 'https://openai.com/blog/rss.xml',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    {
+      name: 'Google AI Blog',
+      url: 'https://blog.google/technology/ai/rss/',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    {
+      name: 'arXiv AI',
+      url: 'http://arxiv.org/rss/cs.AI',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      name: 'TechCrunch',
+      url: 'https://techcrunch.com/feed/',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'Hacker News',
+      url: 'https://hnrss.org/frontpage',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    // === Crypto Category ===
+    {
+      name: 'CoinDesk',
+      url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
+      category: 'crypto',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'Cointelegraph',
+      url: 'https://cointelegraph.com/rss',
+      category: 'crypto',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'Decrypt',
+      url: 'https://decrypt.co/feed',
+      category: 'crypto',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'The Defiant',
+      url: 'https://thedefiant.io/feed',
+      category: 'crypto',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'CryptoSlate',
+      url: 'https://cryptoslate.com/feed/',
+      category: 'crypto',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    // === Finance Category ===
+    {
+      name: 'CNBC Finance',
+      url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664',
+      category: 'finance',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    // === Security Category ===
+    {
+      name: 'The Hacker News',
+      url: 'https://feeds.feedburner.com/TheHackersNews',
+      category: 'security',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    {
+      name: 'Krebs on Security',
+      url: 'https://krebsonsecurity.com/feed/',
+      category: 'security',
+      enabled: true,
+      fetchInterval: 30,
+    },
+    // === Dev Category ===
+    {
+      name: 'The Verge',
+      url: 'https://www.theverge.com/rss/index.xml',
+      category: 'dev',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'Ars Technica',
+      url: 'https://feeds.arstechnica.com/arstechnica/index',
+      category: 'dev',
+      enabled: true,
+      fetchInterval: 15,
+    },
+    {
+      name: 'Stack Overflow Blog',
+      url: 'https://stackoverflow.blog/feed/',
+      category: 'dev',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === Protocol Category (Ethereum specific) ===
     {
       name: 'Ethereum Blog',
       url: 'https://blog.ethereum.org/feed.xml',
       category: 'protocol',
       enabled: true,
-      fetchInterval: 30, // 30 minutes
-    },
-    {
-      name: 'CoinDesk',
-      url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
-      category: 'market',
-      enabled: true,
-      fetchInterval: 15,
-    },
-    {
-      name: 'The Block',
-      url: 'https://www.theblock.co/rss.xml',
-      category: 'market',
-      enabled: true,
-      fetchInterval: 15,
+      fetchInterval: 30,
     },
   ];
 

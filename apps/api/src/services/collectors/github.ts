@@ -33,8 +33,9 @@ export class GitHubCollectorService {
   private isRunning: boolean = false;
   private apiToken: string | null = null;
 
-  // Default governance-related repositories
+  // Default repositories across multiple categories
   private defaultRepos: Omit<GitHubRepo, 'id'>[] = [
+    // === Protocol & Governance ===
     {
       owner: 'ethereum',
       repo: 'EIPs',
@@ -50,9 +51,105 @@ export class GitHubCollectorService {
       fetchInterval: 30,
     },
     {
+      owner: 'ethereum',
+      repo: 'go-ethereum',
+      category: 'protocol',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === DeFi ===
+    {
+      owner: 'Uniswap',
+      repo: 'v3-core',
+      category: 'defi',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'aave',
+      repo: 'aave-v3-core',
+      category: 'defi',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'compound-finance',
+      repo: 'compound-protocol',
+      category: 'defi',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
       owner: 'MakerDAO',
       repo: 'community',
       category: 'governance',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === Security ===
+    {
+      owner: 'OpenZeppelin',
+      repo: 'openzeppelin-contracts',
+      category: 'security',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === AI/ML ===
+    {
+      owner: 'langchain-ai',
+      repo: 'langchain',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'huggingface',
+      repo: 'transformers',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'ollama',
+      repo: 'ollama',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'openai',
+      repo: 'openai-cookbook',
+      category: 'ai',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === Development Tools ===
+    {
+      owner: 'vercel',
+      repo: 'next.js',
+      category: 'dev',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'microsoft',
+      repo: 'TypeScript',
+      category: 'dev',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    // === Mossland / Metaverse ===
+    {
+      owner: 'mossland',
+      repo: 'mossverse',
+      category: 'metaverse',
+      enabled: true,
+      fetchInterval: 60,
+    },
+    {
+      owner: 'mossland',
+      repo: 'mossland-contracts',
+      category: 'metaverse',
       enabled: true,
       fetchInterval: 60,
     },
