@@ -111,6 +111,12 @@ export class AgoraService {
       for (const { agent } of summoned) {
         await this.addParticipant(id, agent.id);
       }
+
+      // Auto-start discussion if agents were summoned
+      if (summoned.length > 0) {
+        // Start with random intervals between 30s and 2min
+        this.startAutomatedDiscussion(id, 30000, 120000);
+      }
     }
 
     // Log activity
@@ -342,42 +348,68 @@ export class AgoraService {
     }
   }
 
-  // Start automated discussion rounds
-  startAutomatedDiscussion(sessionId: string, intervalMs: number = 15000): void {
+  // Start automated discussion rounds with random intervals
+  startAutomatedDiscussion(sessionId: string, minIntervalMs: number = 30000, maxIntervalMs: number = 120000): void {
     if (this.activeDiscussions.has(sessionId)) {
       return;
     }
 
-    const runRound = async () => {
-      const session = this.getSession(sessionId);
-      if (!session || session.status !== 'active') {
-        this.stopAutomatedDiscussion(sessionId);
-        return;
-      }
+    const scheduleNextRound = () => {
+      // Random interval between min and max (default: 30s to 2min)
+      const randomInterval = minIntervalMs + Math.random() * (maxIntervalMs - minIntervalMs);
 
-      const participants = this.getParticipants(sessionId);
-      if (participants.length === 0) {
-        return;
-      }
+      const timeout = setTimeout(async () => {
+        const session = this.getSession(sessionId);
+        if (!session || session.status !== 'active') {
+          this.stopAutomatedDiscussion(sessionId);
+          return;
+        }
 
-      // Select a random participant to speak
-      const speaker = participants[Math.floor(Math.random() * participants.length)];
+        const participants = this.getParticipants(sessionId);
+        if (participants.length === 0) {
+          scheduleNextRound();
+          return;
+        }
 
-      await this.generateAgentResponse(sessionId, speaker.agent_id);
+        // Select a random participant to speak
+        const speaker = participants[Math.floor(Math.random() * participants.length)];
+
+        try {
+          await this.generateAgentResponse(sessionId, speaker.agent_id);
+        } catch (error) {
+          console.error('[Agora] Failed to generate response:', error);
+        }
+
+        // Schedule next round
+        scheduleNextRound();
+      }, randomInterval);
+
+      this.activeDiscussions.set(sessionId, timeout);
     };
 
-    const interval = setInterval(runRound, intervalMs);
-    this.activeDiscussions.set(sessionId, interval);
+    // Run first round after a short delay (5-10 seconds)
+    const initialDelay = 5000 + Math.random() * 5000;
+    const initialTimeout = setTimeout(async () => {
+      const participants = this.getParticipants(sessionId);
+      if (participants.length > 0) {
+        const speaker = participants[Math.floor(Math.random() * participants.length)];
+        try {
+          await this.generateAgentResponse(sessionId, speaker.agent_id);
+        } catch (error) {
+          console.error('[Agora] Failed to generate initial response:', error);
+        }
+      }
+      scheduleNextRound();
+    }, initialDelay);
 
-    // Run first round immediately
-    runRound();
+    this.activeDiscussions.set(sessionId, initialTimeout);
   }
 
   // Stop automated discussion
   stopAutomatedDiscussion(sessionId: string): void {
-    const interval = this.activeDiscussions.get(sessionId);
-    if (interval) {
-      clearInterval(interval);
+    const timeout = this.activeDiscussions.get(sessionId);
+    if (timeout) {
+      clearTimeout(timeout);
       this.activeDiscussions.delete(sessionId);
     }
   }
