@@ -95,6 +95,40 @@
       "DECISION_PACKET": "Decision Packet"
     }
   },
+  "Issues": {
+    "title": "이슈",
+    "subtitle": "거버넌스 이슈 추적 및 관리",
+    "createIssue": "이슈 생성",
+    "searchPlaceholder": "이슈 검색...",
+    "noIssues": "이슈 없음",
+    "noIssuesDesc": "신호에서 감지된 이슈가 여기에 표시됩니다",
+    "signals": "신호",
+    "comments": "댓글",
+    "updated": "업데이트",
+    "viewDetails": "상세 보기",
+    "stats": {
+      "open": "미해결",
+      "discussing": "토론 중",
+      "voting": "투표 중",
+      "resolved": "해결됨"
+    },
+    "status": {
+      "all": "전체",
+      "open": "미해결",
+      "discussing": "토론 중",
+      "voting": "투표 중",
+      "resolved": "해결됨",
+      "rejected": "거부됨"
+    },
+    "priority": {
+      "label": "우선순위",
+      "all": "전체",
+      "low": "낮음",
+      "medium": "보통",
+      "high": "높음",
+      "critical": "긴급"
+    }
+  },
   "Signals": {
     "title": "신호",
     "subtitle": "다양한 소스에서 실시간 신호 모니터링",

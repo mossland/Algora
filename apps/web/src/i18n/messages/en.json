@@ -95,6 +95,40 @@
       "DECISION_PACKET": "Decision Packet"
     }
   },
+  "Issues": {
+    "title": "Issues",
+    "subtitle": "Track and manage governance issues",
+    "createIssue": "Create Issue",
+    "searchPlaceholder": "Search issues...",
+    "noIssues": "No issues found",
+    "noIssuesDesc": "Issues will appear here when detected from signals",
+    "signals": "signals",
+    "comments": "comments",
+    "updated": "Updated",
+    "viewDetails": "View Details",
+    "stats": {
+      "open": "Open",
+      "discussing": "Discussing",
+      "voting": "Voting",
+      "resolved": "Resolved"
+    },
+    "status": {
+      "all": "All",
+      "open": "Open",
+      "discussing": "Discussing",
+      "voting": "Voting",
+      "resolved": "Resolved",
+      "rejected": "Rejected"
+    },
+    "priority": {
+      "label": "Priority",
+      "all": "All",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
+  },
   "Signals": {
     "title": "Signals",
     "subtitle": "Real-time signal monitoring from multiple sources",
