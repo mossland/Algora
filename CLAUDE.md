@@ -173,5 +173,20 @@ Recommended models:
 
 ---
 
-**Last Updated**: 2025-01-09
+## Continuing Development
+
+When starting a new session, follow these steps:
+
+1. **Read Status**: Check `DEVELOPMENT_STATUS.md` for current progress
+2. **Check Git**: Run `git log --oneline -10` and `git status`
+3. **Start Servers**: Run `pnpm dev` (or start api/web separately)
+4. **Continue Work**: Follow the "Next Steps" in DEVELOPMENT_STATUS.md
+5. **Update Docs**: After significant changes, update:
+   - `DEVELOPMENT_STATUS.md` - Progress tracking
+   - `CHANGELOG.md` - Version history
+   - Korean translations if docs changed
+
+---
+
+**Last Updated**: 2026-01-09
 **Version**: 0.1.0
