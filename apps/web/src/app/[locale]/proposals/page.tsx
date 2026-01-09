@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { ProposalCard } from '@/components/proposals/ProposalCard';
+import { ProposalDetailModal } from '@/components/proposals/ProposalDetailModal';
 
 interface Proposal {
   id: string;
@@ -108,6 +109,7 @@ export default function ProposalsPage() {
   const t = useTranslations('Proposals');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 
   const { data: proposals, isLoading } = useQuery({
     queryKey: ['proposals'],
@@ -234,9 +236,21 @@ export default function ProposalsPage() {
       ) : (
         <div className="space-y-4">
           {filteredProposals?.map((proposal) => (
-            <ProposalCard key={proposal.id} proposal={proposal} />
+            <ProposalCard
+              key={proposal.id}
+              proposal={proposal}
+              onClick={() => setSelectedProposal(proposal)}
+            />
           ))}
         </div>
+      )}
+
+      {/* Proposal Detail Modal */}
+      {selectedProposal && (
+        <ProposalDetailModal
+          proposal={selectedProposal}
+          onClose={() => setSelectedProposal(null)}
+        />
       )}
     </div>
   );

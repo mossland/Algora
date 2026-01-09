@@ -30,6 +30,7 @@ interface Proposal {
 
 interface ProposalCardProps {
   proposal: Proposal;
+  onClick?: () => void;
 }
 
 const statusConfig = {
@@ -71,7 +72,7 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-export function ProposalCard({ proposal }: ProposalCardProps) {
+export function ProposalCard({ proposal, onClick }: ProposalCardProps) {
   const t = useTranslations('Proposals');
   const StatusIcon = statusConfig[proposal.status].icon;
 
@@ -88,7 +89,8 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
 
   return (
     <div
-      className={`group cursor-pointer rounded-lg border bg-agora-card p-5 transition-all hover:shadow-lg ${statusConfig[proposal.status].border}`}
+      onClick={onClick}
+      className={`group cursor-pointer rounded-lg border bg-agora-card p-5 transition-all hover:shadow-lg hover:bg-agora-card/80 ${statusConfig[proposal.status].border}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-4">

@@ -175,6 +175,21 @@
       "passed": "Passed",
       "rejected": "Rejected",
       "executed": "Executed"
+    },
+    "detail": {
+      "summary": "Summary",
+      "votingResults": "Voting Results",
+      "totalVotes": "Total Votes",
+      "quorumRequired": "Quorum Required",
+      "created": "Created",
+      "votingEnds": "Voting Ends",
+      "votingEnded": "Voting Ended",
+      "outcome": "Outcome",
+      "proposalPassed": "This proposal has passed and is awaiting execution.",
+      "proposalRejected": "This proposal was rejected by the community.",
+      "proposalExecuted": "This proposal has been executed successfully.",
+      "share": "Share",
+      "castVote": "Cast Vote"
     }
   },
   "Issues": {

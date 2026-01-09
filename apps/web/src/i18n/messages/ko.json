@@ -175,6 +175,21 @@
       "passed": "통과",
       "rejected": "거부",
       "executed": "실행됨"
+    },
+    "detail": {
+      "summary": "요약",
+      "votingResults": "투표 결과",
+      "totalVotes": "총 투표수",
+      "quorumRequired": "필요 정족수",
+      "created": "생성일",
+      "votingEnds": "투표 종료",
+      "votingEnded": "투표 종료됨",
+      "outcome": "결과",
+      "proposalPassed": "이 제안은 통과되었으며 실행 대기 중입니다.",
+      "proposalRejected": "이 제안은 커뮤니티에 의해 거부되었습니다.",
+      "proposalExecuted": "이 제안은 성공적으로 실행되었습니다.",
+      "share": "공유",
+      "castVote": "투표하기"
     }
   },
   "Issues": {
