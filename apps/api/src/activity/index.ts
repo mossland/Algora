@@ -84,7 +84,7 @@ export class ActivityService {
     return event;
   }
 
-  startHeartbeat(intervalMs: number = 10000): void {
+  startHeartbeat(intervalMs: number = 60000): void {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
     }

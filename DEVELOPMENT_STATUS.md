@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-10
-**Current Version**: 0.2.2
+**Current Version**: 0.2.3
 
 ---
 
@@ -34,7 +34,7 @@ This file tracks the current development progress for continuity between session
   - [x] GET /api/issues - Issues
   - [x] GET /api/proposals - Proposals
   - [x] GET /api/budget - Budget info
-- [x] ActivityService with heartbeat (10s interval)
+- [x] ActivityService with heartbeat (60s interval)
 - [x] SchedulerService for 3-tier LLM
 
 #### Frontend - apps/web (100%)
@@ -45,14 +45,17 @@ This file tracks the current development progress for continuity between session
 - [x] Dashboard page with stats grid
 - [x] Header with system status and language toggle
 - [x] Sidebar navigation
-- [x] ActivityFeed component
+- [x] ActivityFeed component (enhanced with severity badges, agent info, animations)
 - [x] AgentLobbyPreview component
-- [x] StatsCard component
+- [x] StatsCard component (clickable with variants and hover animations)
+- [x] StatsDetailModal component (breakdown, activity list)
 - [x] **Agents page** - Grid view, cluster filter, detail modal, summon/dismiss
 - [x] **Agora page** - Live chat, session management, participant list
   - [x] Real-time message fetching from database
   - [x] Agent group display with color coding in participant list
   - [x] Auto-start discussion with random intervals (30s-2min)
+- [x] **UI Animations** - Modal fade-in/scale-in, card hover effects, new item slide-in
+- [x] **Detail Modals** - All modals have consistent animations (7 modal files)
 - [x] **Disclosure page** - Transparency reports and governance disclosures
 - [x] **Signals page** - Source filtering, priority indicators, stats
 - [x] **Issues page** - Status workflow, priority filter, search

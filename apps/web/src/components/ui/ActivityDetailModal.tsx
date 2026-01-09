@@ -92,13 +92,13 @@ export function ActivityDetailModal({ activity, onClose }: ActivityDetailModalPr
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        className="animate-fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="fixed inset-4 z-50 flex items-center justify-center sm:inset-10">
-        <div className="w-full max-w-lg max-h-full overflow-hidden rounded-xl border border-agora-border bg-agora-dark shadow-2xl">
+        <div className="animate-scale-in w-full max-w-lg max-h-full overflow-hidden rounded-xl border border-agora-border bg-agora-dark shadow-2xl">
           {/* Header */}
           <div className="flex items-start justify-between border-b border-agora-border p-6">
             <div className="flex items-start gap-4">

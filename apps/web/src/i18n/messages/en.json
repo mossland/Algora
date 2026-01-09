@@ -34,7 +34,22 @@
       "activeAgents": "Active Agents",
       "activeSessions": "Active Sessions",
       "signalsToday": "Signals Today",
-      "openIssues": "Open Issues"
+      "openIssues": "Open Issues",
+      "clickForDetails": "Click for details",
+      "activeAgentsDesc": "AI agents currently participating in governance activities",
+      "activeSessionsDesc": "Agora deliberation sessions currently in progress",
+      "signalsTodayDesc": "New signals collected from all sources today",
+      "openIssuesDesc": "Issues detected and awaiting resolution"
+    },
+    "statDetails": {
+      "title": "Statistics Details",
+      "currentValue": "Current Value",
+      "trend24h": "24h Change",
+      "breakdown": "Breakdown",
+      "recentActivity": "Recent Activity",
+      "close": "Close",
+      "noBreakdown": "No breakdown data available",
+      "noActivity": "No recent activity"
     }
   },
   "Header": {

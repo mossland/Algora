@@ -15,6 +15,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3] - 2026-01-10
+
+### Added
+- **UI Animations**:
+  - New Tailwind animations: `slide-in-right`, `scale-in`, `highlight`, `glow`
+  - Modal open/close animations (fade-in backdrop + scale-in content)
+  - Card hover effects with scale and shadow transitions
+- **StatsDetailModal**: New modal component for detailed statistics view
+  - Current value with trend indicator
+  - Breakdown visualization with progress bars
+  - Related activity list filtered by type
+- **Enhanced ActivityFeed**:
+  - Severity badges with color coding (info/low/medium/high/critical)
+  - Agent name display for agent-related activities
+  - Metadata summary (uptime, memory, sessionId)
+  - Slide-in animation for new items
+  - Increased to 25 items with 10s polling interval
+
+### Changed
+- **Heartbeat interval**: 10 seconds → 60 seconds (reduced server load)
+- **StatsCard component**:
+  - Now clickable with `onClick` prop
+  - Added variant styles (default, warning, success, primary)
+  - Added subtitle prop for contextual hints
+  - Enhanced hover animations
+- **All modal components** now have consistent animations:
+  - ActivityDetailModal, AgentDetailModal, SignalDetailModal
+  - IssueDetailModal, SessionDetailModal, NewSessionModal
+  - ProposalDetailModal
+
+### Fixed
+- Translation files updated with new keys for stats descriptions and detail modal
+
+---
+
 ## [0.2.2] - 2026-01-10
 
 ### Added

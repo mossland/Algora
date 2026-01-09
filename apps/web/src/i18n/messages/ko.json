@@ -34,7 +34,22 @@
       "activeAgents": "활성 에이전트",
       "activeSessions": "활성 세션",
       "signalsToday": "오늘의 신호",
-      "openIssues": "미해결 이슈"
+      "openIssues": "미해결 이슈",
+      "clickForDetails": "클릭하여 상세 보기",
+      "activeAgentsDesc": "현재 거버넌스 활동에 참여 중인 AI 에이전트",
+      "activeSessionsDesc": "현재 진행 중인 아고라 숙의 세션",
+      "signalsTodayDesc": "오늘 모든 소스에서 수집된 새로운 신호",
+      "openIssuesDesc": "감지되어 해결 대기 중인 이슈"
+    },
+    "statDetails": {
+      "title": "통계 상세",
+      "currentValue": "현재 값",
+      "trend24h": "24시간 변화",
+      "breakdown": "세부 내역",
+      "recentActivity": "최근 활동",
+      "close": "닫기",
+      "noBreakdown": "세부 내역 데이터 없음",
+      "noActivity": "최근 활동 없음"
     }
   },
   "Header": {

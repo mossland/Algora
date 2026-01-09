@@ -47,10 +47,10 @@ export function NewSessionModal({ onClose, onCreated }: NewSessionModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="relative mx-4 w-full max-w-md rounded-xl border border-agora-border bg-agora-dark p-6 shadow-2xl">
+      <div className="animate-scale-in relative mx-4 w-full max-w-md rounded-xl border border-agora-border bg-agora-dark p-6 shadow-2xl">
         {/* Close button */}
         <button
           onClick={onClose}
