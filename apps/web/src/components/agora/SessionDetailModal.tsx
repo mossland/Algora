@@ -12,7 +12,6 @@ import {
   Calendar,
   FileText,
   Play,
-  Square,
   ExternalLink,
   Share2,
 } from 'lucide-react';
@@ -25,7 +24,13 @@ interface SessionDetailModalProps {
   onJoinSession?: () => void;
 }
 
-const statusConfig = {
+const statusConfig: Record<string, {
+  icon: typeof Clock;
+  color: string;
+  bg: string;
+  border: string;
+  animate?: string;
+}> = {
   pending: {
     icon: Clock,
     color: 'text-agora-warning',
@@ -45,18 +50,35 @@ const statusConfig = {
     bg: 'bg-gray-500/10',
     border: 'border-gray-500/30',
   },
+  completed: {
+    icon: CheckCircle,
+    color: 'text-agora-muted',
+    bg: 'bg-gray-500/10',
+    border: 'border-gray-500/30',
+  },
 };
+
+function parseParticipants(summoned_agents: string | null): string[] {
+  if (!summoned_agents) return [];
+  try {
+    const parsed = JSON.parse(summoned_agents);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export function SessionDetailModal({ session, agents, onClose, onJoinSession }: SessionDetailModalProps) {
   const t = useTranslations('Agora');
-  const StatusIcon = statusConfig[session.status].icon;
-  const config = statusConfig[session.status];
-  const statusAnimate = 'animate' in config ? (config as { animate: string }).animate : '';
+  const config = statusConfig[session.status] || statusConfig.active;
+  const StatusIcon = config.icon;
 
-  // Get participant agent details
+  const participantIds = parseParticipants(session.summoned_agents);
   const participantAgents = agents.filter(agent =>
-    session.participants?.includes(agent.id) || session.participants?.includes(agent.name)
+    participantIds.includes(agent.id) || participantIds.includes(agent.name)
   );
+
+  const createdDate = session.created_at ? new Date(session.created_at) : null;
 
   return (
     <>
@@ -72,21 +94,26 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
           {/* Header */}
           <div className="flex items-start justify-between border-b border-agora-border p-6">
             <div className="flex items-start gap-4">
-              <div className={`rounded-lg border p-3 ${statusConfig[session.status].bg} ${statusConfig[session.status].border}`}>
-                <StatusIcon className={`h-5 w-5 ${statusConfig[session.status].color} ${statusAnimate}`} />
+              <div className={`rounded-lg border p-3 ${config.bg} ${config.border}`}>
+                <StatusIcon className={`h-5 w-5 ${config.color} ${config.animate || ''}`} />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusConfig[session.status].bg} ${statusConfig[session.status].color}`}
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bg} ${config.color}`}
                   >
-                    {t(`sessionStatus.${session.status}`)}
+                    {t(`sessionStatus.${session.status === 'completed' ? 'concluded' : session.status}`)}
+                  </span>
+                  <span className="text-xs text-agora-muted">
+                    Round {session.current_round}/{session.max_rounds}
                   </span>
                 </div>
-                <h2 className="text-xl font-bold text-white pr-8">{session.topic}</h2>
-                <p className="mt-1 text-sm text-agora-muted">
-                  Session ID: {session.id}
-                </p>
+                <h2 className="text-xl font-bold text-white pr-8">{session.title}</h2>
+                {session.description && (
+                  <p className="mt-1 text-sm text-agora-muted line-clamp-2">
+                    {session.description}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -109,10 +136,10 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                   <span>{t('detail.started')}</span>
                 </div>
                 <p className="text-white font-medium">
-                  {format(new Date(session.createdAt), 'PPpp')}
+                  {createdDate ? format(createdDate, 'PPpp') : 'Unknown'}
                 </p>
                 <p className="text-sm text-agora-muted mt-1">
-                  {formatDistanceToNow(new Date(session.createdAt), { addSuffix: true })}
+                  {createdDate ? formatDistanceToNow(createdDate, { addSuffix: true }) : ''}
                 </p>
               </div>
 
@@ -123,8 +150,8 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                   <span>{t('detail.duration')}</span>
                 </div>
                 <p className="text-white font-medium">
-                  {session.status === 'active'
-                    ? formatDistanceToNow(new Date(session.createdAt))
+                  {session.status === 'active' && createdDate
+                    ? formatDistanceToNow(createdDate)
                     : session.status === 'pending'
                       ? t('detail.notStarted')
                       : t('detail.sessionEnded')
@@ -146,7 +173,7 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                   <span>{t('detail.participants')}</span>
                 </div>
                 <span className="text-sm text-white font-medium">
-                  {session.participants?.length || 0} {t('detail.agents')}
+                  {participantIds.length} {t('detail.agents')}
                 </span>
               </div>
 
@@ -169,9 +196,9 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                     </div>
                   ))}
                 </div>
-              ) : session.participants && session.participants.length > 0 ? (
+              ) : participantIds.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {session.participants.map((participantId) => (
+                  {participantIds.map((participantId) => (
                     <div
                       key={participantId}
                       className="rounded-full bg-agora-darker px-3 py-1.5 text-sm text-agora-muted"
@@ -182,13 +209,13 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                 </div>
               ) : (
                 <p className="text-sm text-agora-muted italic">
-                  {t('detail.noParticipants')}
+                  No participants yet
                 </p>
               )}
             </div>
 
             {/* Session Summary (for concluded sessions) */}
-            {session.status === 'concluded' && (
+            {(session.status === 'concluded' || session.status === 'completed') && (
               <div className="mt-4 rounded-lg border border-agora-border bg-agora-card p-4">
                 <div className="flex items-center gap-2 mb-3 text-sm text-agora-muted">
                   <FileText className="h-4 w-4" />
@@ -209,14 +236,14 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
               </div>
               <div className="rounded-lg border border-agora-border bg-agora-card p-4 text-center">
                 <Users className="h-6 w-6 text-agora-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">{session.participants?.length || 0}</p>
+                <p className="text-2xl font-bold text-white">{participantIds.length}</p>
                 <p className="text-xs text-agora-muted">{t('detail.agents')}</p>
               </div>
               <div className="rounded-lg border border-agora-border bg-agora-card p-4 text-center">
                 <Clock className="h-6 w-6 text-agora-warning mx-auto mb-2" />
                 <p className="text-2xl font-bold text-white">
-                  {session.status !== 'pending'
-                    ? Math.round((Date.now() - new Date(session.createdAt).getTime()) / 60000)
+                  {session.status !== 'pending' && createdDate
+                    ? Math.round((Date.now() - createdDate.getTime()) / 60000)
                     : '--'
                   }
                 </p>
@@ -254,7 +281,7 @@ export function SessionDetailModal({ session, agents, onClose, onJoinSession }: 
                 </button>
               )}
 
-              {session.status === 'concluded' && (
+              {(session.status === 'concluded' || session.status === 'completed') && (
                 <button className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-agora-border">
                   <ExternalLink className="h-4 w-4" />
                   {t('detail.viewTranscript')}

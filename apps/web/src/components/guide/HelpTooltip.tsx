@@ -60,7 +60,7 @@ export function HelpTooltip({ content, title, position = 'bottom' }: HelpTooltip
       {isOpen && (
         <div
           ref={tooltipRef}
-          className={`absolute z-50 w-64 rounded-lg border border-agora-border bg-agora-card p-3 shadow-lg ${positionClasses[position]}`}
+          className={`absolute z-[100] w-64 rounded-lg border border-agora-border bg-agora-card p-3 shadow-lg ${positionClasses[position]}`}
         >
           <div
             className={`absolute h-0 w-0 border-[6px] ${arrowClasses[position]}`}

@@ -16,7 +16,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-import { fetchSignals, type Signal } from '@/lib/api';
+import { fetchSignals, type Signal, type SignalsResponse } from '@/lib/api';
 import { SignalCard } from '@/components/signals/SignalCard';
 import { SignalDetailModal } from '@/components/signals/SignalDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
@@ -47,11 +47,14 @@ export default function SignalsPage() {
   const [showProcessed, setShowProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
 
-  const { data: signals, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch } = useQuery<SignalsResponse>({
     queryKey: ['signals', selectedSource],
     queryFn: () => fetchSignals(100, selectedSource),
     refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  const signals = data?.signals;
+  const totalSignals = data?.total || 0;
 
   const filteredSignals = signals?.filter((signal) => {
     const sourceType = getSourceType(signal.source);
@@ -64,7 +67,8 @@ export default function SignalsPage() {
   });
 
   const stats = {
-    total: signals?.length || 0,
+    showing: signals?.length || 0,
+    total: totalSignals,
     processed: signals?.filter((s) => s.severity === 'low').length || 0,
     unprocessed: signals?.filter((s) => s.severity !== 'low').length || 0,
     highPriority: signals?.filter((s) => s.severity === 'high' || s.severity === 'critical').length || 0,
@@ -97,7 +101,12 @@ export default function SignalsPage() {
             <Radio className="h-4 w-4" />
             <span className="text-sm">{t('stats.total')}</span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.total}</p>
+          <p className="mt-2 text-2xl font-bold text-white">{stats.total.toLocaleString()}</p>
+          {stats.showing < stats.total && (
+            <p className="mt-1 text-xs text-agora-muted">
+              Showing {stats.showing} of {stats.total.toLocaleString()}
+            </p>
+          )}
         </div>
         <div className="rounded-lg border border-agora-border bg-agora-card p-4">
           <div className="flex items-center gap-2 text-agora-success">

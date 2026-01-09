@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Coins, Users, Vote, FileText, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
+
 interface TreasuryBalance {
   tokenAddress: string;
   tokenSymbol: string;
@@ -49,6 +51,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
 
 export default function TreasuryPage() {
   const t = useTranslations('Treasury');
+  const tGuide = useTranslations('Guide.tooltips');
   const [activeTab, setActiveTab] = useState<'overview' | 'allocations' | 'transactions' | 'holders'>('overview');
 
   const { data: dashboard, isLoading, refetch } = useQuery({
@@ -105,7 +108,10 @@ export default function TreasuryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('treasury')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button

@@ -8,6 +8,7 @@ import { Search, Filter, Users } from 'lucide-react';
 import { fetchAgents, type Agent } from '@/lib/api';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { AgentDetailModal } from '@/components/agents/AgentDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 const CLUSTERS = [
   'visionaries',
@@ -21,6 +22,7 @@ const CLUSTERS = [
 
 export default function AgentsPage() {
   const t = useTranslations('Agents');
+  const tGuide = useTranslations('Guide.tooltips');
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
@@ -52,7 +54,10 @@ export default function AgentsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('agents')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
 

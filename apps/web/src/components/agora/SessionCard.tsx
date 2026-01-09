@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, Clock, CheckCircle, Loader2, Info } from 'lucide-react';
+import { MessageSquare, Clock, CheckCircle, Loader2, Info, Users } from 'lucide-react';
 import type { AgoraSession } from '@/lib/api';
 
 interface SessionCardProps {
@@ -10,17 +10,29 @@ interface SessionCardProps {
   onDetailClick?: () => void;
 }
 
-const statusIcons = {
+const statusIcons: Record<string, React.ReactNode> = {
   pending: <Clock className="h-4 w-4 text-agora-warning" />,
   active: <Loader2 className="h-4 w-4 text-agora-success animate-spin" />,
   concluded: <CheckCircle className="h-4 w-4 text-agora-muted" />,
+  completed: <CheckCircle className="h-4 w-4 text-agora-muted" />,
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   pending: 'border-agora-warning/30 bg-agora-warning/5',
   active: 'border-agora-success/30 bg-agora-success/5',
   concluded: 'border-agora-border bg-agora-darker',
+  completed: 'border-agora-border bg-agora-darker',
 };
+
+function getParticipantCount(summoned_agents: string | null): number {
+  if (!summoned_agents) return 0;
+  try {
+    const parsed = JSON.parse(summoned_agents);
+    return Array.isArray(parsed) ? parsed.length : 0;
+  } catch {
+    return 0;
+  }
+}
 
 export function SessionCard({ session, isActive, onClick, onDetailClick }: SessionCardProps) {
   const handleDetailClick = (e: React.MouseEvent) => {
@@ -28,23 +40,25 @@ export function SessionCard({ session, isActive, onClick, onDetailClick }: Sessi
     onDetailClick?.();
   };
 
+  const participantCount = getParticipantCount(session.summoned_agents);
+
   return (
     <button
       onClick={onClick}
       className={`group w-full rounded-lg border p-3 text-left transition-all ${
         isActive
           ? 'border-agora-primary bg-agora-primary/10'
-          : statusColors[session.status]
+          : statusColors[session.status] || statusColors.active
       } hover:border-agora-primary/50`}
     >
       <div className="flex items-start gap-2">
-        {statusIcons[session.status]}
+        {statusIcons[session.status] || statusIcons.active}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-white truncate text-sm">
-            {session.topic}
+            {session.title}
           </h4>
           <p className="mt-1 text-xs text-agora-muted">
-            {new Date(session.createdAt).toLocaleDateString()}
+            {session.created_at ? new Date(session.created_at).toLocaleDateString() : 'No date'}
           </p>
         </div>
         {onDetailClick && (
@@ -57,12 +71,13 @@ export function SessionCard({ session, isActive, onClick, onDetailClick }: Sessi
           </button>
         )}
       </div>
-      {session.participants && session.participants.length > 0 && (
-        <div className="mt-2 flex items-center gap-1 text-xs text-agora-muted">
-          <MessageSquare className="h-3 w-3" />
-          <span>{session.participants.length} agents</span>
-        </div>
-      )}
+      <div className="mt-2 flex items-center gap-3 text-xs text-agora-muted">
+        <span className="flex items-center gap-1">
+          <Users className="h-3 w-3" />
+          {participantCount} agents
+        </span>
+        <span>Round {session.current_round}/{session.max_rounds}</span>
+      </div>
     </button>
   );
 }

@@ -16,9 +16,11 @@ import { BudgetCard } from '@/components/engine/BudgetCard';
 import { TierUsageCard } from '@/components/engine/TierUsageCard';
 import { SchedulerCard } from '@/components/engine/SchedulerCard';
 import { SystemHealthCard } from '@/components/engine/SystemHealthCard';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 export default function EngineRoomPage() {
   const t = useTranslations('Engine');
+  const tGuide = useTranslations('Guide.tooltips');
 
   const { data: health, refetch } = useQuery({
     queryKey: ['health'],
@@ -74,7 +76,10 @@ export default function EngineRoomPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('engine')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button

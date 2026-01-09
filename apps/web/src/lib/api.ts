@@ -35,10 +35,19 @@ export interface Activity {
 
 export interface AgoraSession {
   id: string;
-  topic: string;
-  status: 'pending' | 'active' | 'concluded';
-  participants: string[];
-  createdAt: string;
+  title: string;
+  description: string;
+  issue_id: string | null;
+  status: 'pending' | 'active' | 'concluded' | 'completed';
+  current_round: number;
+  max_rounds: number;
+  summoned_agents: string | null;
+  human_participants: string | null;
+  consensus_score: number | null;
+  created_at: string;
+  updated_at: string;
+  concluded_at: string | null;
+  issue_title?: string;
 }
 
 export interface Signal {
@@ -115,12 +124,17 @@ export async function dismissAgent(agentId: string): Promise<void> {
   await fetchAPI(`/api/agents/${agentId}/dismiss`, { method: 'POST' });
 }
 
-export async function fetchSignals(limit = 50, source?: string, severity?: string): Promise<Signal[]> {
+export interface SignalsResponse {
+  signals: Signal[];
+  total: number;
+}
+
+export async function fetchSignals(limit = 50, source?: string, severity?: string): Promise<SignalsResponse> {
   const params = new URLSearchParams({ limit: limit.toString() });
   if (source && source !== 'all') params.append('source', source);
   if (severity && severity !== 'all') params.append('severity', severity);
   const response = await fetchAPI<{ signals: Signal[]; total: number }>(`/api/signals?${params}`);
-  return response.signals || [];
+  return { signals: response.signals || [], total: response.total || 0 };
 }
 
 export async function fetchIssues(
