@@ -14,6 +14,10 @@ import { formatDistanceToNow } from 'date-fns';
 
 import { fetchActivities, type Activity } from '@/lib/api';
 
+interface ActivityFeedProps {
+  onActivityClick?: (activity: Activity) => void;
+}
+
 const activityIcons: Record<string, React.ReactNode> = {
   HEARTBEAT: <Heart className="h-4 w-4 text-agora-primary" />,
   COLLECTOR: <Radio className="h-4 w-4 text-agora-success" />,
@@ -23,7 +27,7 @@ const activityIcons: Record<string, React.ReactNode> = {
   DECISION_PACKET: <FileText className="h-4 w-4 text-agora-success" />,
 };
 
-export function ActivityFeed() {
+export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
   const t = useTranslations('Activity.types');
 
   const { data: activities, isLoading } = useQuery({
@@ -62,9 +66,10 @@ export function ActivityFeed() {
   return (
     <div className="space-y-2">
       {activities.map((activity: Activity) => (
-        <div
+        <button
           key={activity.id}
-          className="flex items-start gap-3 rounded-lg bg-agora-darker p-3 transition-colors hover:bg-agora-darker/80"
+          onClick={() => onActivityClick?.(activity)}
+          className="flex w-full items-start gap-3 rounded-lg bg-agora-darker p-3 text-left transition-colors hover:bg-agora-darker/80 hover:ring-1 hover:ring-agora-border"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-agora-card">
             {activityIcons[activity.type] || (
@@ -84,7 +89,7 @@ export function ActivityFeed() {
               addSuffix: true,
             })}
           </span>
-        </div>
+        </button>
       ))}
     </div>
   );

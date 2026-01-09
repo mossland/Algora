@@ -1,16 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, Users, MessageSquare, AlertTriangle } from 'lucide-react';
 
-import { fetchStats } from '@/lib/api';
+import { fetchStats, type Activity as ActivityType, type Agent } from '@/lib/api';
 import { StatsCard } from '@/components/ui/StatsCard';
 import { ActivityFeed } from '@/components/ui/ActivityFeed';
+import { ActivityDetailModal } from '@/components/ui/ActivityDetailModal';
 import { AgentLobbyPreview } from '@/components/agents/AgentLobbyPreview';
+import { AgentDetailModal } from '@/components/agents/AgentDetailModal';
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
+  const [selectedActivity, setSelectedActivity] = useState<ActivityType | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   const { data: stats } = useQuery({
     queryKey: ['stats'],
@@ -62,7 +67,7 @@ export default function DashboardPage() {
             <h2 className="mb-4 text-lg font-semibold text-white">
               {t('activityFeed')}
             </h2>
-            <ActivityFeed />
+            <ActivityFeed onActivityClick={setSelectedActivity} />
           </div>
         </div>
 
@@ -72,10 +77,26 @@ export default function DashboardPage() {
             <h2 className="mb-4 text-lg font-semibold text-white">
               {t('agentLobby')}
             </h2>
-            <AgentLobbyPreview />
+            <AgentLobbyPreview onAgentClick={setSelectedAgent} />
           </div>
         </div>
       </div>
+
+      {/* Activity Detail Modal */}
+      {selectedActivity && (
+        <ActivityDetailModal
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+        />
+      )}
+
+      {/* Agent Detail Modal */}
+      {selectedAgent && (
+        <AgentDetailModal
+          agent={selectedAgent}
+          onClose={() => setSelectedAgent(null)}
+        />
+      )}
     </div>
   );
 }

@@ -116,6 +116,20 @@
       "AGENT_SUMMONED": "에이전트 소환됨",
       "AGORA_SESSION_START": "세션 시작됨",
       "DECISION_PACKET": "Decision Packet"
+    },
+    "detail": {
+      "activityId": "활동 ID",
+      "severity": "심각도",
+      "timestamp": "타임스탬프",
+      "message": "메시지",
+      "details": "상세 내용",
+      "relatedAgent": "관련 에이전트",
+      "metadata": "메타데이터",
+      "timeInfo": "시간 정보",
+      "created": "생성 시간",
+      "occurred": "발생 시간",
+      "share": "공유",
+      "close": "닫기"
     }
   },
   "Engine": {

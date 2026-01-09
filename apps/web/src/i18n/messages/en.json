@@ -116,6 +116,20 @@
       "AGENT_SUMMONED": "Agent Summoned",
       "AGORA_SESSION_START": "Session Started",
       "DECISION_PACKET": "Decision Packet"
+    },
+    "detail": {
+      "activityId": "Activity ID",
+      "severity": "Severity",
+      "timestamp": "Timestamp",
+      "message": "Message",
+      "details": "Details",
+      "relatedAgent": "Related Agent",
+      "metadata": "Metadata",
+      "timeInfo": "Time Information",
+      "created": "Created",
+      "occurred": "Occurred",
+      "share": "Share",
+      "close": "Close"
     }
   },
   "Engine": {

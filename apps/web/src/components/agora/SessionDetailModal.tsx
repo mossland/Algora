@@ -50,7 +50,8 @@ const statusConfig = {
 export function SessionDetailModal({ session, agents, onClose, onJoinSession }: SessionDetailModalProps) {
   const t = useTranslations('Agora');
   const StatusIcon = statusConfig[session.status].icon;
-  const statusAnimate = 'animate' in statusConfig[session.status] ? statusConfig[session.status].animate : '';
+  const config = statusConfig[session.status];
+  const statusAnimate = 'animate' in config ? (config as { animate: string }).animate : '';
 
   // Get participant agent details
   const participantAgents = agents.filter(agent =>

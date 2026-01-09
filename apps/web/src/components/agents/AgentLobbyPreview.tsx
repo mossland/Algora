@@ -8,6 +8,10 @@ import { ChevronRight } from 'lucide-react';
 
 import { fetchAgents, type Agent } from '@/lib/api';
 
+interface AgentLobbyPreviewProps {
+  onAgentClick?: (agent: Agent) => void;
+}
+
 const statusColors: Record<string, string> = {
   idle: 'bg-gray-500',
   active: 'bg-agora-success',
@@ -16,7 +20,7 @@ const statusColors: Record<string, string> = {
   null: 'bg-gray-500',
 };
 
-export function AgentLobbyPreview() {
+export function AgentLobbyPreview({ onAgentClick }: AgentLobbyPreviewProps) {
   const t = useTranslations('Agents');
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
@@ -54,9 +58,10 @@ export function AgentLobbyPreview() {
   return (
     <div className="space-y-3">
       {displayAgents.map((agent: Agent) => (
-        <div
+        <button
           key={agent.id}
-          className="flex items-center gap-3 rounded-lg bg-agora-darker p-3 transition-colors hover:bg-agora-darker/80"
+          onClick={() => onAgentClick?.(agent)}
+          className="flex w-full items-center gap-3 rounded-lg bg-agora-darker p-3 text-left transition-colors hover:bg-agora-darker/80 hover:ring-1 hover:ring-agora-border"
         >
           <div className="relative">
             <div
@@ -77,7 +82,7 @@ export function AgentLobbyPreview() {
               {t(`groups.${agent.group_name}`)} · {t(`status.${agent.status || 'idle'}`)}
             </p>
           </div>
-        </div>
+        </button>
       ))}
 
       <Link
