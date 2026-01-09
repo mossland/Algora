@@ -48,7 +48,7 @@ export class LLMService extends EventEmitter {
     this.config = {
       tier1: {
         endpoint: process.env.LOCAL_LLM_ENDPOINT || 'http://localhost:11434',
-        model: process.env.LOCAL_LLM_MODEL || 'llama3.2:8b',
+        model: process.env.LOCAL_LLM_MODEL || 'llama3.2:3b',
         timeout: 30000,
       },
       tier2: {
