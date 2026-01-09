@@ -15,6 +15,7 @@ import { SessionCard } from '@/components/agora/SessionCard';
 import { ChatMessage } from '@/components/agora/ChatMessage';
 import { ParticipantList } from '@/components/agora/ParticipantList';
 import { NewSessionModal } from '@/components/agora/NewSessionModal';
+import { SessionDetailModal } from '@/components/agora/SessionDetailModal';
 
 export default function AgoraPage() {
   const t = useTranslations('Agora');
@@ -23,6 +24,7 @@ export default function AgoraPage() {
   const [showNewSession, setShowNewSession] = useState(false);
   const [message, setMessage] = useState('');
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [detailSession, setDetailSession] = useState<AgoraSession | null>(null);
 
   const { data: sessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['agora-sessions'],
@@ -122,6 +124,7 @@ export default function AgoraPage() {
                     session={session}
                     isActive={session.id === activeSessionId}
                     onClick={() => setActiveSessionId(session.id)}
+                    onDetailClick={() => setDetailSession(session)}
                   />
                 ))}
               </div>
@@ -141,6 +144,7 @@ export default function AgoraPage() {
                     session={session}
                     isActive={session.id === activeSessionId}
                     onClick={() => setActiveSessionId(session.id)}
+                    onDetailClick={() => setDetailSession(session)}
                   />
                 ))}
               </div>
@@ -160,6 +164,7 @@ export default function AgoraPage() {
                     session={session}
                     isActive={session.id === activeSessionId}
                     onClick={() => setActiveSessionId(session.id)}
+                    onDetailClick={() => setDetailSession(session)}
                   />
                 ))}
               </div>
@@ -269,6 +274,19 @@ export default function AgoraPage() {
             setActiveSessionId(sessionId);
             setShowNewSession(false);
             queryClient.invalidateQueries({ queryKey: ['agora-sessions'] });
+          }}
+        />
+      )}
+
+      {/* Session Detail Modal */}
+      {detailSession && (
+        <SessionDetailModal
+          session={detailSession}
+          agents={agents || []}
+          onClose={() => setDetailSession(null)}
+          onJoinSession={() => {
+            setActiveSessionId(detailSession.id);
+            setDetailSession(null);
           }}
         />
       )}

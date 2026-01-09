@@ -84,6 +84,28 @@
       "active": "Active",
       "speaking": "Speaking",
       "listening": "Listening"
+    },
+    "sessionStatus": {
+      "pending": "Pending",
+      "active": "Active",
+      "concluded": "Concluded"
+    },
+    "detail": {
+      "started": "Started",
+      "duration": "Duration",
+      "notStarted": "Not started yet",
+      "sessionEnded": "Session ended",
+      "inProgress": "In progress",
+      "participants": "Participants",
+      "agents": "agents",
+      "summary": "Session Summary",
+      "summaryPlaceholder": "Session summary will be generated when the session concludes.",
+      "messages": "Messages",
+      "minutes": "Minutes",
+      "share": "Share",
+      "joinSession": "Join Session",
+      "startSession": "Start Session",
+      "viewTranscript": "View Transcript"
     }
   },
   "Activity": {

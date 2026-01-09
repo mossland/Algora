@@ -1,12 +1,13 @@
 'use client';
 
-import { MessageSquare, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { MessageSquare, Clock, CheckCircle, Loader2, Info } from 'lucide-react';
 import type { AgoraSession } from '@/lib/api';
 
 interface SessionCardProps {
   session: AgoraSession;
   isActive: boolean;
   onClick: () => void;
+  onDetailClick?: () => void;
 }
 
 const statusIcons = {
@@ -21,11 +22,16 @@ const statusColors = {
   concluded: 'border-agora-border bg-agora-darker',
 };
 
-export function SessionCard({ session, isActive, onClick }: SessionCardProps) {
+export function SessionCard({ session, isActive, onClick, onDetailClick }: SessionCardProps) {
+  const handleDetailClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDetailClick?.();
+  };
+
   return (
     <button
       onClick={onClick}
-      className={`w-full rounded-lg border p-3 text-left transition-all ${
+      className={`group w-full rounded-lg border p-3 text-left transition-all ${
         isActive
           ? 'border-agora-primary bg-agora-primary/10'
           : statusColors[session.status]
@@ -41,6 +47,15 @@ export function SessionCard({ session, isActive, onClick }: SessionCardProps) {
             {new Date(session.createdAt).toLocaleDateString()}
           </p>
         </div>
+        {onDetailClick && (
+          <button
+            onClick={handleDetailClick}
+            className="opacity-0 group-hover:opacity-100 rounded p-1 text-agora-muted hover:bg-agora-border hover:text-white transition-all"
+            title="View details"
+          >
+            <Info className="h-4 w-4" />
+          </button>
+        )}
       </div>
       {session.participants && session.participants.length > 0 && (
         <div className="mt-2 flex items-center gap-1 text-xs text-agora-muted">
