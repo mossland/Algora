@@ -229,7 +229,8 @@ agoraRouter.post('/sessions/create', async (req, res) => {
     res.status(201).json({ session });
   } catch (error) {
     console.error('Failed to create session:', error);
-    res.status(500).json({ error: 'Failed to create session' });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: 'Failed to create session', details: errorMessage });
   }
 });
 

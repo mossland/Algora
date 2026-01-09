@@ -167,7 +167,7 @@ export class SummoningService {
     }
 
     // Prefer idle agents
-    query += ' ORDER BY CASE WHEN s.status = "idle" THEN 0 ELSE 1 END, RANDOM()';
+    query += " ORDER BY CASE WHEN s.status = 'idle' THEN 0 ELSE 1 END, RANDOM()";
 
     const params = context.requiredExpertise
       ? context.requiredExpertise.map(e => `%${e}%`)
