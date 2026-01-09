@@ -15,6 +15,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2] - 2026-01-10
+
+### Added
+- **Agora Enhancements**:
+  - Real-time message fetching from database (replaced mock data)
+  - Agent group display in participant list (Visionaries, Builders, etc.)
+  - Group-based color coding for participants
+  - Participant count in sidebar header
+- **Auto Discussion Improvements**:
+  - Auto-start discussion when session is created with `autoSummon`
+  - Random intervals between 30 seconds to 2 minutes (more natural pacing)
+  - First message after 5-10 second delay
+- **Disclosure Page**: New transparency reports page with mock data
+
+### Fixed
+- **Tooltip z-index**: Fixed help tooltips being hidden behind sidebar by using fixed positioning with calculated coordinates (z-index 9999)
+- **Documentation link**: Fixed HelpMenu docs link (`algoradao/algora` → `mossland/Algora/blob/main/USER_GUIDE.md`)
+- **Agora Invalid Date**: Fixed `AgoraSession` interface to match API response (snake_case: `created_at`, `updated_at`, etc.)
+- **Signals pagination**: Show "Showing X of Y" when displaying fewer signals than total
+- **AutoSummon agents**: Fixed `summoned_agents` column not being updated when agents are added via `addParticipant()`
+- **SQL syntax error**: Fixed double quotes to single quotes for SQLite string literals in SummoningService
+
+### Changed
+- `AgoraMessage` interface added to API types
+- `fetchSessionWithMessages()` function added for fetching session with messages
+- `startAutomatedDiscussion()` now uses setTimeout with random intervals instead of fixed setInterval
+
+---
+
 ## [0.2.1] - 2026-01-09
 
 ### Added

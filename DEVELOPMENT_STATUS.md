@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-09
-**Current Version**: 0.2.0
+**Last Updated**: 2026-01-10
+**Current Version**: 0.2.2
 
 ---
 
@@ -50,6 +50,10 @@ This file tracks the current development progress for continuity between session
 - [x] StatsCard component
 - [x] **Agents page** - Grid view, cluster filter, detail modal, summon/dismiss
 - [x] **Agora page** - Live chat, session management, participant list
+  - [x] Real-time message fetching from database
+  - [x] Agent group display with color coding in participant list
+  - [x] Auto-start discussion with random intervals (30s-2min)
+- [x] **Disclosure page** - Transparency reports and governance disclosures
 - [x] **Signals page** - Source filtering, priority indicators, stats
 - [x] **Issues page** - Status workflow, priority filter, search
 - [x] **Proposals page** - Voting progress, quorum tracking, filters
@@ -58,7 +62,7 @@ This file tracks the current development progress for continuity between session
 - [x] **UX Guide System**
   - [x] WelcomeTour component (multi-step guided tour)
   - [x] SystemFlowDiagram component (visual pipeline)
-  - [x] HelpTooltip component (contextual help icons)
+  - [x] HelpTooltip component (fixed positioning, z-index 9999)
   - [x] HelpMenu component (header quick access menu)
   - [x] localStorage persistence for tour completion
 
@@ -70,6 +74,9 @@ This file tracks the current development progress for continuity between session
 - [x] ChatterService - Agent idle message generation (chatter.ts)
 - [x] SummoningService - Dynamic agent summoning (summoning.ts)
 - [x] AgoraService - Session management with LLM responses (agora.ts)
+  - [x] Auto-start discussion when session created with autoSummon
+  - [x] Random intervals (30s-2min) for natural conversation pacing
+  - [x] Auto-update summoned_agents when participants added
 - [x] Real-time WebSocket events for all services
 - [x] API endpoints for chatter (/api/chatter)
 - [x] Enhanced Agora API with automated discussions
