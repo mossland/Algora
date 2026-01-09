@@ -7,7 +7,7 @@
 
 ---
 
-## 현재 단계: 기반 구축 완료
+## 현재 단계: 프론트엔드 완료 (v0.2.0)
 
 ### 완료된 기능
 
@@ -37,7 +37,7 @@
 - [x] ActivityService (10초 간격 하트비트)
 - [x] SchedulerService (3-tier LLM)
 
-#### 프론트엔드 - apps/web (90%)
+#### 프론트엔드 - apps/web (100%)
 - [x] Next.js 14 (App Router)
 - [x] next-intl (영어/한국어 i18n)
 - [x] TanStack Query (데이터 fetching)
@@ -48,12 +48,12 @@
 - [x] ActivityFeed 컴포넌트
 - [x] AgentLobbyPreview 컴포넌트
 - [x] StatsCard 컴포넌트
-- [ ] 에이전트 페이지 (전체 목록)
-- [ ] 아고라 페이지 (실시간 토론)
-- [ ] 신호 페이지
-- [ ] 이슈 페이지
-- [ ] 제안 페이지
-- [ ] 엔진룸 페이지
+- [x] **에이전트 페이지** - 그리드 뷰, 클러스터 필터, 상세 모달, 소환/퇴장
+- [x] **아고라 페이지** - 실시간 채팅, 세션 관리, 참가자 목록
+- [x] **신호 페이지** - 소스 필터링, 우선순위 표시, 통계
+- [x] **이슈 페이지** - 상태 워크플로우, 우선순위 필터, 검색
+- [x] **제안 페이지** - 투표 진행률, 정족수 추적, 필터
+- [x] **엔진룸 페이지** - 예산, tier 사용량, 스케줄러, 시스템 상태
 
 #### 공유 패키지
 - [x] packages/core - TypeScript 타입
@@ -75,29 +75,6 @@
 ---
 
 ## 다음 단계 (우선순위 순)
-
-### 1단계: 프론트엔드 페이지 완성
-1. **에이전트 페이지** (`/agents`)
-   - 30개 에이전트 그리드 뷰
-   - 클러스터/상태별 필터
-   - 에이전트 상세 모달
-   - 소환/퇴장 기능
-
-2. **아고라 페이지** (`/agora`)
-   - 실시간 채팅 인터페이스
-   - 활성 세션 표시
-   - 메시지 히스토리
-   - 에이전트 참여 표시
-
-3. **신호 페이지** (`/signals`)
-   - 필터가 있는 신호 목록
-   - 소스 표시 (RSS, GitHub 등)
-   - 처리 상태
-
-4. **이슈 페이지** (`/issues`)
-   - 우선순위가 있는 이슈 카드
-   - 상태 워크플로우
-   - 관련 신호
 
 ### 2단계: 에이전트 시스템
 1. 로컬 LLM 통합 구현 (Ollama)
@@ -132,15 +109,16 @@ cd apps/web && pnpm dev   # 프론트엔드 :3200
 ## Git 커밋 히스토리
 
 ```
+451a1d0 feat(web): Add Engine Room page with system monitoring
+b1d61a3 feat(web): Add Proposals page with voting interface
+5b1a6de feat(web): Add Issues page with status workflow
+0816720 feat(web): Add Signals page with source filtering
+40b7bcc feat(web): Add Agora page with live deliberation interface
+e388a3a feat(web): Add Agents page with grid view and detail modal
+00d555d docs: Add development status tracking
 e7354e9 fix(api): Add missing /api/stats and /api/activity endpoints
 e413b1b fix(web): Fix API response handling
 66e5dda fix(web): Add missing date-fns dependency
-211c948 docs: Update CHANGELOG for v0.1.0 release
-9dc8d82 feat(core): Add shared types package
-01b24e5 feat(web): Add Next.js frontend with i18n
-ef79042 feat(api): Add Express + Socket.IO backend
-1adbbdb chore: Add root configuration files
-0ba33d3 docs: Add project documentation
 ```
 
 ---

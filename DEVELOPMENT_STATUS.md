@@ -7,7 +7,7 @@ This file tracks the current development progress for continuity between session
 
 ---
 
-## Current Phase: Foundation Complete
+## Current Phase: Frontend Complete (v0.2.0)
 
 ### Completed Features
 
@@ -37,7 +37,7 @@ This file tracks the current development progress for continuity between session
 - [x] ActivityService with heartbeat (10s interval)
 - [x] SchedulerService for 3-tier LLM
 
-#### Frontend - apps/web (90%)
+#### Frontend - apps/web (100%)
 - [x] Next.js 14 with App Router
 - [x] next-intl for i18n (en/ko)
 - [x] TanStack Query for data fetching
@@ -48,12 +48,12 @@ This file tracks the current development progress for continuity between session
 - [x] ActivityFeed component
 - [x] AgentLobbyPreview component
 - [x] StatsCard component
-- [ ] Agents page (list all agents)
-- [ ] Agora page (live deliberation)
-- [ ] Signals page
-- [ ] Issues page
-- [ ] Proposals page
-- [ ] Engine Room page
+- [x] **Agents page** - Grid view, cluster filter, detail modal, summon/dismiss
+- [x] **Agora page** - Live chat, session management, participant list
+- [x] **Signals page** - Source filtering, priority indicators, stats
+- [x] **Issues page** - Status workflow, priority filter, search
+- [x] **Proposals page** - Voting progress, quorum tracking, filters
+- [x] **Engine Room page** - Budget, tier usage, scheduler, system health
 
 #### Shared Packages
 - [x] packages/core - TypeScript types
@@ -75,29 +75,6 @@ This file tracks the current development progress for continuity between session
 ---
 
 ## Next Steps (Priority Order)
-
-### Phase 1: Complete Frontend Pages
-1. **Agents Page** (`/agents`)
-   - Grid view of all 30 agents
-   - Filter by cluster/status
-   - Agent detail modal
-   - Summon/Dismiss functionality
-
-2. **Agora Page** (`/agora`)
-   - Live chat interface
-   - Active session display
-   - Message history
-   - Agent participation indicators
-
-3. **Signals Page** (`/signals`)
-   - Signal list with filters
-   - Source indicators (RSS, GitHub, etc.)
-   - Processing status
-
-4. **Issues Page** (`/issues`)
-   - Issue cards with priority
-   - Status workflow
-   - Related signals
 
 ### Phase 2: Agent System
 1. Implement local LLM integration (Ollama)
@@ -132,15 +109,16 @@ cd apps/web && pnpm dev   # Frontend on :3200
 ## Git Commit History
 
 ```
+451a1d0 feat(web): Add Engine Room page with system monitoring
+b1d61a3 feat(web): Add Proposals page with voting interface
+5b1a6de feat(web): Add Issues page with status workflow
+0816720 feat(web): Add Signals page with source filtering
+40b7bcc feat(web): Add Agora page with live deliberation interface
+e388a3a feat(web): Add Agents page with grid view and detail modal
+00d555d docs: Add development status tracking
 e7354e9 fix(api): Add missing /api/stats and /api/activity endpoints
 e413b1b fix(web): Fix API response handling
 66e5dda fix(web): Add missing date-fns dependency
-211c948 docs: Update CHANGELOG for v0.1.0 release
-9dc8d82 feat(core): Add shared types package
-01b24e5 feat(web): Add Next.js frontend with i18n
-ef79042 feat(api): Add Express + Socket.IO backend
-1adbbdb chore: Add root configuration files
-0ba33d3 docs: Add project documentation
 ```
 
 ---
