@@ -24,8 +24,13 @@ export interface Agent {
 export interface Activity {
   id: string;
   type: string;
-  payload: Record<string, unknown>;
-  createdAt: string;
+  severity: string;
+  timestamp: string;
+  message: string;
+  agent_id: string | null;
+  details: string | null;
+  metadata: string | null;
+  created_at: string;
 }
 
 export interface AgoraSession {

@@ -3,6 +3,32 @@ import type Database from 'better-sqlite3';
 
 export const activityRouter = Router();
 
+// GET /api/activity - Get recent activity (root path)
+activityRouter.get('/', (req, res) => {
+  const db: Database.Database = req.app.locals.db;
+  const { limit = '20', type } = req.query;
+
+  try {
+    let query = 'SELECT * FROM activity_log WHERE 1=1';
+    const params: any[] = [];
+
+    if (type) {
+      query += ' AND type = ?';
+      params.push(type);
+    }
+
+    query += ' ORDER BY timestamp DESC LIMIT ?';
+    params.push(parseInt(limit as string));
+
+    const activities = db.prepare(query).all(...params);
+
+    res.json({ activities });
+  } catch (error) {
+    console.error('Failed to fetch activities:', error);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
 // GET /api/activity/recent - Get recent activity
 activityRouter.get('/recent', (req, res) => {
   const db: Database.Database = req.app.locals.db;

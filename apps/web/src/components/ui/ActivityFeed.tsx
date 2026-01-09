@@ -76,13 +76,11 @@ export function ActivityFeed() {
               {t(activity.type as keyof typeof activityIcons)}
             </p>
             <p className="text-xs text-agora-muted truncate">
-              {activity.payload?.message ||
-                activity.payload?.agent ||
-                JSON.stringify(activity.payload)}
+              {activity.message || activity.details || ''}
             </p>
           </div>
           <span className="text-xs text-agora-muted whitespace-nowrap">
-            {formatDistanceToNow(new Date(activity.createdAt), {
+            {formatDistanceToNow(new Date(activity.timestamp || activity.created_at), {
               addSuffix: true,
             })}
           </span>
