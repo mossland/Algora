@@ -13,11 +13,12 @@ export interface Stats {
 export interface Agent {
   id: string;
   name: string;
-  persona: string;
-  cluster: string;
+  display_name: string;
+  group_name: string;
+  persona_prompt: string;
   color: string;
-  state: 'idle' | 'active' | 'speaking' | 'listening';
-  avatar?: string;
+  status: 'idle' | 'active' | 'speaking' | 'listening' | null;
+  avatar_url?: string;
 }
 
 export interface Activity {
@@ -56,15 +57,18 @@ export async function fetchStats(): Promise<Stats> {
 }
 
 export async function fetchAgents(): Promise<Agent[]> {
-  return fetchAPI<Agent[]>('/api/agents');
+  const response = await fetchAPI<{ agents: Agent[] }>('/api/agents');
+  return response.agents || [];
 }
 
 export async function fetchActivities(limit = 20): Promise<Activity[]> {
-  return fetchAPI<Activity[]>(`/api/activity?limit=${limit}`);
+  const response = await fetchAPI<{ activities: Activity[] }>(`/api/activity?limit=${limit}`);
+  return response.activities || [];
 }
 
 export async function fetchAgoraSessions(): Promise<AgoraSession[]> {
-  return fetchAPI<AgoraSession[]>('/api/agora/sessions');
+  const response = await fetchAPI<{ sessions: AgoraSession[] }>('/api/agora/sessions');
+  return response.sessions || [];
 }
 
 export async function summonAgent(agentId: string): Promise<void> {

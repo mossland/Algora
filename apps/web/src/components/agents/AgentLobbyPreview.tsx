@@ -8,11 +8,12 @@ import { ChevronRight } from 'lucide-react';
 
 import { fetchAgents, type Agent } from '@/lib/api';
 
-const stateColors: Record<string, string> = {
+const statusColors: Record<string, string> = {
   idle: 'bg-gray-500',
   active: 'bg-agora-success',
   speaking: 'bg-agora-accent animate-pulse',
   listening: 'bg-agora-primary',
+  null: 'bg-gray-500',
 };
 
 export function AgentLobbyPreview() {
@@ -46,7 +47,7 @@ export function AgentLobbyPreview() {
   }
 
   const activeAgents =
-    agents?.filter((a: Agent) => a.state !== 'idle').slice(0, 5) || [];
+    agents?.filter((a: Agent) => a.status && a.status !== 'idle').slice(0, 5) || [];
   const displayAgents =
     activeAgents.length > 0 ? activeAgents : agents?.slice(0, 5) || [];
 
@@ -60,20 +61,20 @@ export function AgentLobbyPreview() {
           <div className="relative">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-              style={{ backgroundColor: agent.color }}
+              style={{ backgroundColor: agent.color || '#6366f1' }}
             >
-              {agent.name.charAt(0)}
+              {agent.display_name?.charAt(0) || agent.name.charAt(0)}
             </div>
             <span
-              className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-agora-darker ${stateColors[agent.state]}`}
+              className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-agora-darker ${statusColors[agent.status || 'idle']}`}
             />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
-              {agent.name}
+              {agent.display_name || agent.name}
             </p>
             <p className="text-xs text-agora-muted truncate">
-              {t(`groups.${agent.cluster}`)} · {t(`status.${agent.state}`)}
+              {t(`groups.${agent.group_name}`)} · {t(`status.${agent.status || 'idle'}`)}
             </p>
           </div>
         </div>
