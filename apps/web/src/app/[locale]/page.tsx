@@ -11,9 +11,11 @@ import { ActivityFeed } from '@/components/ui/ActivityFeed';
 import { ActivityDetailModal } from '@/components/ui/ActivityDetailModal';
 import { AgentLobbyPreview } from '@/components/agents/AgentLobbyPreview';
 import { AgentDetailModal } from '@/components/agents/AgentDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
+  const tGuide = useTranslations('Guide.tooltips');
   const [selectedActivity, setSelectedActivity] = useState<ActivityType | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
@@ -27,7 +29,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <HelpTooltip content={tGuide('dashboard')} />
+        </div>
         <p className="text-agora-muted">{t('subtitle')}</p>
       </div>
 

@@ -13,10 +13,12 @@ import {
   Settings,
   MessageSquare,
   Coins,
+  BookOpen,
 } from 'lucide-react';
 
 const navItems = [
   { key: 'dashboard', href: '/', icon: LayoutDashboard },
+  { key: 'guide', href: '/guide', icon: BookOpen },
   { key: 'agora', href: '/agora', icon: MessageSquare },
   { key: 'agents', href: '/agents', icon: Users },
   { key: 'signals', href: '/signals', icon: Radio },

@@ -15,6 +15,7 @@ import {
 
 import { IssueCard } from '@/components/issues/IssueCard';
 import { IssueDetailModal } from '@/components/issues/IssueDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 interface Issue {
   id: string;
@@ -92,6 +93,7 @@ const mockIssues: Issue[] = [
 
 export default function IssuesPage() {
   const t = useTranslations('Issues');
+  const tGuide = useTranslations('Guide.tooltips');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +129,10 @@ export default function IssuesPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('issues')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 font-medium text-white transition-colors hover:bg-agora-primary/80">

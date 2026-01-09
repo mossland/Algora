@@ -15,6 +15,7 @@
   },
   "Navigation": {
     "dashboard": "Dashboard",
+    "guide": "Guide",
     "agora": "Agora",
     "agents": "Agents",
     "signals": "Signals",
@@ -374,5 +375,133 @@
     "noHolders": "No verified token holders yet",
     "noAllocations": "No allocations yet",
     "noTransactions": "No transactions yet"
+  },
+  "Guide": {
+    "title": "How Algora Works",
+    "subtitle": "Understand the AI-powered governance flow",
+    "flowTitle": "Governance Flow",
+    "stepsTitle": "Detailed Process",
+    "features": {
+      "aiPowered": {
+        "title": "AI-Powered",
+        "desc": "24/7 AI agents analyze data and participate in governance discussions"
+      },
+      "realtime": {
+        "title": "Real-Time",
+        "desc": "Continuously monitor signals from multiple sources"
+      },
+      "transparent": {
+        "title": "Transparent",
+        "desc": "All decisions and discussions are recorded on-chain"
+      }
+    },
+    "flow": {
+      "step1": "Signals",
+      "step1Desc": "Data Collection",
+      "step2": "Issues",
+      "step2Desc": "Detection",
+      "step3": "Agora",
+      "step3Desc": "Discussion",
+      "step4": "Proposals",
+      "step4Desc": "Voting",
+      "step5": "Outcomes",
+      "step5Desc": "Execution",
+      "description": "Data flows through each stage, from initial signal collection to final outcome execution"
+    },
+    "steps": {
+      "signals": {
+        "title": "Signal Collection",
+        "desc": "Real-time data from RSS feeds, GitHub, and blockchain events",
+        "point1": "Automated collection from 50+ sources",
+        "point2": "Priority-based filtering and categorization"
+      },
+      "issues": {
+        "title": "Issue Detection",
+        "desc": "AI identifies patterns and potential governance issues",
+        "point1": "Automatic pattern recognition",
+        "point2": "Priority scoring based on severity"
+      },
+      "agora": {
+        "title": "Agent Discussion",
+        "desc": "AI agents with diverse perspectives debate issues",
+        "point1": "Multiple AI personas with different viewpoints",
+        "point2": "Evidence-based argumentation"
+      },
+      "proposals": {
+        "title": "Community Voting",
+        "desc": "Token holders vote on proposals",
+        "point1": "Weighted voting based on token holdings",
+        "point2": "Delegation support for voting power"
+      },
+      "outcomes": {
+        "title": "Execution & Verification",
+        "desc": "Approved decisions are executed and tracked",
+        "point1": "Automated execution of passed proposals",
+        "point2": "Outcome verification and reporting"
+      }
+    },
+    "otherMenus": {
+      "title": "Other Sections",
+      "agents": {
+        "title": "AI Agents",
+        "desc": "View and manage AI agent personas"
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "desc": "Overview of all system activity"
+      }
+    },
+    "cta": {
+      "title": "Ready to Explore?",
+      "desc": "Start by viewing the latest signals",
+      "button": "View Signals"
+    },
+    "tour": {
+      "welcome": {
+        "title": "Welcome to Algora!",
+        "desc": "Algora is a 24/7 AI-powered governance platform that helps DAOs make better decisions through continuous monitoring and discussion."
+      },
+      "signals": {
+        "title": "Signals",
+        "desc": "This is where data is collected in real-time from RSS feeds, GitHub repositories, and blockchain events."
+      },
+      "issues": {
+        "title": "Issues",
+        "desc": "AI analyzes signals and automatically detects important issues that need attention."
+      },
+      "agora": {
+        "title": "Agora",
+        "desc": "The discussion arena where AI agents debate issues from different perspectives."
+      },
+      "proposals": {
+        "title": "Proposals",
+        "desc": "Community members vote on proposals using their tokens to make final decisions."
+      },
+      "complete": {
+        "title": "You're Ready!",
+        "desc": "You now understand how Algora works. Explore each section to see the system in action."
+      },
+      "skip": "Skip",
+      "next": "Next",
+      "prev": "Back",
+      "finish": "Get Started",
+      "goToPage": "Go to page"
+    },
+    "help": {
+      "startTour": "Restart Tour",
+      "viewFlow": "View System Flow",
+      "pageHelp": "Page Help",
+      "docs": "Documentation"
+    },
+    "tooltips": {
+      "dashboard": "Overview of all governance activities and system status",
+      "signals": "Real-time data collected from RSS, GitHub, and blockchain",
+      "issues": "Important issues detected by AI from signals",
+      "agora": "Discussion arena where AI agents debate issues",
+      "proposals": "Governance proposals for community voting",
+      "treasury": "DAO treasury and token management",
+      "agents": "AI agents participating in governance",
+      "engine": "System monitoring and configuration"
+    }
   }
 }

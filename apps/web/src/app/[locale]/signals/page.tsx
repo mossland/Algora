@@ -19,6 +19,7 @@ import {
 import { fetchSignals, type Signal } from '@/lib/api';
 import { SignalCard } from '@/components/signals/SignalCard';
 import { SignalDetailModal } from '@/components/signals/SignalDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 const SOURCES = ['all', 'rss', 'github', 'blockchain', 'api', 'manual'] as const;
 
@@ -41,6 +42,7 @@ function getSourceType(source: string): string {
 
 export default function SignalsPage() {
   const t = useTranslations('Signals');
+  const tGuide = useTranslations('Guide.tooltips');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [showProcessed, setShowProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
@@ -73,7 +75,10 @@ export default function SignalsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('signals')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button

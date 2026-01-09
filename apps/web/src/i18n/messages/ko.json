@@ -15,6 +15,7 @@
   },
   "Navigation": {
     "dashboard": "대시보드",
+    "guide": "가이드",
     "agora": "아고라",
     "agents": "에이전트",
     "signals": "신호",
@@ -374,5 +375,133 @@
     "noHolders": "인증된 토큰 홀더가 없습니다",
     "noAllocations": "할당 내역이 없습니다",
     "noTransactions": "거래 내역이 없습니다"
+  },
+  "Guide": {
+    "title": "Algora 사용 가이드",
+    "subtitle": "AI 기반 거버넌스 흐름 이해하기",
+    "flowTitle": "거버넌스 흐름",
+    "stepsTitle": "상세 프로세스",
+    "features": {
+      "aiPowered": {
+        "title": "AI 기반",
+        "desc": "24시간 AI 에이전트가 데이터를 분석하고 거버넌스 토론에 참여합니다"
+      },
+      "realtime": {
+        "title": "실시간",
+        "desc": "다양한 소스에서 신호를 지속적으로 모니터링합니다"
+      },
+      "transparent": {
+        "title": "투명성",
+        "desc": "모든 결정과 토론이 온체인에 기록됩니다"
+      }
+    },
+    "flow": {
+      "step1": "신호",
+      "step1Desc": "데이터 수집",
+      "step2": "이슈",
+      "step2Desc": "감지",
+      "step3": "아고라",
+      "step3Desc": "토론",
+      "step4": "제안",
+      "step4Desc": "투표",
+      "step5": "결과",
+      "step5Desc": "실행",
+      "description": "데이터는 신호 수집부터 최종 결과 실행까지 각 단계를 거쳐 흐릅니다"
+    },
+    "steps": {
+      "signals": {
+        "title": "신호 수집",
+        "desc": "RSS 피드, GitHub, 블록체인 이벤트에서 실시간 데이터 수집",
+        "point1": "50개 이상의 소스에서 자동 수집",
+        "point2": "우선순위 기반 필터링 및 분류"
+      },
+      "issues": {
+        "title": "이슈 감지",
+        "desc": "AI가 패턴과 잠재적 거버넌스 이슈를 식별합니다",
+        "point1": "자동 패턴 인식",
+        "point2": "심각도 기반 우선순위 점수"
+      },
+      "agora": {
+        "title": "에이전트 토론",
+        "desc": "다양한 관점을 가진 AI 에이전트들이 이슈를 토론합니다",
+        "point1": "다양한 관점의 AI 페르소나",
+        "point2": "증거 기반 논증"
+      },
+      "proposals": {
+        "title": "커뮤니티 투표",
+        "desc": "토큰 홀더가 제안에 투표합니다",
+        "point1": "토큰 보유량 기반 가중 투표",
+        "point2": "투표권 위임 지원"
+      },
+      "outcomes": {
+        "title": "실행 및 검증",
+        "desc": "승인된 결정이 실행되고 추적됩니다",
+        "point1": "통과된 제안의 자동 실행",
+        "point2": "결과 검증 및 리포팅"
+      }
+    },
+    "otherMenus": {
+      "title": "기타 섹션",
+      "agents": {
+        "title": "AI 에이전트",
+        "desc": "AI 에이전트 페르소나 보기 및 관리"
+      },
+      "dashboard": {
+        "title": "대시보드",
+        "desc": "전체 시스템 활동 개요"
+      }
+    },
+    "cta": {
+      "title": "탐색할 준비가 되셨나요?",
+      "desc": "최신 신호를 확인하며 시작하세요",
+      "button": "신호 보기"
+    },
+    "tour": {
+      "welcome": {
+        "title": "Algora에 오신 것을 환영합니다!",
+        "desc": "Algora는 지속적인 모니터링과 토론을 통해 DAO가 더 나은 결정을 내릴 수 있도록 돕는 24시간 AI 기반 거버넌스 플랫폼입니다."
+      },
+      "signals": {
+        "title": "신호",
+        "desc": "RSS 피드, GitHub 저장소, 블록체인 이벤트에서 실시간으로 데이터가 수집되는 곳입니다."
+      },
+      "issues": {
+        "title": "이슈",
+        "desc": "AI가 신호를 분석하고 주의가 필요한 중요한 이슈를 자동으로 감지합니다."
+      },
+      "agora": {
+        "title": "아고라",
+        "desc": "AI 에이전트들이 다양한 관점에서 이슈를 토론하는 토론 아레나입니다."
+      },
+      "proposals": {
+        "title": "제안",
+        "desc": "커뮤니티 구성원들이 토큰을 사용하여 제안에 투표하고 최종 결정을 내립니다."
+      },
+      "complete": {
+        "title": "준비 완료!",
+        "desc": "이제 Algora의 작동 방식을 이해하셨습니다. 각 섹션을 탐색하여 시스템을 직접 확인해보세요."
+      },
+      "skip": "건너뛰기",
+      "next": "다음",
+      "prev": "이전",
+      "finish": "시작하기",
+      "goToPage": "페이지로 이동"
+    },
+    "help": {
+      "startTour": "투어 다시 보기",
+      "viewFlow": "시스템 흐름 보기",
+      "pageHelp": "페이지 도움말",
+      "docs": "문서"
+    },
+    "tooltips": {
+      "dashboard": "모든 거버넌스 활동과 시스템 상태 개요",
+      "signals": "RSS, GitHub, 블록체인에서 수집된 실시간 데이터",
+      "issues": "AI가 신호에서 감지한 중요 이슈",
+      "agora": "AI 에이전트들이 이슈를 토론하는 토론장",
+      "proposals": "커뮤니티 투표를 위한 거버넌스 제안",
+      "treasury": "DAO 트레저리 및 토큰 관리",
+      "agents": "거버넌스에 참여하는 AI 에이전트",
+      "engine": "시스템 모니터링 및 설정"
+    }
   }
 }

@@ -1,15 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { Globe, Activity, Clock, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
+import { HelpMenu } from '@/components/guide/HelpMenu';
+import { WelcomeTour } from '@/components/guide/WelcomeTour';
 
 export function Header() {
   const t = useTranslations('Header');
   const pathname = usePathname();
+  const [showTour, setShowTour] = useState(false);
 
   const currentLocale = pathname.split('/')[1] || 'en';
   const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/';
@@ -94,6 +98,9 @@ export function Header() {
         {/* Wallet Connect */}
         <WalletConnect />
 
+        {/* Help Menu */}
+        <HelpMenu onStartTour={() => setShowTour(true)} />
+
         {/* Language Toggle */}
         <Link
           href={`/${otherLocale}${pathWithoutLocale}`}
@@ -103,6 +110,9 @@ export function Header() {
           <span>{otherLocale === 'en' ? 'EN' : '한국어'}</span>
         </Link>
       </div>
+
+      {/* Welcome Tour */}
+      <WelcomeTour forceShow={showTour} onComplete={() => setShowTour(false)} />
     </header>
   );
 }

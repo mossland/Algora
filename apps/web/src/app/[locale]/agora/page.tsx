@@ -16,9 +16,11 @@ import { ChatMessage } from '@/components/agora/ChatMessage';
 import { ParticipantList } from '@/components/agora/ParticipantList';
 import { NewSessionModal } from '@/components/agora/NewSessionModal';
 import { SessionDetailModal } from '@/components/agora/SessionDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 export default function AgoraPage() {
   const t = useTranslations('Agora');
+  const tGuide = useTranslations('Guide.tooltips');
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showNewSession, setShowNewSession] = useState(false);
@@ -95,7 +97,10 @@ export default function AgoraPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('agora')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button

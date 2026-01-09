@@ -16,6 +16,7 @@ import {
 
 import { ProposalCard } from '@/components/proposals/ProposalCard';
 import { ProposalDetailModal } from '@/components/proposals/ProposalDetailModal';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 interface Proposal {
   id: string;
@@ -107,6 +108,7 @@ const mockProposals: Proposal[] = [
 
 export default function ProposalsPage() {
   const t = useTranslations('Proposals');
+  const tGuide = useTranslations('Guide.tooltips');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
@@ -141,7 +143,10 @@ export default function ProposalsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+            <HelpTooltip content={tGuide('proposals')} />
+          </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
         <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 font-medium text-white transition-colors hover:bg-agora-primary/80">
