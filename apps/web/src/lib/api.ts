@@ -116,6 +116,30 @@ export async function fetchAgoraSessions(): Promise<AgoraSession[]> {
   return response.sessions || [];
 }
 
+export interface AgoraMessage {
+  id: string;
+  session_id: string;
+  agent_id: string | null;
+  human_id: string | null;
+  message_type: string;
+  content: string;
+  evidence: string | null;
+  tier_used: number;
+  created_at: string;
+  agent_name?: string;
+  display_name?: string;
+  color?: string;
+}
+
+export interface SessionWithMessages {
+  session: AgoraSession;
+  messages: AgoraMessage[];
+}
+
+export async function fetchSessionWithMessages(sessionId: string): Promise<SessionWithMessages> {
+  return fetchAPI<SessionWithMessages>(`/api/agora/sessions/${sessionId}`);
+}
+
 export async function summonAgent(agentId: string): Promise<void> {
   await fetchAPI(`/api/agents/${agentId}/summon`, { method: 'POST' });
 }

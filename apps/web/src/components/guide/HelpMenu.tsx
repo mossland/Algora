@@ -65,7 +65,7 @@ export function HelpMenu({ onStartTour }: HelpMenuProps) {
             </a>
             <div className="my-2 border-t border-agora-border" />
             <a
-              href="https://github.com/algoradao/algora"
+              href="https://github.com/mossland/Algora/blob/main/USER_GUIDE.md"
               target="_blank"
               rel="noopener noreferrer"
               className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-white"

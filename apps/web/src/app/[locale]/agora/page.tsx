@@ -10,13 +10,24 @@ import {
   Plus,
 } from 'lucide-react';
 
-import { fetchAgents, fetchAgoraSessions, type AgoraSession } from '@/lib/api';
+import { fetchAgents, fetchAgoraSessions, fetchSessionWithMessages, type AgoraSession, type AgoraMessage } from '@/lib/api';
 import { SessionCard } from '@/components/agora/SessionCard';
 import { ChatMessage } from '@/components/agora/ChatMessage';
 import { ParticipantList } from '@/components/agora/ParticipantList';
 import { NewSessionModal } from '@/components/agora/NewSessionModal';
 import { SessionDetailModal } from '@/components/agora/SessionDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+
+// Helper to parse summoned_agents JSON string
+function parseParticipants(summoned_agents: string | null): string[] {
+  if (!summoned_agents) return [];
+  try {
+    const parsed = JSON.parse(summoned_agents);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function AgoraPage() {
   const t = useTranslations('Agora');
@@ -39,45 +50,23 @@ export default function AgoraPage() {
     queryFn: fetchAgents,
   });
 
-  const activeSession = sessions?.find((s: AgoraSession) => s.id === activeSessionId);
+  // Fetch messages for active session
+  const { data: sessionData } = useQuery({
+    queryKey: ['agora-session', activeSessionId],
+    queryFn: () => fetchSessionWithMessages(activeSessionId!),
+    enabled: !!activeSessionId,
+    refetchInterval: 3000,
+  });
+
+  const activeSession = sessionData?.session || sessions?.find((s: AgoraSession) => s.id === activeSessionId);
+  const messages = sessionData?.messages || [];
   const activeSessions = sessions?.filter((s: AgoraSession) => s.status === 'active') || [];
   const pendingSessions = sessions?.filter((s: AgoraSession) => s.status === 'pending') || [];
-  const concludedSessions = sessions?.filter((s: AgoraSession) => s.status === 'concluded') || [];
-
-  // Mock messages for demo
-  const mockMessages = [
-    {
-      id: '1',
-      agentId: 'nova',
-      agentName: 'Nova',
-      agentColor: '#8B5CF6',
-      content: 'I believe we should focus on long-term sustainability rather than short-term gains.',
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-      tier: 1,
-    },
-    {
-      id: '2',
-      agentId: 'marcus',
-      agentName: 'Marcus',
-      agentColor: '#3B82F6',
-      content: 'From a technical perspective, we need to ensure backward compatibility with existing systems.',
-      timestamp: new Date(Date.now() - 240000).toISOString(),
-      tier: 1,
-    },
-    {
-      id: '3',
-      agentId: 'sophia',
-      agentName: 'Sophia',
-      agentColor: '#10B981',
-      content: 'The market data suggests strong community support for this initiative.',
-      timestamp: new Date(Date.now() - 180000).toISOString(),
-      tier: 1,
-    },
-  ];
+  const concludedSessions = sessions?.filter((s: AgoraSession) => s.status === 'concluded' || s.status === 'completed') || [];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [mockMessages]);
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -198,23 +187,41 @@ export default function AgoraPage() {
               {/* Chat Header */}
               <div className="flex items-center justify-between border-b border-agora-border p-4">
                 <div>
-                  <h2 className="font-semibold text-white">{activeSession.topic}</h2>
+                  <h2 className="font-semibold text-white">{activeSession.title}</h2>
                   <p className="text-xs text-agora-muted">
-                    Session started {new Date(activeSession.createdAt).toLocaleString()}
+                    Session started {activeSession.created_at ? new Date(activeSession.created_at).toLocaleString() : 'Unknown'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-agora-muted">
                   <Users className="h-4 w-4" />
-                  <span>{activeSession.participants?.length || 0} participants</span>
+                  <span>{parseParticipants(activeSession.summoned_agents).length} participants</span>
                 </div>
               </div>
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
-                  {mockMessages.map((msg) => (
-                    <ChatMessage key={msg.id} message={msg} />
-                  ))}
+                  {messages.length > 0 ? (
+                    messages.map((msg: AgoraMessage) => (
+                      <ChatMessage
+                        key={msg.id}
+                        message={{
+                          id: msg.id,
+                          agentId: msg.agent_id || '',
+                          agentName: msg.display_name || msg.agent_name || 'Unknown',
+                          agentColor: msg.color || '#6366f1',
+                          content: msg.content,
+                          timestamp: msg.created_at,
+                          tier: msg.tier_used,
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-agora-muted">
+                      <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                      <p>No messages yet. Start the discussion!</p>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
               </div>
@@ -265,7 +272,7 @@ export default function AgoraPage() {
           <div className="w-64 flex-shrink-0">
             <ParticipantList
               agents={agents || []}
-              participants={activeSession.participants || []}
+              participants={parseParticipants(activeSession.summoned_agents)}
             />
           </div>
         )}

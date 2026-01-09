@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { HelpCircle, X } from 'lucide-react';
 
 interface HelpTooltipProps {
@@ -9,10 +9,54 @@ interface HelpTooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
+interface TooltipPosition {
+  top: number;
+  left: number;
+}
+
 export function HelpTooltip({ content, title, position = 'bottom' }: HelpTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ top: 0, left: 0 });
   const tooltipRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    const tooltipWidth = 256; // w-64 = 16rem = 256px
+    const tooltipHeight = 100; // approximate height
+    const gap = 8;
+
+    let top = 0;
+    let left = 0;
+
+    switch (position) {
+      case 'top':
+        top = rect.top - tooltipHeight - gap;
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
+        break;
+      case 'bottom':
+        top = rect.bottom + gap;
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
+        break;
+      case 'left':
+        top = rect.top + rect.height / 2 - tooltipHeight / 2;
+        left = rect.left - tooltipWidth - gap;
+        break;
+      case 'right':
+        top = rect.top + rect.height / 2 - tooltipHeight / 2;
+        left = rect.right + gap;
+        break;
+    }
+
+    // Ensure tooltip stays within viewport
+    const padding = 16;
+    left = Math.max(padding, Math.min(left, window.innerWidth - tooltipWidth - padding));
+    top = Math.max(padding, Math.min(top, window.innerHeight - tooltipHeight - padding));
+
+    setTooltipPos({ top, left });
+  }, [position]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -30,26 +74,23 @@ export function HelpTooltip({ content, title, position = 'bottom' }: HelpTooltip
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-  };
+  useEffect(() => {
+    if (isOpen) {
+      calculatePosition();
+    }
+  }, [isOpen, calculatePosition]);
 
-  const arrowClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-agora-card border-x-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-agora-card border-x-transparent border-t-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-agora-card border-y-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-agora-card border-y-transparent border-l-transparent',
+  const handleOpen = () => {
+    calculatePosition();
+    setIsOpen(true);
   };
 
   return (
     <div className="relative inline-flex">
       <button
         ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
-        onMouseEnter={() => setIsOpen(true)}
+        onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
+        onMouseEnter={handleOpen}
         onMouseLeave={() => setIsOpen(false)}
         className="rounded-full p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-white focus:outline-none focus:ring-2 focus:ring-agora-primary"
         aria-label="Help"
@@ -60,11 +101,13 @@ export function HelpTooltip({ content, title, position = 'bottom' }: HelpTooltip
       {isOpen && (
         <div
           ref={tooltipRef}
-          className={`absolute z-[100] w-64 rounded-lg border border-agora-border bg-agora-card p-3 shadow-lg ${positionClasses[position]}`}
+          style={{
+            position: 'fixed',
+            top: tooltipPos.top,
+            left: tooltipPos.left,
+          }}
+          className="z-[9999] w-64 rounded-lg border border-agora-border bg-agora-card p-3 shadow-lg"
         >
-          <div
-            className={`absolute h-0 w-0 border-[6px] ${arrowClasses[position]}`}
-          />
           {title && (
             <div className="mb-2 flex items-center justify-between">
               <h4 className="text-sm font-medium text-white">{title}</h4>
