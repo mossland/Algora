@@ -7,7 +7,7 @@ This file tracks the current development progress for continuity between session
 
 ---
 
-## Current Phase: Agent System (v0.3.0)
+## Current Phase: Signal Collection (v0.4.0)
 
 ### Completed Features
 
@@ -67,6 +67,23 @@ This file tracks the current development progress for continuity between session
 - [x] API endpoints for chatter (/api/chatter)
 - [x] Enhanced Agora API with automated discussions
 
+#### Signal Collection (100%)
+- [x] RSS Collector Service (rss.ts)
+  - [x] Configurable RSS feed management
+  - [x] Automatic severity detection
+  - [x] Default feeds: Ethereum Blog, CoinDesk, The Block
+- [x] GitHub Collector Service (github.ts)
+  - [x] Repository events monitoring
+  - [x] Issues and PRs tracking
+  - [x] Default repos: ethereum/EIPs, ethereum/pm, MakerDAO/community
+- [x] Blockchain Collector Service (blockchain.ts)
+  - [x] Price monitoring (CoinGecko)
+  - [x] DeFi TVL tracking (DeFiLlama)
+- [x] Signal Processor (index.ts)
+  - [x] Unified collector management
+  - [x] Statistics and reporting
+- [x] Collectors API endpoints (/api/collectors/*)
+
 #### Shared Packages
 - [x] packages/core - TypeScript types
 - [ ] packages/reality-oracle - Signal collection
@@ -88,16 +105,16 @@ This file tracks the current development progress for continuity between session
 
 ## Next Steps (Priority Order)
 
-### Phase 3: Signal Collection
-1. RSS feed collector
-2. GitHub webhook integration
-3. On-chain data collector
-4. Signal processing pipeline
-
 ### Phase 4: Issue Detection
 1. Pattern recognition for governance issues
 2. Alert thresholds and notifications
 3. Issue lifecycle management
+4. Signal-to-issue correlation
+
+### Phase 5: Human Governance
+1. Proposal creation workflow
+2. Voting mechanism
+3. Decision packet generation
 
 ---
 

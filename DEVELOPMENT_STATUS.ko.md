@@ -7,7 +7,7 @@
 
 ---
 
-## 현재 단계: 에이전트 시스템 (v0.3.0)
+## 현재 단계: 신호 수집 (v0.4.0)
 
 ### 완료된 기능
 
@@ -67,6 +67,23 @@
 - [x] chatter API 엔드포인트 (/api/chatter)
 - [x] 자동 토론 기능 아고라 API 확장
 
+#### 신호 수집 (100%)
+- [x] RSS 수집기 서비스 (rss.ts)
+  - [x] 설정 가능한 RSS 피드 관리
+  - [x] 자동 심각도 감지
+  - [x] 기본 피드: Ethereum Blog, CoinDesk, The Block
+- [x] GitHub 수집기 서비스 (github.ts)
+  - [x] 저장소 이벤트 모니터링
+  - [x] 이슈 및 PR 추적
+  - [x] 기본 저장소: ethereum/EIPs, ethereum/pm, MakerDAO/community
+- [x] 블록체인 수집기 서비스 (blockchain.ts)
+  - [x] 가격 모니터링 (CoinGecko)
+  - [x] DeFi TVL 추적 (DeFiLlama)
+- [x] 신호 프로세서 (index.ts)
+  - [x] 통합 수집기 관리
+  - [x] 통계 및 리포팅
+- [x] 수집기 API 엔드포인트 (/api/collectors/*)
+
 #### 공유 패키지
 - [x] packages/core - TypeScript 타입
 - [ ] packages/reality-oracle - 신호 수집
@@ -88,16 +105,16 @@
 
 ## 다음 단계 (우선순위 순)
 
-### 3단계: 신호 수집
-1. RSS 피드 수집기
-2. GitHub 웹훅 통합
-3. 온체인 데이터 수집기
-4. 신호 처리 파이프라인
-
 ### 4단계: 이슈 탐지
 1. 거버넌스 이슈 패턴 인식
 2. 알림 임계값 및 알림
 3. 이슈 라이프사이클 관리
+4. 신호-이슈 상관관계
+
+### 5단계: 휴먼 거버넌스
+1. 제안 생성 워크플로우
+2. 투표 메커니즘
+3. 의사결정 패킷 생성
 
 ---
 

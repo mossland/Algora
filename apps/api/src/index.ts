@@ -12,6 +12,7 @@ import { ActivityService } from './activity';
 import { SchedulerService } from './scheduler';
 import { ChatterService } from './services/chatter';
 import { llmService } from './services/llm';
+import { SignalCollectorService } from './services/collectors';
 
 const PORT = process.env.PORT || 3201;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -75,6 +76,10 @@ async function bootstrap() {
     const chatterService = new ChatterService(db, io);
     app.locals.chatterService = chatterService;
 
+    // Initialize signal collector service
+    const signalCollector = new SignalCollectorService(db, io);
+    app.locals.signalCollector = signalCollector;
+
     // Initialize scheduler (commented out until fully implemented)
     // const schedulerService = new SchedulerService(db, io, activityService);
     // app.locals.schedulerService = schedulerService;
@@ -84,6 +89,9 @@ async function bootstrap() {
 
     // Start chatter service (generates agent idle messages)
     chatterService.start();
+
+    // Start signal collectors
+    signalCollector.start();
 
     // Log LLM availability
     console.info(`[LLM] Tier 1 (Ollama): ${llmService.isTier1Available() ? 'Available' : 'Not Available'}`);
@@ -122,6 +130,9 @@ function gracefulShutdown(signal: string) {
   console.info(`${signal} received, shutting down...`);
 
   // Stop services
+  if (app.locals.signalCollector) {
+    app.locals.signalCollector.stop();
+  }
   if (app.locals.chatterService) {
     app.locals.chatterService.stop();
   }
