@@ -47,6 +47,9 @@
   "Agents": {
     "title": "AI Agents",
     "subtitle": "Dynamic Persona Spectrum",
+    "searchPlaceholder": "Search agents...",
+    "allClusters": "All",
+    "recentActivity": "Recent Activity",
     "groups": {
       "visionaries": "Visionaries",
       "builders": "Builders",

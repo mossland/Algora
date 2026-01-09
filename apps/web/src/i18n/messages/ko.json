@@ -47,6 +47,9 @@
   "Agents": {
     "title": "AI 에이전트",
     "subtitle": "동적 페르소나 스펙트럼",
+    "searchPlaceholder": "에이전트 검색...",
+    "allClusters": "전체",
+    "recentActivity": "최근 활동",
     "groups": {
       "visionaries": "비저너리",
       "builders": "빌더",
