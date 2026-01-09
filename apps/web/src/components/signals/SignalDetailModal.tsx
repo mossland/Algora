@@ -10,7 +10,6 @@ import {
   Link2,
   Radio,
   ExternalLink,
-  CheckCircle,
   Clock,
   AlertTriangle,
   Calendar,
@@ -18,22 +17,57 @@ import {
   FileText,
   ArrowRight,
 } from 'lucide-react';
-
-interface Signal {
-  id: string;
-  source: 'rss' | 'github' | 'blockchain' | 'api' | 'manual';
-  title: string;
-  content: string;
-  url?: string;
-  processed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  created_at: string;
-  metadata?: Record<string, unknown>;
-}
+import type { Signal } from '@/lib/api';
 
 interface SignalDetailModalProps {
   signal: Signal;
   onClose: () => void;
+}
+
+// Helper to extract source type from source string
+function getSourceType(source: string): string {
+  const type = source.split(':')[0].toLowerCase();
+  if (['rss', 'github', 'blockchain', 'api', 'manual'].includes(type)) {
+    return type;
+  }
+  return 'api';
+}
+
+// Helper to get title from description or metadata
+function getTitle(signal: Signal): string {
+  if (signal.metadata) {
+    try {
+      const meta = typeof signal.metadata === 'string' ? JSON.parse(signal.metadata) : signal.metadata;
+      if (meta.title) return meta.title;
+    } catch {
+      // Ignore parse errors
+    }
+  }
+  const firstLine = signal.description?.split('\n')[0] || 'Signal';
+  return firstLine.length > 100 ? firstLine.substring(0, 100) + '...' : firstLine;
+}
+
+// Helper to get URL from metadata
+function getUrl(signal: Signal): string | undefined {
+  if (signal.metadata) {
+    try {
+      const meta = typeof signal.metadata === 'string' ? JSON.parse(signal.metadata) : signal.metadata;
+      return meta.link || meta.url;
+    } catch {
+      // Ignore parse errors
+    }
+  }
+  return undefined;
+}
+
+// Helper to parse metadata
+function parseMetadata(signal: Signal): Record<string, unknown> | null {
+  if (!signal.metadata) return null;
+  try {
+    return typeof signal.metadata === 'string' ? JSON.parse(signal.metadata) : signal.metadata;
+  } catch {
+    return null;
+  }
 }
 
 const sourceIcons: Record<string, React.ReactNode> = {
@@ -52,15 +86,22 @@ const sourceColors: Record<string, string> = {
   manual: 'text-green-500 bg-green-500/10 border-green-500/30',
 };
 
-const priorityConfig = {
+const severityConfig: Record<string, { color: string; bg: string; border: string; icon: typeof Clock | null }> = {
   low: { color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30', icon: null },
   medium: { color: 'text-agora-warning', bg: 'bg-agora-warning/10', border: 'border-agora-warning/30', icon: Clock },
   high: { color: 'text-agora-error', bg: 'bg-agora-error/10', border: 'border-agora-error/30', icon: AlertTriangle },
+  critical: { color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30', icon: AlertTriangle },
 };
 
 export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
   const t = useTranslations('Signals');
-  const PriorityIcon = priorityConfig[signal.priority].icon;
+  const sourceType = getSourceType(signal.source);
+  const title = getTitle(signal);
+  const url = getUrl(signal);
+  const metadata = parseMetadata(signal);
+  const severity = signal.severity || 'low';
+  const config = severityConfig[severity] || severityConfig.low;
+  const SeverityIcon = config.icon;
 
   return (
     <>
@@ -76,45 +117,29 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-agora-border p-6">
             <div className="flex items-start gap-4">
-              <div className={`rounded-lg border p-3 ${sourceColors[signal.source]}`}>
-                {sourceIcons[signal.source]}
+              <div className={`rounded-lg border p-3 ${sourceColors[sourceType] || sourceColors.api}`}>
+                {sourceIcons[sourceType] || sourceIcons.api}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white pr-8">{signal.title}</h2>
+                <h2 className="text-xl font-bold text-white pr-8">{title}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   {/* Source Badge */}
-                  <span className={`flex items-center gap-1.5 text-sm ${sourceColors[signal.source].split(' ')[0]}`}>
-                    {sourceIcons[signal.source]}
-                    {t(`sources.${signal.source}`)}
+                  <span className={`flex items-center gap-1.5 text-sm ${(sourceColors[sourceType] || sourceColors.api).split(' ')[0]}`}>
+                    {sourceIcons[sourceType] || sourceIcons.api}
+                    {signal.source.split(':')[1] || t(`sources.${sourceType}`)}
                   </span>
 
-                  {/* Priority Badge */}
+                  {/* Severity Badge */}
                   <span
-                    className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${priorityConfig[signal.priority].bg} ${priorityConfig[signal.priority].color}`}
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${config.bg} ${config.color}`}
                   >
-                    {PriorityIcon && <PriorityIcon className="h-3 w-3" />}
-                    {t(`priority.${signal.priority}`)}
+                    {SeverityIcon && <SeverityIcon className="h-3 w-3" />}
+                    {t(`priority.${severity === 'critical' ? 'high' : severity}`)}
                   </span>
 
-                  {/* Status Badge */}
-                  <span
-                    className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      signal.processed
-                        ? 'bg-agora-success/10 text-agora-success'
-                        : 'bg-agora-warning/10 text-agora-warning'
-                    }`}
-                  >
-                    {signal.processed ? (
-                      <>
-                        <CheckCircle className="h-3 w-3" />
-                        {t('status.processed')}
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="h-3 w-3" />
-                        {t('status.pending')}
-                      </>
-                    )}
+                  {/* Category Badge */}
+                  <span className="rounded-full bg-agora-card px-2.5 py-0.5 text-xs font-medium text-agora-muted">
+                    {signal.category}
                   </span>
                 </div>
               </div>
@@ -137,7 +162,7 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                 <span>{t('detail.content')}</span>
               </div>
               <p className="text-white whitespace-pre-wrap leading-relaxed">
-                {signal.content}
+                {signal.description}
               </p>
             </div>
 
@@ -150,10 +175,10 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                   <span>{t('detail.timestamp')}</span>
                 </div>
                 <p className="text-white font-medium">
-                  {format(new Date(signal.created_at), 'PPpp')}
+                  {format(new Date(signal.timestamp || signal.created_at), 'PPpp')}
                 </p>
                 <p className="text-sm text-agora-muted mt-1">
-                  {formatDistanceToNow(new Date(signal.created_at), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(signal.timestamp || signal.created_at), { addSuffix: true })}
                 </p>
               </div>
 
@@ -163,21 +188,21 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                   <Tag className="h-4 w-4" />
                   <span>{t('detail.signalId')}</span>
                 </div>
-                <p className="text-white font-mono text-sm">
+                <p className="text-white font-mono text-sm break-all">
                   {signal.id}
                 </p>
               </div>
             </div>
 
             {/* Additional Metadata */}
-            {signal.metadata && Object.keys(signal.metadata).length > 0 && (
+            {metadata && Object.keys(metadata).length > 0 && (
               <div className="mt-4 rounded-lg border border-agora-border bg-agora-card p-4">
                 <div className="flex items-center gap-2 mb-3 text-sm text-agora-muted">
                   <Database className="h-4 w-4" />
                   <span>{t('detail.metadata')}</span>
                 </div>
                 <div className="space-y-2">
-                  {Object.entries(signal.metadata).map(([key, value]) => (
+                  {Object.entries(metadata).map(([key, value]) => (
                     <div key={key} className="flex items-start gap-2 text-sm">
                       <span className="text-agora-muted min-w-[100px]">{key}:</span>
                       <span className="text-white font-mono break-all">
@@ -193,13 +218,13 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
           {/* Footer */}
           <div className="flex items-center justify-between border-t border-agora-border p-4">
             <div className="text-sm text-agora-muted">
-              {t('detail.source')}: {t(`sources.${signal.source}`)}
+              {t('detail.source')}: {signal.source}
             </div>
 
             <div className="flex items-center gap-3">
-              {signal.url && (
+              {url && (
                 <a
-                  href={signal.url}
+                  href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-agora-border"
@@ -209,12 +234,10 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                 </a>
               )}
 
-              {!signal.processed && (
-                <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-agora-primary/80">
-                  <ArrowRight className="h-4 w-4" />
-                  {t('detail.createIssue')}
-                </button>
-              )}
+              <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-agora-primary/80">
+                <ArrowRight className="h-4 w-4" />
+                {t('detail.createIssue')}
+              </button>
             </div>
           </div>
         </div>

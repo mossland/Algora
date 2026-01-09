@@ -16,20 +16,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
+import { fetchSignals, type Signal } from '@/lib/api';
 import { SignalCard } from '@/components/signals/SignalCard';
 import { SignalDetailModal } from '@/components/signals/SignalDetailModal';
-
-interface Signal {
-  id: string;
-  source: 'rss' | 'github' | 'blockchain' | 'api' | 'manual';
-  title: string;
-  content: string;
-  url?: string;
-  processed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  created_at: string;
-  metadata?: Record<string, unknown>;
-}
 
 const SOURCES = ['all', 'rss', 'github', 'blockchain', 'api', 'manual'] as const;
 
@@ -41,66 +30,14 @@ const sourceIcons: Record<string, React.ReactNode> = {
   manual: <Radio className="h-4 w-4" />,
 };
 
-// Mock data for demo
-const mockSignals: Signal[] = [
-  {
-    id: '1',
-    source: 'rss',
-    title: 'Ethereum Gas Fees Spike to 6-Month High',
-    content: 'Network congestion leads to increased transaction costs across major DEXs.',
-    url: 'https://example.com/news/1',
-    processed: true,
-    priority: 'high',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: '2',
-    source: 'github',
-    title: 'Critical Security Update: v2.5.1 Released',
-    content: 'Patches vulnerability in token approval mechanism. Immediate update recommended.',
-    url: 'https://github.com/example/repo/releases/v2.5.1',
-    processed: true,
-    priority: 'high',
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    id: '3',
-    source: 'blockchain',
-    title: 'Large Token Transfer Detected',
-    content: 'Wallet 0x1234...5678 moved 1,000,000 MOC to exchange. Potential sell pressure.',
-    processed: false,
-    priority: 'medium',
-    created_at: new Date(Date.now() - 10800000).toISOString(),
-  },
-  {
-    id: '4',
-    source: 'api',
-    title: 'Community Sentiment Analysis',
-    content: 'Weekly sentiment score: 72/100 (Bullish). Key topics: staking rewards, governance proposal.',
-    processed: true,
-    priority: 'low',
-    created_at: new Date(Date.now() - 14400000).toISOString(),
-  },
-  {
-    id: '5',
-    source: 'rss',
-    title: 'DeFi Protocol Announces Partnership',
-    content: 'Major integration planned for Q2 2026, expected to bring 500k new users.',
-    url: 'https://example.com/news/5',
-    processed: false,
-    priority: 'medium',
-    created_at: new Date(Date.now() - 18000000).toISOString(),
-  },
-  {
-    id: '6',
-    source: 'manual',
-    title: 'Team Meeting Notes: Product Roadmap',
-    content: 'Key decisions made regarding feature prioritization for next sprint.',
-    processed: true,
-    priority: 'low',
-    created_at: new Date(Date.now() - 21600000).toISOString(),
-  },
-];
+// Helper to extract source type from source string (e.g., "rss:Cointelegraph" -> "rss")
+function getSourceType(source: string): string {
+  const type = source.split(':')[0].toLowerCase();
+  if (['rss', 'github', 'blockchain', 'api', 'manual'].includes(type)) {
+    return type;
+  }
+  return 'api';
+}
 
 export default function SignalsPage() {
   const t = useTranslations('Signals');
@@ -108,30 +45,27 @@ export default function SignalsPage() {
   const [showProcessed, setShowProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
 
-  // In real app, this would fetch from API
   const { data: signals, isLoading, refetch } = useQuery({
-    queryKey: ['signals', selectedSource, showProcessed],
-    queryFn: async () => {
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      return mockSignals;
-    },
+    queryKey: ['signals', selectedSource],
+    queryFn: () => fetchSignals(100, selectedSource),
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const filteredSignals = signals?.filter((signal) => {
-    const matchesSource = selectedSource === 'all' || signal.source === selectedSource;
-    const matchesProcessed =
+    const sourceType = getSourceType(signal.source);
+    const matchesSource = selectedSource === 'all' || sourceType === selectedSource;
+    const matchesSeverity =
       showProcessed === 'all' ||
-      (showProcessed === 'processed' && signal.processed) ||
-      (showProcessed === 'unprocessed' && !signal.processed);
-    return matchesSource && matchesProcessed;
+      (showProcessed === 'processed' && signal.severity === 'low') ||
+      (showProcessed === 'unprocessed' && signal.severity !== 'low');
+    return matchesSource && matchesSeverity;
   });
 
   const stats = {
     total: signals?.length || 0,
-    processed: signals?.filter((s) => s.processed).length || 0,
-    unprocessed: signals?.filter((s) => !s.processed).length || 0,
-    highPriority: signals?.filter((s) => s.priority === 'high').length || 0,
+    processed: signals?.filter((s) => s.severity === 'low').length || 0,
+    unprocessed: signals?.filter((s) => s.severity !== 'low').length || 0,
+    highPriority: signals?.filter((s) => s.severity === 'high' || s.severity === 'critical').length || 0,
   };
 
   return (

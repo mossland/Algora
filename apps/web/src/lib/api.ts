@@ -41,6 +41,20 @@ export interface AgoraSession {
   createdAt: string;
 }
 
+export interface Signal {
+  id: string;
+  original_id: string;
+  source: string;
+  timestamp: string;
+  category: string;
+  severity: string;
+  value: number;
+  unit: string;
+  description: string;
+  metadata: string | null;
+  created_at: string;
+}
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -82,4 +96,12 @@ export async function summonAgent(agentId: string): Promise<void> {
 
 export async function dismissAgent(agentId: string): Promise<void> {
   await fetchAPI(`/api/agents/${agentId}/dismiss`, { method: 'POST' });
+}
+
+export async function fetchSignals(limit = 50, source?: string, severity?: string): Promise<Signal[]> {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  if (source && source !== 'all') params.append('source', source);
+  if (severity && severity !== 'all') params.append('severity', severity);
+  const response = await fetchAPI<{ signals: Signal[]; total: number }>(`/api/signals?${params}`);
+  return response.signals || [];
 }

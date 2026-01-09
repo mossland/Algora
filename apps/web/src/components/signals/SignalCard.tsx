@@ -14,22 +14,48 @@ import {
   AlertTriangle,
   ChevronRight,
 } from 'lucide-react';
-
-interface Signal {
-  id: string;
-  source: 'rss' | 'github' | 'blockchain' | 'api' | 'manual';
-  title: string;
-  content: string;
-  url?: string;
-  processed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  created_at: string;
-  metadata?: Record<string, unknown>;
-}
+import type { Signal } from '@/lib/api';
 
 interface SignalCardProps {
   signal: Signal;
   onClick?: () => void;
+}
+
+// Helper to extract source type from source string (e.g., "rss:Cointelegraph" -> "rss")
+function getSourceType(source: string): string {
+  const type = source.split(':')[0].toLowerCase();
+  if (['rss', 'github', 'blockchain', 'api', 'manual'].includes(type)) {
+    return type;
+  }
+  return 'api';
+}
+
+// Helper to get title from description or metadata
+function getTitle(signal: Signal): string {
+  if (signal.metadata) {
+    try {
+      const meta = typeof signal.metadata === 'string' ? JSON.parse(signal.metadata) : signal.metadata;
+      if (meta.title) return meta.title;
+    } catch {
+      // Ignore parse errors
+    }
+  }
+  // Use first line of description as title
+  const firstLine = signal.description?.split('\n')[0] || 'Signal';
+  return firstLine.length > 100 ? firstLine.substring(0, 100) + '...' : firstLine;
+}
+
+// Helper to get URL from metadata
+function getUrl(signal: Signal): string | undefined {
+  if (signal.metadata) {
+    try {
+      const meta = typeof signal.metadata === 'string' ? JSON.parse(signal.metadata) : signal.metadata;
+      return meta.link || meta.url;
+    } catch {
+      // Ignore parse errors
+    }
+  }
+  return undefined;
 }
 
 const sourceIcons: Record<string, React.ReactNode> = {
@@ -48,27 +74,33 @@ const sourceColors: Record<string, string> = {
   manual: 'text-green-500 bg-green-500/10',
 };
 
-const priorityConfig = {
+const severityConfig: Record<string, { color: string; bg: string; icon: typeof Clock | null }> = {
   low: { color: 'text-gray-400', bg: 'bg-gray-500/10', icon: null },
   medium: { color: 'text-agora-warning', bg: 'bg-agora-warning/10', icon: Clock },
   high: { color: 'text-agora-error', bg: 'bg-agora-error/10', icon: AlertTriangle },
+  critical: { color: 'text-red-500', bg: 'bg-red-500/10', icon: AlertTriangle },
 };
 
 export function SignalCard({ signal, onClick }: SignalCardProps) {
   const t = useTranslations('Signals');
-  const PriorityIcon = priorityConfig[signal.priority].icon;
+  const sourceType = getSourceType(signal.source);
+  const title = getTitle(signal);
+  const url = getUrl(signal);
+  const severity = signal.severity || 'low';
+  const config = severityConfig[severity] || severityConfig.low;
+  const SeverityIcon = config.icon;
 
   return (
     <div
       onClick={onClick}
       className={`relative group rounded-lg border bg-agora-card p-4 transition-all hover:border-agora-primary/50 ${
-        signal.processed ? 'border-agora-border' : 'border-agora-warning/30'
+        severity === 'low' ? 'border-agora-border' : 'border-agora-warning/30'
       } ${onClick ? 'cursor-pointer hover:bg-agora-card/80' : ''}`}
     >
       <div className="flex items-start gap-4">
         {/* Source Icon */}
-        <div className={`rounded-lg p-2 ${sourceColors[signal.source]}`}>
-          {sourceIcons[signal.source]}
+        <div className={`rounded-lg p-2 ${sourceColors[sourceType] || sourceColors.api}`}>
+          {sourceIcons[sourceType] || sourceIcons.api}
         </div>
 
         {/* Content */}
@@ -81,59 +113,46 @@ export function SignalCard({ signal, onClick }: SignalCardProps) {
           )}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-semibold text-white">{signal.title}</h3>
+              <h3 className="font-semibold text-white">{title}</h3>
               <p className="mt-1 text-sm text-agora-muted line-clamp-2">
-                {signal.content}
+                {signal.description}
               </p>
             </div>
 
-            {/* Priority Badge */}
+            {/* Severity Badge */}
             <div
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${priorityConfig[signal.priority].bg} ${priorityConfig[signal.priority].color}`}
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${config.bg} ${config.color}`}
             >
-              {PriorityIcon && <PriorityIcon className="h-3 w-3" />}
-              <span>{t(`priority.${signal.priority}`)}</span>
+              {SeverityIcon && <SeverityIcon className="h-3 w-3" />}
+              <span>{t(`priority.${severity === 'critical' ? 'high' : severity}`)}</span>
             </div>
           </div>
 
           {/* Footer */}
           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs">
             {/* Source */}
-            <span className={`flex items-center gap-1 ${sourceColors[signal.source].split(' ')[0]}`}>
-              {sourceIcons[signal.source]}
-              {t(`sources.${signal.source}`)}
+            <span className={`flex items-center gap-1 ${(sourceColors[sourceType] || sourceColors.api).split(' ')[0]}`}>
+              {sourceIcons[sourceType] || sourceIcons.api}
+              {signal.source.split(':')[1] || t(`sources.${sourceType}`)}
             </span>
 
-            {/* Status */}
-            <span
-              className={`flex items-center gap-1 ${
-                signal.processed ? 'text-agora-success' : 'text-agora-warning'
-              }`}
-            >
-              {signal.processed ? (
-                <>
-                  <CheckCircle className="h-3 w-3" />
-                  {t('status.processed')}
-                </>
-              ) : (
-                <>
-                  <Clock className="h-3 w-3" />
-                  {t('status.pending')}
-                </>
-              )}
+            {/* Category */}
+            <span className="text-agora-muted">
+              {signal.category}
             </span>
 
             {/* Timestamp */}
             <span className="text-agora-muted">
-              {formatDistanceToNow(new Date(signal.created_at), { addSuffix: true })}
+              {formatDistanceToNow(new Date(signal.timestamp || signal.created_at), { addSuffix: true })}
             </span>
 
             {/* External Link */}
-            {signal.url && (
+            {url && (
               <a
-                href={signal.url}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1 text-agora-primary hover:underline"
               >
                 <ExternalLink className="h-3 w-3" />
