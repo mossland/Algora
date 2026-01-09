@@ -11,6 +11,7 @@ import { statsRouter } from './stats';
 import { chatterRouter } from './chatter';
 import { collectorsRouter } from './collectors';
 import { outcomesRouter } from './outcomes';
+import { tokenRouter } from './token';
 
 export function setupRoutes(app: Express): void {
   const apiRouter = Router();
@@ -28,6 +29,7 @@ export function setupRoutes(app: Express): void {
   apiRouter.use('/chatter', chatterRouter);
   apiRouter.use('/collectors', collectorsRouter);
   apiRouter.use('/outcomes', outcomesRouter);
+  apiRouter.use('/token', tokenRouter);
 
   // Mount API router
   app.use('/api', apiRouter);
