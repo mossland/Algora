@@ -7,7 +7,7 @@
 
 ---
 
-## 현재 단계: 이슈 탐지 (v0.5.0)
+## 현재 단계: 휴먼 거버넌스 (v0.6.0)
 
 ### 완료된 기능
 
@@ -105,6 +105,37 @@
   - [x] 권장 조치 생성
 - [x] API 엔드포인트 (/api/issues/detection/*)
 
+#### 휴먼 거버넌스 (100%)
+- [x] GovernanceService (services/governance/index.ts)
+  - [x] 제안, 투표, 의사결정 패킷 통합 서비스
+  - [x] 일반 워크플로우 편의 메서드
+- [x] ProposalService (proposal.ts)
+  - [x] 제안 전체 라이프사이클 관리
+  - [x] 상태 워크플로우: draft → pending_review → discussion → voting → passed/rejected → executed
+  - [x] 이슈에서 제안 생성 기능
+  - [x] 댓글 및 승인 시스템
+  - [x] 에이전트 승인 추적
+- [x] VotingService (voting.ts)
+  - [x] 유효성 검증을 통한 투표
+  - [x] 투표권 계산
+  - [x] 정족수 확인 집계 계산
+  - [x] 위임 시스템 (대리 투표)
+  - [x] 투표 기간 종료 시 자동 종료
+  - [x] 투표자 등록 관리
+- [x] DecisionPacketService (decision-packet.ts)
+  - [x] AI 생성 의사결정 요약
+  - [x] 장단점 분석 옵션
+  - [x] 에이전트 분석 집계
+  - [x] 위험 평가 생성
+  - [x] 재생성을 위한 버전 관리
+- [x] 포괄적인 API 엔드포인트 (/api/proposals/*)
+  - [x] 제안 CRUD 작업
+  - [x] 워크플로우 전환 (submit, start-discussion, start-voting, cancel)
+  - [x] 투표 엔드포인트 (vote, finalize, get votes)
+  - [x] 댓글 및 승인 엔드포인트
+  - [x] 의사결정 패킷 엔드포인트 (get, generate, versions)
+  - [x] 위임 엔드포인트 (create, revoke, get)
+
 #### 공유 패키지
 - [x] packages/core - TypeScript 타입
 - [ ] packages/reality-oracle - 신호 수집
@@ -126,16 +157,17 @@
 
 ## 다음 단계 (우선순위 순)
 
-### 5단계: 휴먼 거버넌스
-1. 제안 생성 워크플로우
-2. 투표 메커니즘
-3. 의사결정 패킷 생성
-4. MOC 토큰 통합
-
 ### 6단계: 결과 증명
-1. 의사결정 추적
+1. 의사결정 추적 및 실행
 2. 결과 검증
-3. 에이전트 신뢰 점수
+3. 에이전트 신뢰 점수 업데이트
+4. 히스토리 분석
+
+### 7단계: 토큰 통합
+1. MOC 토큰 홀더 검증
+2. 토큰 가중 투표
+3. 온체인 제안 제출
+4. 거버넌스 트레저리 관리
 
 ---
 

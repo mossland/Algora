@@ -14,6 +14,7 @@ import { ChatterService } from './services/chatter';
 import { llmService } from './services/llm';
 import { SignalCollectorService } from './services/collectors';
 import { IssueDetectionService } from './services/issue-detection';
+import { GovernanceService } from './services/governance';
 
 const PORT = process.env.PORT || 3201;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -100,6 +101,10 @@ async function bootstrap() {
 
     // Start issue detection (runs after signal collectors have initial data)
     setTimeout(() => issueDetection.start(), 60000); // Start after 1 minute
+
+    // Initialize governance service
+    const governance = new GovernanceService(db, io);
+    app.locals.governance = governance;
 
     // Log LLM availability
     console.info(`[LLM] Tier 1 (Ollama): ${llmService.isTier1Available() ? 'Available' : 'Not Available'}`);
