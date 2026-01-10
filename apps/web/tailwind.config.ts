@@ -57,13 +57,6 @@ const config: Config = {
         'highlight': 'highlight 2s ease-out',
         'shimmer': 'shimmer 2s linear infinite',
         'spin-slow': 'spin 3s linear infinite',
-        // Terminal animations
-        'cursor-blink': 'cursorBlink 1.06s step-end infinite',
-        'scanline': 'scanline 8s linear infinite',
-        'terminal-glow': 'terminalGlow 2s ease-in-out infinite',
-        'glyph-pulse': 'glyphPulse 1.5s ease-in-out infinite',
-        'border-draw': 'borderDraw 0.6s ease-out forwards',
-        'typing': 'typing 0.1s steps(1) forwards',
       },
       keyframes: {
         fadeIn: {
@@ -102,38 +95,6 @@ const config: Config = {
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
-        },
-        // Terminal keyframes
-        cursorBlink: {
-          '0%, 50%': { opacity: '1' },
-          '51%, 100%': { opacity: '0' },
-        },
-        scanline: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100vh)' },
-        },
-        terminalGlow: {
-          '0%, 100%': {
-            textShadow: '0 0 5px rgba(22, 246, 171, 0.5), 0 0 10px rgba(22, 246, 171, 0.3)'
-          },
-          '50%': {
-            textShadow: '0 0 10px rgba(22, 246, 171, 0.8), 0 0 20px rgba(22, 246, 171, 0.5), 0 0 30px rgba(22, 246, 171, 0.3)'
-          },
-        },
-        glyphPulse: {
-          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.7', transform: 'scale(1.15)' },
-        },
-        borderDraw: {
-          '0%': { clipPath: 'inset(0 100% 100% 0)' },
-          '25%': { clipPath: 'inset(0 0 100% 0)' },
-          '50%': { clipPath: 'inset(0 0 0 100%)' },
-          '75%': { clipPath: 'inset(100% 0 0 0)' },
-          '100%': { clipPath: 'inset(0 0 0 0)' },
-        },
-        typing: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
         },
       },
       // Animation delay utilities

@@ -25,6 +25,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 import { fetchActivities, type Activity } from '@/lib/api';
+import { WittyLoader, WittyText } from '@/components/ui/WittyLoader';
 
 interface ActivityFeedProps {
   onActivityClick?: (activity: Activity) => void;
@@ -94,7 +95,10 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[...Array(5)].map((_, i) => (
+        <div className="flex items-center justify-center py-4">
+          <WittyLoader category="loading" />
+        </div>
+        {[...Array(3)].map((_, i) => (
           <div
             key={i}
             className="flex animate-pulse items-start gap-3 rounded-lg bg-agora-darker p-3"
@@ -112,8 +116,16 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
 
   if (!activities?.length) {
     return (
-      <div className="py-8 text-center text-agora-muted">
-        No recent activity
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <ActivityIcon className="h-8 w-8 text-agora-muted mb-2" />
+        <WittyText
+          messages={[
+            'The stage is quiet... for now.',
+            'Awaiting the next act...',
+            'Systems are humming, events are brewing...',
+            'A calm before the storm of activity...',
+          ]}
+        />
       </div>
     );
   }

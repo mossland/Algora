@@ -161,6 +161,28 @@ export async function fetchSignals(limit = 50, source?: string, severity?: strin
   return { signals: response.signals || [], total: response.total || 0 };
 }
 
+// Live signal statistics for dynamic dashboard
+export interface LiveSignalStats {
+  timeStats: {
+    last10min: number;
+    lastHour: number;
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    total: number;
+  };
+  hourlyBreakdown: Array<{ hour: string; count: number }>;
+  minuteBreakdown: Array<{ minute: string; count: number }>;
+  categoryBreakdown: Array<{ category: string; count: number }>;
+  sourceBreakdown: Array<{ source: string; count: number }>;
+  ratePerMinute: number;
+  timestamp: string;
+}
+
+export async function fetchLiveSignalStats(): Promise<LiveSignalStats> {
+  return fetchAPI<LiveSignalStats>('/api/signals/live-stats');
+}
+
 export async function fetchIssues(
   limit = 50,
   status?: string,

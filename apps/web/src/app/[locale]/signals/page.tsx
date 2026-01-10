@@ -19,7 +19,9 @@ import {
 import { fetchSignals, type Signal, type SignalsResponse } from '@/lib/api';
 import { SignalCard } from '@/components/signals/SignalCard';
 import { SignalDetailModal } from '@/components/signals/SignalDetailModal';
+import { LiveSignalPulse } from '@/components/signals/LiveSignalPulse';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+import { WittyLoader, WittyEmptyState } from '@/components/ui/WittyLoader';
 
 const SOURCES = ['all', 'rss', 'github', 'blockchain', 'api', 'manual'] as const;
 
@@ -93,6 +95,9 @@ export default function SignalsPage() {
           {t('refresh')}
         </button>
       </div>
+
+      {/* Live Signal Pulse */}
+      <LiveSignalPulse />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -193,7 +198,10 @@ export default function SignalsPage() {
       {/* Signal List */}
       {isLoading ? (
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
+          <div className="flex items-center justify-center py-8">
+            <WittyLoader category="signal" size="lg" />
+          </div>
+          {[...Array(3)].map((_, i) => (
             <div
               key={i}
               className="h-32 animate-pulse rounded-lg border border-agora-border bg-agora-card"
@@ -202,24 +210,23 @@ export default function SignalsPage() {
           ))}
         </div>
       ) : filteredSignals?.length === 0 ? (
-        <div className="animate-fade-in flex flex-col items-center justify-center rounded-lg border border-dashed border-agora-border p-12 text-center">
-          <div className="mb-4 rounded-full bg-agora-card p-4">
-            <Radio className="h-12 w-12 text-agora-muted" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900">{t('noSignals')}</h3>
-          <p className="mt-2 text-sm text-agora-muted max-w-md">{t('noSignalsDesc')}</p>
-          {(selectedSource !== 'all' || showProcessed !== 'all') && (
-            <button
-              onClick={() => {
-                setSelectedSource('all');
-                setShowProcessed('all');
-              }}
-              className="mt-4 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all hover:bg-agora-primary/80 hover:scale-105"
-            >
-              {t('clearFilters')}
-            </button>
-          )}
-        </div>
+        <WittyEmptyState
+          type="signals"
+          icon={<Radio className="h-12 w-12" />}
+          action={
+            (selectedSource !== 'all' || showProcessed !== 'all') && (
+              <button
+                onClick={() => {
+                  setSelectedSource('all');
+                  setShowProcessed('all');
+                }}
+                className="rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all hover:bg-agora-primary/80 hover:scale-105"
+              >
+                {t('clearFilters')}
+              </button>
+            )
+          }
+        />
       ) : (
         <div className="space-y-4">
           {filteredSignals?.map((signal, index) => (

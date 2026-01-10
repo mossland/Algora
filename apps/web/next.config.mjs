@@ -9,6 +9,17 @@ const nextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // Reduce file watching to prevent EMFILE errors
+      config.watchOptions = {
+        ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    return config;
+  },
 };
 
 export default withNextIntl(nextConfig);
