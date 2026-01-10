@@ -3,20 +3,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  MessageSquare,
-  Users,
-  Send,
-  Plus,
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { fetchAgents, fetchAgoraSessions, fetchSessionWithMessages, type AgoraSession, type AgoraMessage } from '@/lib/api';
-import { SessionCard } from '@/components/agora/SessionCard';
-import { ChatMessage } from '@/components/agora/ChatMessage';
-import { ParticipantList } from '@/components/agora/ParticipantList';
 import { NewSessionModal } from '@/components/agora/NewSessionModal';
 import { SessionDetailModal } from '@/components/agora/SessionDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+
+// Terminal components
+import { CRTOverlay } from '@/components/terminal/CRTOverlay';
+import { StatusGlyph } from '@/components/terminal/StatusGlyph';
+import { TerminalSessionCard } from '@/components/agora/TerminalSessionCard';
+import { TerminalChatMessage } from '@/components/agora/TerminalChatMessage';
+import { TerminalParticipantList } from '@/components/agora/TerminalParticipantList';
+import { TerminalInputBox } from '@/components/agora/TerminalInputBox';
+import { useTerminalClock } from '@/hooks/useTypingAnimation';
 
 // Helper to parse summoned_agents JSON string
 function parseParticipants(summoned_agents: string | null): string[] {
@@ -38,6 +39,8 @@ export default function AgoraPage() {
   const [message, setMessage] = useState('');
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [detailSession, setDetailSession] = useState<AgoraSession | null>(null);
+  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
+  const terminalClock = useTerminalClock();
 
   const { data: sessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['agora-sessions'],
@@ -74,209 +77,242 @@ export default function AgoraPage() {
     setMessage('');
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  // Track new messages for typing animation
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestId = messages[messages.length - 1]?.id;
+      if (latestId !== lastMessageId) {
+        setLastMessageId(latestId);
+      }
     }
-  };
+  }, [messages, lastMessageId]);
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+    <CRTOverlay intensity="subtle" className="h-[calc(100vh-8rem)]">
+      <div className="flex h-full flex-col gap-4 font-terminal">
+        {/* Terminal Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* ASCII Header Box */}
+            <div className="font-terminal text-xs">
+              <div className="ascii-border">╔{'═'.repeat(40)}╗</div>
+              <div className="flex items-center px-2">
+                <span className="ascii-border">║</span>
+                <span className="flex-1 px-2">
+                  <span className="terminal-glow-strong text-slate-900 font-semibold tracking-wider">
+                    ALGORA AGORA v2.0
+                  </span>
+                  <span className="text-slate-400 ml-4">[{terminalClock}]</span>
+                  <span className="ml-4">
+                    <StatusGlyph status="active" pulse size="sm" />
+                    <span className="ml-1 text-agora-primary">ONLINE</span>
+                  </span>
+                </span>
+                <span className="ascii-border">║</span>
+              </div>
+              <div className="ascii-border">╚{'═'.repeat(40)}╝</div>
+            </div>
             <HelpTooltip content={tGuide('agora')} />
           </div>
-          <p className="text-agora-muted">{t('subtitle')}</p>
-        </div>
-        <button
-          onClick={() => setShowNewSession(true)}
-          className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 font-medium text-slate-900 transition-colors hover:bg-agora-primary/80"
-        >
-          <Plus className="h-4 w-4" />
-          {t('startSession')}
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex flex-1 gap-4 overflow-hidden">
-        {/* Sessions Sidebar */}
-        <div className="w-72 flex-shrink-0 space-y-4 overflow-y-auto pr-2">
-          {/* Active Sessions */}
-          {activeSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-slate-900">
-                Active Sessions ({activeSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {activeSessions.map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pending Sessions */}
-          {pendingSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-agora-muted">
-                Pending ({pendingSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {pendingSessions.map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Sessions */}
-          {concludedSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-agora-muted">
-                Recent ({concludedSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {concludedSessions.slice(0, 5).map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* No Sessions */}
-          {!sessionsLoading && !sessions?.length && (
-            <div className="rounded-lg border border-dashed border-agora-border p-4 text-center">
-              <MessageSquare className="mx-auto h-8 w-8 text-agora-muted" />
-              <p className="mt-2 text-sm text-agora-muted">{t('noActiveSession')}</p>
-              <button
-                onClick={() => setShowNewSession(true)}
-                className="mt-3 text-sm text-agora-primary hover:underline"
-              >
-                {t('startSession')}
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => setShowNewSession(true)}
+            className="font-terminal text-xs flex items-center gap-2 rounded-lg terminal-box px-4 py-2 text-slate-900 transition-colors hover:terminal-glow"
+          >
+            <Plus className="h-4 w-4" />
+            {t('startSession')}
+          </button>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex flex-1 flex-col rounded-lg border border-agora-border bg-agora-card">
-          {activeSession ? (
-            <>
-              {/* Chat Header */}
-              <div className="flex items-center justify-between border-b border-agora-border p-4">
-                <div>
-                  <h2 className="font-semibold text-slate-900">{activeSession.title}</h2>
-                  <p className="text-xs text-agora-muted">
-                    Session started {activeSession.created_at ? new Date(activeSession.created_at).toLocaleString() : 'Unknown'}
-                  </p>
+        {/* Main Content */}
+        <div className="flex flex-1 gap-4 overflow-hidden">
+          {/* Sessions Sidebar */}
+          <div className="w-72 flex-shrink-0 space-y-3 overflow-y-auto pr-2">
+            {/* Active Sessions */}
+            {activeSessions.length > 0 && (
+              <div>
+                <div className="font-terminal text-xs mb-2 flex items-center gap-2">
+                  <StatusGlyph status="active" pulse size="sm" />
+                  <span className="text-slate-900 uppercase tracking-wider">
+                    Active Sessions ({activeSessions.length})
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-agora-muted">
-                  <Users className="h-4 w-4" />
-                  <span>{parseParticipants(activeSession.summoned_agents).length} participants</span>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="space-y-4">
-                  {messages.length > 0 ? (
-                    messages.map((msg: AgoraMessage) => (
-                      <ChatMessage
-                        key={msg.id}
-                        message={{
-                          id: msg.id,
-                          agentId: msg.agent_id || '',
-                          agentName: msg.display_name || msg.agent_name || 'Unknown',
-                          agentColor: msg.color || '#6366f1',
-                          content: msg.content,
-                          timestamp: msg.created_at,
-                          tier: msg.tier_used,
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-agora-muted">
-                      <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                      <p>No messages yet. Start the discussion!</p>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
+                <div className="space-y-2">
+                  {activeSessions.map((session: AgoraSession, index: number) => (
+                    <TerminalSessionCard
+                      key={session.id}
+                      session={session}
+                      isActive={session.id === activeSessionId}
+                      index={index}
+                      onClick={() => setActiveSessionId(session.id)}
+                      onDetailClick={() => setDetailSession(session)}
+                    />
+                  ))}
                 </div>
               </div>
+            )}
 
-              {/* Input */}
-              <div className="border-t border-agora-border p-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={t('sendMessage')}
-                    className="flex-1 rounded-lg border border-agora-border bg-agora-darker px-4 py-2 text-slate-900 placeholder-agora-muted focus:border-agora-primary focus:outline-none"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!message.trim()}
-                    className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80 disabled:opacity-50"
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
+            {/* Pending Sessions */}
+            {pendingSessions.length > 0 && (
+              <div>
+                <div className="font-terminal text-xs mb-2 flex items-center gap-2">
+                  <StatusGlyph status="pending" size="sm" />
+                  <span className="text-slate-500 uppercase tracking-wider">
+                    Pending ({pendingSessions.length})
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {pendingSessions.map((session: AgoraSession, index: number) => (
+                    <TerminalSessionCard
+                      key={session.id}
+                      session={session}
+                      isActive={session.id === activeSessionId}
+                      index={index}
+                      onClick={() => setActiveSessionId(session.id)}
+                      onDetailClick={() => setDetailSession(session)}
+                    />
+                  ))}
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <MessageSquare className="h-16 w-16 text-agora-muted/50" />
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">
-                {t('noActiveSession')}
-              </h3>
-              <p className="mt-2 text-sm text-agora-muted">
-                Select a session from the sidebar or start a new one
-              </p>
-              <button
-                onClick={() => setShowNewSession(true)}
-                className="mt-4 flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80"
-              >
-                <Plus className="h-4 w-4" />
-                {t('startSession')}
-              </button>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Participants Sidebar */}
-        {activeSession && (
-          <div className="w-64 flex-shrink-0">
-            <ParticipantList
-              agents={agents || []}
-              participants={parseParticipants(activeSession.summoned_agents)}
-            />
+            {/* Recent Sessions */}
+            {concludedSessions.length > 0 && (
+              <div>
+                <div className="font-terminal text-xs mb-2 flex items-center gap-2">
+                  <StatusGlyph status="success" size="sm" />
+                  <span className="text-slate-500 uppercase tracking-wider">
+                    Recent ({concludedSessions.length})
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {concludedSessions.slice(0, 5).map((session: AgoraSession, index: number) => (
+                    <TerminalSessionCard
+                      key={session.id}
+                      session={session}
+                      isActive={session.id === activeSessionId}
+                      index={index}
+                      onClick={() => setActiveSessionId(session.id)}
+                      onDetailClick={() => setDetailSession(session)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No Sessions */}
+            {!sessionsLoading && !sessions?.length && (
+              <div className="font-terminal text-xs rounded-lg terminal-box p-4 text-center">
+                <div className="ascii-border text-2xl mb-2">[ ]</div>
+                <p className="text-slate-500">{t('noActiveSession')}</p>
+                <button
+                  onClick={() => setShowNewSession(true)}
+                  className="mt-3 text-agora-primary hover:terminal-glow transition-all"
+                >
+                  &gt; {t('startSession')}
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Chat Area */}
+          <div className="flex flex-1 flex-col rounded-lg terminal-box overflow-hidden">
+            {activeSession ? (
+              <>
+                {/* Chat Header */}
+                <div className="border-b border-agora-primary/20 p-3 bg-slate-50/50">
+                  <div className="font-terminal text-xs">
+                    <div className="ascii-border mb-1">╔{'═'.repeat(50)}╗</div>
+                    <div className="flex items-center justify-between px-2">
+                      <div className="flex items-center gap-2">
+                        <span className="terminal-glow text-slate-900 font-semibold">
+                          {activeSession.title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-slate-500">
+                        <span>[{parseParticipants(activeSession.summoned_agents).length} agents]</span>
+                        <span>Round: {activeSession.current_round}/{activeSession.max_rounds}</span>
+                      </div>
+                    </div>
+                    <div className="ascii-border mt-1">╚{'═'.repeat(50)}╝</div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="space-y-3">
+                    {messages.length > 0 ? (
+                      messages.map((msg: AgoraMessage, index: number) => (
+                        <TerminalChatMessage
+                          key={msg.id}
+                          message={{
+                            id: msg.id,
+                            agentId: msg.agent_id || '',
+                            agentName: msg.display_name || msg.agent_name || 'Unknown',
+                            agentColor: msg.color || '#6366f1',
+                            content: msg.content,
+                            timestamp: msg.created_at,
+                            tier: msg.tier_used,
+                          }}
+                          index={index}
+                          isNew={msg.id === lastMessageId}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 font-terminal text-xs text-slate-400">
+                        <div className="ascii-border text-4xl mb-4">[ _ ]</div>
+                        <p>No messages yet. Awaiting agent discussion...</p>
+                        <p className="mt-2 text-agora-primary animate-glyph-pulse">
+                          &gt; Start the discussion_
+                        </p>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </div>
+
+                {/* Input */}
+                <div className="border-t border-agora-primary/20 p-3">
+                  <TerminalInputBox
+                    onSend={handleSendMessage}
+                    placeholder={t('sendMessage')}
+                    promptStyle="full"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center text-center font-terminal">
+                <div className="ascii-border text-6xl mb-4 text-slate-300">
+                  {'[ '}
+                  <span className="animate-glyph-pulse">?</span>
+                  {' ]'}
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 terminal-glow">
+                  {t('noActiveSession')}
+                </h3>
+                <p className="mt-2 text-xs text-slate-500">
+                  Select a session from the sidebar or start a new one
+                </p>
+                <button
+                  onClick={() => setShowNewSession(true)}
+                  className="mt-4 flex items-center gap-2 rounded-lg terminal-box px-4 py-2 text-xs text-slate-900 transition-colors hover:terminal-glow"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('startSession')}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Participants Sidebar */}
+          {activeSession && (
+            <div className="w-64 flex-shrink-0">
+              <TerminalParticipantList
+                agents={agents || []}
+                participants={parseParticipants(activeSession.summoned_agents)}
+              />
+            </div>
+          )}
+        </div>
 
       {/* New Session Modal */}
       {showNewSession && (
@@ -302,6 +338,7 @@ export default function AgoraPage() {
           }}
         />
       )}
-    </div>
+      </div>
+    </CRTOverlay>
   );
 }

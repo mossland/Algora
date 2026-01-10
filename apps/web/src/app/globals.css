@@ -94,3 +94,160 @@ body > * {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ============================================
+   Terminal / ASCII Art Styles
+   ============================================ */
+
+/* Terminal Font - JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+.font-terminal {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+  letter-spacing: 0.02em;
+}
+
+/* Terminal text glow effect */
+.terminal-glow {
+  text-shadow:
+    0 0 5px rgba(22, 246, 171, 0.5),
+    0 0 10px rgba(22, 246, 171, 0.3),
+    0 0 15px rgba(22, 246, 171, 0.1);
+}
+
+.terminal-glow-strong {
+  text-shadow:
+    0 0 5px rgba(22, 246, 171, 0.8),
+    0 0 15px rgba(22, 246, 171, 0.6),
+    0 0 25px rgba(22, 246, 171, 0.4),
+    0 0 35px rgba(22, 246, 171, 0.2);
+}
+
+/* CRT Scanline overlay */
+.crt-overlay {
+  position: relative;
+}
+
+.crt-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.03) 0px,
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Terminal box styling */
+.terminal-box {
+  border: 1px solid rgba(22, 246, 171, 0.3);
+  box-shadow:
+    inset 0 0 20px rgba(22, 246, 171, 0.05),
+    0 0 10px rgba(22, 246, 171, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.terminal-box:hover {
+  border-color: rgba(22, 246, 171, 0.6);
+  box-shadow:
+    inset 0 0 30px rgba(22, 246, 171, 0.1),
+    0 0 20px rgba(22, 246, 171, 0.2);
+}
+
+/* ASCII border characters styling */
+.ascii-border {
+  color: rgba(22, 246, 171, 0.7);
+  font-weight: 400;
+}
+
+.ascii-border-bright {
+  color: #16f6ab;
+  font-weight: 500;
+}
+
+/* Status glyph colors */
+.glyph-active {
+  color: #10b981;
+}
+
+.glyph-speaking {
+  color: #00c2c2;
+}
+
+.glyph-listening {
+  color: #0080e8;
+}
+
+.glyph-idle {
+  color: #64748b;
+}
+
+.glyph-warning {
+  color: #f59e0b;
+}
+
+.glyph-error {
+  color: #ef4444;
+}
+
+.glyph-success {
+  color: #10b981;
+}
+
+/* Blinking cursor */
+.blinking-cursor {
+  display: inline-block;
+  animation: cursorBlink 1.06s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Terminal prompt styling */
+.terminal-prompt::before {
+  content: '> ';
+  color: #16f6ab;
+  font-weight: bold;
+}
+
+.terminal-prompt-full::before {
+  content: 'algora@agora:~$ ';
+  color: #00c2c2;
+}
+
+/* Terminal selection */
+.terminal-select::selection {
+  background-color: rgba(22, 246, 171, 0.4);
+  color: #0f172a;
+}
+
+/* ASCII progress bar fill characters */
+.ascii-progress-filled {
+  color: #16f6ab;
+}
+
+.ascii-progress-empty {
+  color: #e2e8f0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .blinking-cursor,
+  .terminal-glow,
+  .terminal-glow-strong {
+    animation: none;
+    text-shadow: none;
+  }
+
+  .crt-overlay::after {
+    display: none;
+  }
+}
