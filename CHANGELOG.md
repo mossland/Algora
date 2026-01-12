@@ -10,7 +10,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 7: Testing & Production Deployment
+- Workflow C: Developer Support
+- Workflow D: Ecosystem Expansion
+- Workflow E: Working Groups
+- Phase 8: Testing & Production Deployment
+
+---
+
+## [0.10.0] - 2026-01-13
+
+### Added
+- **Phase 7 Step 1: API Integration**:
+  - GovernanceOSBridge service for apps/api integration
+  - REST API endpoints for Governance OS:
+    - Pipeline endpoints: `/governance-os/pipeline/run`, `/pipeline/issue/:id`
+    - Document endpoints: `/governance-os/documents`, `/documents/:id`, `/documents/type/:type`
+    - Voting endpoints: `/governance-os/voting`, `/voting/:id`, `/voting/:id/vote`
+    - Approval endpoints: `/governance-os/approvals`, `/approvals/:id/approve`
+    - Risk/Lock endpoints: `/governance-os/risk/classify`, `/locks/:id`
+    - Model router endpoint: `/governance-os/model-router/execute`
+    - Stats/Health endpoints: `/governance-os/stats`, `/health`, `/config`
+
+- **Workflow A: Academic Activity** (`@algora/orchestrator`):
+  - Types: AcademicSource, ResearchTopic, AcademicPaper, ResearchBrief
+  - Types: TechnologyAssessment, ResearchDigest, WorkflowAConfig
+  - WorkflowAHandler class implementation:
+    - `executeResearchPhase()` - Gather papers and create research brief
+    - `executeDeliberationPhase()` - Collect agent opinions, calculate consensus
+    - `generateResearchDigest()` - Weekly digest document generation
+    - `generateTechnologyAssessment()` - Formal assessment generation
+    - `shouldGenerateAssessment()` - Threshold detection
+  - Integration with Orchestrator via `executeWorkflowA()` method
+  - 12 comprehensive test cases, all passing
+
+- **Workflow B: Free Debate** (`@algora/orchestrator`):
+  - Types: DebateSource, DebateCategory, DebatePhase, DebateTopic
+  - Types: DebateArgument, DebateThread, ConsensusAssessment, DebateSummary
+  - WorkflowBHandler class implementation:
+    - `initializeDebate()` - Create debate thread from topic
+    - `executeDebatePhase()` - Run individual debate phases
+    - `executeFullDeliberation()` - Complete 5-phase debate execution
+    - `assessConsensus()` - Consensus calculation with scoring
+    - `generateDebateSummary()` - Official summary document
+    - `shouldContinueDebate()` - Debate state management
+  - Multi-phase debate support (opening, arguments, rebuttals, synthesis, conclusion)
+  - Red Team challenge generation in rebuttals phase
+  - 5 diverse agent perspectives per debate
+  - Integration with Orchestrator via `executeWorkflowB()` method
+  - 13 comprehensive test cases, all passing
+
+### Changed
+- Updated `DEVELOPMENT_STATUS.md` with Phase 7 progress
+- Orchestrator now supports workflow handler initialization
+- Added `executeWorkflowA()` and `executeWorkflowB()` to Orchestrator class
 
 ---
 
