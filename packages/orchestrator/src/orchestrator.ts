@@ -44,6 +44,11 @@ import {
   type ResearchDigest,
   type TechnologyAssessment,
 } from './workflows/workflow-a.js';
+import {
+  WorkflowBHandler,
+  type DebateSummary,
+  type DebateTopic,
+} from './workflows/workflow-b.js';
 
 /**
  * Event listener type for orchestrator events.
@@ -139,6 +144,7 @@ export class Orchestrator {
   private todoManager: TodoManager;
   private specialistManager: SpecialistManager;
   private workflowAHandler: WorkflowAHandler;
+  private workflowBHandler: WorkflowBHandler;
   private stateMachines: Map<string, WorkflowStateMachine> = new Map();
   private eventListeners: Map<keyof OrchestratorEvents, Set<OrchestratorEventListener<keyof OrchestratorEvents>>> = new Map();
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
@@ -161,6 +167,7 @@ export class Orchestrator {
 
     // Initialize workflow handlers
     this.workflowAHandler = new WorkflowAHandler(options.llmProvider);
+    this.workflowBHandler = new WorkflowBHandler(options.llmProvider);
   }
 
   /**
@@ -575,6 +582,95 @@ Agent Opinions: ${JSON.stringify(context.agentOpinions || [])}`,
       technologyAssessment,
       success: true,
     };
+  }
+
+  /**
+   * Execute Workflow B (Free Debate) for an issue.
+   * This workflow handles open-ended deliberation on strategic questions.
+   */
+  async executeWorkflowB(issueId: string): Promise<{
+    debateSummary: DebateSummary;
+    consensusReached: boolean;
+    success: boolean;
+  }> {
+    const context = await this.workflowStorage.getContext(issueId);
+    if (!context) {
+      throw new Error(`Context not found for issue: ${issueId}`);
+    }
+
+    if (context.workflowType !== 'B') {
+      throw new Error(`Issue ${issueId} is not assigned to Workflow B`);
+    }
+
+    // Create debate topic from issue
+    const topic: DebateTopic = {
+      id: `topic-${issueId}`,
+      title: context.issue.title,
+      description: context.issue.description,
+      source: context.issue.source === 'community' ? 'community' : 'strategic_query',
+      category: this.mapCategoryToDebateCategory(context.issue.category),
+      proposedBy: context.issue.source,
+      backgroundContext: context.researchBrief,
+      relatedIssues: context.issue.signalIds,
+      createdAt: context.issue.createdAt,
+    };
+
+    // Execute full deliberation
+    const { thread, consensus, opinions } = await this.workflowBHandler.executeFullDeliberation(
+      context,
+      topic
+    );
+
+    // Update context with debate results
+    const stateMachine = this.stateMachines.get(issueId);
+    if (stateMachine) {
+      stateMachine.updateContext({
+        agentOpinions: opinions,
+        consensusScore: consensus.consensusScore,
+      });
+      await this.workflowStorage.saveContext(stateMachine.getContext());
+    }
+
+    // Generate debate summary
+    const debateSummary = await this.workflowBHandler.generateDebateSummary(
+      thread,
+      topic,
+      consensus
+    );
+
+    // Emit workflow completed event
+    const todo = await this.todoManager.getTodoByIssueId(issueId);
+    if (todo) {
+      this.emitEvent('workflow:completed', {
+        todo,
+        outputs: {
+          debateSummary,
+          consensusReached: consensus.consensusReached,
+        },
+      });
+    }
+
+    return {
+      debateSummary,
+      consensusReached: consensus.consensusReached,
+      success: true,
+    };
+  }
+
+  /**
+   * Map issue category to debate category.
+   */
+  private mapCategoryToDebateCategory(
+    category: TopicCategory
+  ): 'strategy' | 'technology' | 'governance' | 'ecosystem' | 'community' | 'tokenomics' | 'partnerships' | 'open' {
+    const mapping: Record<TopicCategory, 'strategy' | 'technology' | 'governance' | 'ecosystem' | 'community' | 'tokenomics' | 'partnerships' | 'open'> = {
+      mossland_expansion: 'ecosystem',
+      blockchain_ai_ecosystem: 'technology',
+      community_governance: 'governance',
+      technical_infrastructure: 'technology',
+      open_general: 'open',
+    };
+    return mapping[category] || 'open';
   }
 
   /**

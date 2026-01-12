@@ -183,9 +183,14 @@ export type {
 // ============================================
 
 export {
+  // Workflow A
   WorkflowAHandler,
   createWorkflowAHandler,
   DEFAULT_WORKFLOW_A_CONFIG,
+  // Workflow B
+  WorkflowBHandler,
+  createWorkflowBHandler,
+  DEFAULT_WORKFLOW_B_CONFIG,
 } from './workflows/index.js';
 
 export type {
@@ -197,4 +202,14 @@ export type {
   TechnologyAssessment,
   ResearchDigest,
   WorkflowAConfig,
+  // Workflow B types
+  DebateSource,
+  DebateCategory,
+  DebatePhase,
+  DebateTopic,
+  DebateArgument,
+  DebateThread,
+  ConsensusAssessment,
+  DebateSummary,
+  WorkflowBConfig,
 } from './workflows/index.js';
