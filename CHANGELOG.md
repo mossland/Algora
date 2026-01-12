@@ -10,8 +10,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 8: Testing & Production Deployment
-- UI Integration for v2.0 features
+- Phase 9: Testing & Production Deployment
+- Backend API endpoints connection for Governance OS UI
+- Real-time updates via Socket.IO
+
+---
+
+## [0.12.0] - 2026-01-13
+
+### Added
+- **Governance OS Dashboard UI** (`@algora/web`):
+  - New `/governance` page with comprehensive v2.0 dashboard
+  - Pipeline visualization component showing 9-stage workflow:
+    - signal_intake → issue_detection → triage → research → deliberation
+    - decision_packet → voting → execution → outcome_verification
+  - WorkflowCard component for 5 workflow types (A-E)
+  - DocumentCard component for 15 official document types with state badges
+  - DualHouseVoteCard component for MossCoin/OpenSource dual-house voting
+  - LockedActionCard component for Safe Autonomy status with approval tracking
+
+- **Governance OS API Types** (`apps/web/src/lib/api.ts`):
+  - PipelineStage, PipelineStatus for workflow tracking
+  - DocumentType (DP, GP, RM, RC, WGC, WGR, ER, PP, PA, DGP, DG, MR, RR, DR, AR, RD, TA)
+  - DocumentState (draft, pending_review, in_review, approved, published, superseded, archived, rejected)
+  - GovernanceDocument with version and state tracking
+  - DualHouseVote for dual-house voting sessions
+  - LockedAction, RiskLevel (LOW, MID, HIGH) for safe autonomy
+  - WorkflowStatus, GovernanceOSStats, GovernanceOSHealth
+  - API functions: fetchGovernanceOSStats, fetchGovernanceOSHealth, fetchPipelineStatus,
+    fetchDocuments, fetchDocument, fetchDualHouseVotes, fetchLockedActions,
+    fetchWorkflowStatuses, approveLockedAction, castDualHouseVote
+
+- **Navigation Updates**:
+  - Added "Governance OS" menu item to Sidebar
+  - NEW badge for highlighting new feature
+
+- **Internationalization**:
+  - Complete English and Korean translations for Governance OS page
+  - Pipeline stage names, document states, voting status, safe autonomy status
 
 ---
 
