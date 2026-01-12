@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-12
-**Current Version**: 0.4.0
+**Current Version**: 0.5.0
 
 ---
 
@@ -22,12 +22,15 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [x] Full TypeScript types for Safe Autonomy layer
 - [x] In-memory storage implementations for development
 
-### Phase 2: Orchestrator + State Machine (IN PROGRESS)
-- [ ] `@algora/orchestrator` package
-- [ ] Primary Orchestrator class
-- [ ] Workflow State Machine (INTAKE → OUTCOME_PROOF)
-- [ ] TODO Continuation system
-- [ ] Specialist Manager for subagent coordination
+### Phase 2: Orchestrator + State Machine (COMPLETED)
+- [x] `@algora/orchestrator` package created
+- [x] Primary Orchestrator class - Central coordinator for governance workflows
+- [x] Workflow State Machine - 12 states (INTAKE → OUTCOME_PROOF)
+- [x] TODO Manager - Persistent task continuation with exponential backoff
+- [x] Specialist Manager - Subagent coordination with quality gates
+- [x] Full TypeScript types for workflows, issues, specialists
+- [x] Event system for workflow monitoring
+- [x] In-memory storage implementations for development
 
 ### Phase 3-5: Upcoming
 - Phase 3: Document Registry
@@ -265,7 +268,7 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 #### Shared Packages
 - [x] packages/core - TypeScript types
 - [x] packages/safe-autonomy - LOCK/UNLOCK, Risk Classification, Approval Routing (v2.0)
-- [ ] packages/orchestrator - Workflow Orchestration, State Machine (v2.0 - IN PROGRESS)
+- [x] packages/orchestrator - Workflow Orchestration, State Machine, TODO Manager (v2.0)
 - [ ] packages/document-registry - Official Document Storage (v2.0)
 - [ ] packages/model-router - LLM Difficulty-Based Routing (v2.0)
 - [ ] packages/reality-oracle - Signal collection

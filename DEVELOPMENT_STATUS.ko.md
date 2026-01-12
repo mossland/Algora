@@ -3,7 +3,7 @@
 이 파일은 세션 간 개발 연속성을 위해 현재 개발 진행 상황을 추적합니다.
 
 **최종 업데이트**: 2026-01-12
-**현재 버전**: 0.4.0
+**현재 버전**: 0.5.0
 
 ---
 
@@ -22,12 +22,15 @@
 - [x] Safe Autonomy 계층 전체 TypeScript 타입
 - [x] 개발용 In-memory 스토리지 구현
 
-### Phase 2: Orchestrator + 상태 머신 (진행 중)
-- [ ] `@algora/orchestrator` 패키지
-- [ ] Primary Orchestrator 클래스
-- [ ] 워크플로 상태 머신 (INTAKE → OUTCOME_PROOF)
-- [ ] TODO Continuation 시스템
-- [ ] 서브에이전트 조정용 Specialist Manager
+### Phase 2: Orchestrator + 상태 머신 (완료)
+- [x] `@algora/orchestrator` 패키지 생성
+- [x] Primary Orchestrator 클래스 - 거버넌스 워크플로 중앙 조정자
+- [x] 워크플로 상태 머신 - 12개 상태 (INTAKE → OUTCOME_PROOF)
+- [x] TODO Manager - 지수 백오프 포함 지속적 작업 관리
+- [x] Specialist Manager - 품질 게이트 포함 서브에이전트 조정
+- [x] 워크플로, 이슈, 스페셜리스트 전체 TypeScript 타입
+- [x] 워크플로 모니터링용 이벤트 시스템
+- [x] 개발용 In-memory 스토리지 구현
 
 ### Phase 3-5: 예정
 - Phase 3: Document Registry
@@ -249,6 +252,10 @@
 
 #### 공유 패키지
 - [x] packages/core - TypeScript 타입
+- [x] packages/safe-autonomy - LOCK/UNLOCK, 리스크 분류, 승인 라우팅 (v2.0)
+- [x] packages/orchestrator - 워크플로 오케스트레이션, 상태 머신, TODO 관리 (v2.0)
+- [ ] packages/document-registry - 공식 문서 저장소 (v2.0)
+- [ ] packages/model-router - LLM 난이도 기반 라우팅 (v2.0)
 - [ ] packages/reality-oracle - 신호 수집
 - [ ] packages/inference-mining - 이슈 탐지
 - [ ] packages/agentic-consensus - 에이전트 시스템

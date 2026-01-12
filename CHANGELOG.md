@@ -10,10 +10,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 2: Orchestrator + State Machine
 - Phase 3: Document Registry
 - Phase 4: Five Workflows + Model Router
 - Phase 5: Dual-House Governance
+
+---
+
+## [0.5.0] - 2026-01-12
+
+### Added
+- **Phase 2: Orchestrator Package** (`@algora/orchestrator`):
+  - **Types** (`types.ts`):
+    - Workflow types (A-E): Academic, Debate, Developer Support, Ecosystem, Working Groups
+    - 12 Workflow states: INTAKE → OUTCOME_PROOF with valid transitions
+    - Issue types with priority scoring (TopicCategory, ImpactFactors, etc.)
+    - Specialist types (RES, ANA, DRA, REV, RED, SUM, TRN, ARC)
+    - TODO and task management types
+    - Decision packet and execution plan types
+    - Event types for orchestrator monitoring
+    - Configuration with default values
+  - **State Machine** (`state-machine.ts`):
+    - WorkflowStateMachine class with transition validation
+    - Acceptance criteria enforcement per state
+    - State history tracking with provenance
+    - Terminal state detection and blocking state handling
+    - Serialization/deserialization for persistence
+    - Event subscription for state changes
+  - **TODO Manager** (`todo-manager.ts`):
+    - Persistent TODO list for task continuation
+    - Task lifecycle (pending → in_progress → completed/failed/blocked)
+    - Exponential backoff for failed tasks
+    - Queue depth monitoring
+    - Recovery on restart
+  - **Specialist Manager** (`specialist-manager.ts`):
+    - Specialist subagent coordination
+    - System prompts for each specialist type
+    - Quality gate validation for outputs
+    - Task queue with priority ordering
+    - LLM provider interface
+    - Mock LLM provider for testing
+  - **Orchestrator** (`orchestrator.ts`):
+    - Primary coordinator for governance workflows
+    - Issue intake and workflow dispatch
+    - Priority score calculation
+    - Dynamic agent summoning based on issue category
+    - Decision packet generation
+    - Event emission for monitoring
+    - Heartbeat for system liveness
+
+### Changed
+- Updated `tsconfig.json` with `@algora/orchestrator` path mapping
+- Dependencies on `@algora/safe-autonomy` for risk classification
 
 ---
 
