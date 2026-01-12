@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-12
-**Current Version**: 0.6.0
+**Current Version**: 0.7.0
 
 ---
 
@@ -42,8 +42,18 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [x] Document state machine (draft → pending_review → in_review → approved → published)
 - [x] In-memory storage implementations for development
 
-### Phase 4-5: Upcoming
-- Phase 4: Five Workflows + Model Router
+### Phase 4: Model Router (COMPLETED)
+- [x] `@algora/model-router` package created
+- [x] Model Registry - Model management with health checks
+- [x] Task Difficulty Classifier - 5 difficulty levels (trivial → critical)
+- [x] Model Router - Intelligent task-to-model routing with fallback
+- [x] Quality Gate - Output validation with custom validators
+- [x] Embedding Service - Text embeddings for RAG with caching
+- [x] Reranker Service - Document reranking for improved retrieval
+- [x] Default model lineup for Tier 1 (local) and Tier 2 (external)
+- [x] Budget management with daily limits and warnings
+
+### Phase 5: Upcoming
 - Phase 5: Dual-House Governance
 
 ---
@@ -279,7 +289,7 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [x] packages/safe-autonomy - LOCK/UNLOCK, Risk Classification, Approval Routing (v2.0)
 - [x] packages/orchestrator - Workflow Orchestration, State Machine, TODO Manager (v2.0)
 - [x] packages/document-registry - Official Document Storage, Versioning, Provenance (v2.0)
-- [ ] packages/model-router - LLM Difficulty-Based Routing (v2.0)
+- [x] packages/model-router - LLM Difficulty-Based Routing, Quality Gates, RAG (v2.0)
 - [ ] packages/reality-oracle - Signal collection
 - [ ] packages/inference-mining - Issue detection
 - [ ] packages/agentic-consensus - Agent system

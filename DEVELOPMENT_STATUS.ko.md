@@ -3,7 +3,7 @@
 이 파일은 세션 간 개발 연속성을 위해 현재 개발 진행 상황을 추적합니다.
 
 **최종 업데이트**: 2026-01-12
-**현재 버전**: 0.6.0
+**현재 버전**: 0.7.0
 
 ---
 
@@ -42,8 +42,18 @@
 - [x] 문서 상태 머신 (draft → pending_review → in_review → approved → published)
 - [x] 개발용 In-memory 스토리지 구현
 
-### Phase 4-5: 예정
-- Phase 4: Five Workflows + Model Router
+### Phase 4: Model Router (완료)
+- [x] `@algora/model-router` 패키지 생성
+- [x] Model Registry - 헬스 체크 포함 모델 관리
+- [x] Task Difficulty Classifier - 5단계 난이도 분류 (trivial → critical)
+- [x] Model Router - 폴백 포함 지능형 작업-모델 라우팅
+- [x] Quality Gate - 커스텀 검증기 포함 출력 검증
+- [x] Embedding Service - 캐싱 포함 RAG용 텍스트 임베딩
+- [x] Reranker Service - 검색 품질 향상을 위한 문서 재순위
+- [x] Tier 1 (로컬) 및 Tier 2 (외부) 기본 모델 라인업
+- [x] 일일 한도 및 경고 포함 예산 관리
+
+### Phase 5: 예정
 - Phase 5: Dual-House Governance
 
 ---
@@ -264,7 +274,7 @@
 - [x] packages/safe-autonomy - LOCK/UNLOCK, 리스크 분류, 승인 라우팅 (v2.0)
 - [x] packages/orchestrator - 워크플로 오케스트레이션, 상태 머신, TODO 관리 (v2.0)
 - [x] packages/document-registry - 공식 문서 저장소, 버전 관리, 출처 추적 (v2.0)
-- [ ] packages/model-router - LLM 난이도 기반 라우팅 (v2.0)
+- [x] packages/model-router - LLM 난이도 기반 라우팅, 품질 게이트, RAG (v2.0)
 - [ ] packages/reality-oracle - 신호 수집
 - [ ] packages/inference-mining - 이슈 탐지
 - [ ] packages/agentic-consensus - 에이전트 시스템

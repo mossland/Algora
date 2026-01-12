@@ -10,8 +10,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 4: Five Workflows + Model Router
 - Phase 5: Dual-House Governance
+
+---
+
+## [0.7.0] - 2026-01-12
+
+### Added
+- **Phase 4: Model Router Package** (`@algora/model-router`):
+  - **Types** (`types.ts`):
+    - LLM tier system (Tier 0: Free, Tier 1: Local, Tier 2: External)
+    - Model capabilities (text, code, vision, embedding, rerank, functions)
+    - Task types with difficulty classification
+    - 5 difficulty levels (trivial, simple, moderate, complex, critical)
+    - Quality gate configuration
+    - RAG types for embeddings and reranking
+    - Default model lineup for all task types
+  - **Model Registry** (`registry.ts`):
+    - Model registration and management
+    - Health check system with automatic monitoring
+    - Model search by tier, provider, capabilities
+    - Fallback chain generation
+    - 14 pre-seeded default models (Ollama + Claude + GPT-4o)
+  - **Task Difficulty Classifier** (`classifier.ts`):
+    - Automatic task difficulty classification
+    - Keyword-based difficulty detection
+    - High-stakes and multi-step reasoning detection
+    - Confidence scoring with reasoning
+    - Batch classification support
+  - **Model Router** (`router.ts`):
+    - Intelligent task-to-model routing
+    - Automatic fallback on failure
+    - Budget management with daily limits
+    - Statistics tracking (tokens, cost, latency)
+    - Event emission for monitoring
+  - **Quality Gate** (`quality-gate.ts`):
+    - Output validation with multiple checks
+    - Length, format, keyword, and safety checks
+    - Built-in validators (coherence, completeness, JSON, decision packet)
+    - Confidence scoring
+    - Custom validator support
+  - **Embedding Service** (`rag/embeddings.ts`):
+    - Text embedding generation
+    - Embedding caching with LRU eviction
+    - Cosine similarity calculation
+    - Semantic search (find similar)
+    - Batch embedding support
+    - 3 default embedding models
+  - **Reranker Service** (`rag/reranker.ts`):
+    - Document reranking by relevance
+    - Reciprocal Rank Fusion (RRF)
+    - Relevance threshold filtering
+    - RAG pipeline combining embeddings + reranking
+    - 2 default reranker models
+  - **Factory Functions** (`index.ts`):
+    - `createModelRoutingSystem()` for easy instantiation
+    - `createModelRoutingSystemWithDefaults()` with pre-seeded models
+    - Comprehensive exports for all components
+
+### Changed
+- Updated `DEVELOPMENT_STATUS.md` with Phase 4 completion
 
 ---
 
