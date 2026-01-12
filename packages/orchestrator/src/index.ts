@@ -195,6 +195,10 @@ export {
   WorkflowCHandler,
   createWorkflowCHandler,
   DEFAULT_WORKFLOW_C_CONFIG,
+  // Workflow D
+  WorkflowDHandler,
+  createWorkflowDHandler,
+  DEFAULT_WORKFLOW_D_CONFIG,
 } from './workflows/index.js';
 
 export type {
@@ -232,4 +236,20 @@ export type {
   ApplicationEvaluation,
   MilestoneReview,
   RewardEvaluation,
+  // Workflow D types
+  ExpansionOrigin,
+  OpportunityCategory,
+  OpportunityStatus,
+  PartnershipStatus,
+  SignalSource,
+  ExpansionOpportunity,
+  OpportunityAssessment,
+  PartnershipProposal,
+  PartnershipMilestone,
+  PartnershipAgreement,
+  EcosystemReport,
+  AlwaysOnConfig,
+  AntiAbuseConfig,
+  DetectedSignal,
+  WorkflowDConfig,
 } from './workflows/index.js';
