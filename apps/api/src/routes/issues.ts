@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import type { IssueDetectionService } from '../services/issue-detection';
 
-export const issuesRouter = Router();
+export const issuesRouter: Router = Router();
 
 // GET /api/issues - List issues
 issuesRouter.get('/', (req, res) => {

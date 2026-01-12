@@ -335,7 +335,7 @@ export class GitHubCollectorService {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    return response.json();
+    return response.json() as Promise<GitHubEvent[]>;
   }
 
   private async fetchIssues(repo: GitHubRepo): Promise<any[]> {
@@ -359,7 +359,7 @@ export class GitHubCollectorService {
       return [];
     }
 
-    return response.json();
+    return response.json() as Promise<any[]>;
   }
 
   private async processEvent(repo: GitHubRepo, event: GitHubEvent): Promise<boolean> {

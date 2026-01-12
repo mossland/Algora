@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { GovernanceService } from '../services/governance';
 
-export const proposalsRouter = Router();
+export const proposalsRouter: Router = Router();
 
 // ========================================
 // Proposal Endpoints

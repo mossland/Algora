@@ -95,13 +95,13 @@ export class LLMService extends EventEmitter {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        this.tier1Available = data.models?.length > 0;
+        const data = await response.json() as { models?: { name: string }[] };
+        this.tier1Available = (data.models?.length ?? 0) > 0;
         console.log(
           `[LLM] Tier 1 (Ollama) ${this.tier1Available ? 'available' : 'no models found'}`
         );
-        if (this.tier1Available) {
-          console.log(`[LLM] Available models: ${data.models.map((m: any) => m.name).join(', ')}`);
+        if (this.tier1Available && data.models) {
+          console.log(`[LLM] Available models: ${data.models.map((m) => m.name).join(', ')}`);
         }
       }
     } catch (error) {
@@ -175,7 +175,7 @@ export class LLMService extends EventEmitter {
       throw new Error(`Ollama error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { response: string; eval_count?: number };
 
     this.emit('generation', {
       tier: 1,
@@ -252,7 +252,7 @@ export class LLMService extends EventEmitter {
       throw new Error(`Anthropic error: ${error}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { content: { text?: string }[]; usage?: { output_tokens?: number } };
     const content = data.content[0]?.text || '';
 
     this.emit('generation', {
@@ -302,7 +302,7 @@ export class LLMService extends EventEmitter {
       throw new Error(`OpenAI error: ${error}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { choices: { message?: { content?: string } }[]; usage?: { completion_tokens?: number } };
     const content = data.choices[0]?.message?.content || '';
 
     this.emit('generation', {
@@ -357,7 +357,7 @@ export class LLMService extends EventEmitter {
       throw new Error(`Gemini error: ${error}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[]; usageMetadata?: { candidatesTokenCount?: number } };
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     this.emit('generation', {

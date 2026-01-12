@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import clsx from 'clsx';
-import { formatDistanceToNow } from 'date-fns';
 import { TerminalBox, StatusGlyph, BlinkingCursor } from './TerminalBox';
-import { ASCIIProgress, GlowText } from './GlowText';
+import { ASCIIProgress } from './GlowText';
 import { useSocket } from '@/hooks/useSocket';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 
-export const agentsRouter = Router();
+export const agentsRouter: Router = Router();
 
 // GET /api/agents - List all agents
 agentsRouter.get('/', (req, res) => {

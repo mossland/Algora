@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { TokenIntegrationService } from '../services/token';
 
-export const tokenRouter = Router();
+export const tokenRouter: Router = Router();
 
 // === Token Info ===
 

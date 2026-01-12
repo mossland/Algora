@@ -20,7 +20,7 @@ const BORDERS = {
 export function TerminalBox({
   title,
   variant = 'single',
-  glow = false,
+  glow: _glow = false,
   className,
   children,
   headerRight,

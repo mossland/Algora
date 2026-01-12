@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 import { getAgoraService, getSummoningService } from '../services/socket';
 
-export const agoraRouter = Router();
+export const agoraRouter: Router = Router();
 
 // GET /api/agora/sessions - List all sessions
 agoraRouter.get('/sessions', (req, res) => {

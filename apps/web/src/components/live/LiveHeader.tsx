@@ -3,20 +3,17 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { LiveIndicator, StatusGlyph } from './TerminalBox';
-import { GlowText } from './GlowText';
 
 interface LiveHeaderProps {
   className?: string;
 }
 
 export function LiveHeader({ className }: LiveHeaderProps) {
-  const [mounted, setMounted] = useState(false);
   const [uptime, setUptime] = useState({ days: 127, hours: 0, minutes: 0, seconds: 0 });
   const [currentTime, setCurrentTime] = useState('--:--:--');
 
   // Avoid hydration mismatch by only updating after mount
   useEffect(() => {
-    setMounted(true);
 
     // Start from some base uptime (e.g., 127 days)
     const baseUptime = 127 * 24 * 60 * 60 * 1000; // 127 days in ms

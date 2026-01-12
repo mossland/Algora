@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 
-export const chatterRouter = Router();
+export const chatterRouter: Router = Router();
 
 // GET /api/chatter - Get recent chatter messages
 chatterRouter.get('/', (req, res) => {

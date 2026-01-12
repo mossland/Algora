@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { ProofOfOutcomeService } from '../services/proof-of-outcome';
 
-export const outcomesRouter = Router();
+export const outcomesRouter: Router = Router();
 
 // ========================================
 // Outcome Endpoints

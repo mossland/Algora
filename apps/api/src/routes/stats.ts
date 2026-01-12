@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 
-export const statsRouter = Router();
+export const statsRouter: Router = Router();
 
 // GET /api/stats - Get dashboard statistics
 statsRouter.get('/', (req, res) => {

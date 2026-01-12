@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
 
-export const signalsRouter = Router();
+export const signalsRouter: Router = Router();
 
 // GET /api/signals - List signals
 signalsRouter.get('/', (req, res) => {

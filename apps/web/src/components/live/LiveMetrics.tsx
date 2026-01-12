@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import clsx from 'clsx';
 import { TerminalBox, TerminalHeader } from './TerminalBox';
 import { LiveCounter, ASCIIProgress, Sparkline } from './GlowText';
 

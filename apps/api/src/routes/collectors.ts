@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { SignalCollectorService } from '../services/collectors';
 
-export const collectorsRouter = Router();
+export const collectorsRouter: Router = Router();
 
 // GET /api/collectors/status - Get all collectors status
 collectorsRouter.get('/status', (req, res) => {

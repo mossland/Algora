@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { TerminalBox, StatusGlyph } from './TerminalBox';
-import { GlowText } from './GlowText';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
 

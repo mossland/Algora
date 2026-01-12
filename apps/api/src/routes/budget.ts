@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 
-export const budgetRouter = Router();
+export const budgetRouter: Router = Router();
 
 // GET /api/budget/status - Get budget status
 budgetRouter.get('/status', (req, res) => {

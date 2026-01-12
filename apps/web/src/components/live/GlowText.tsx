@@ -10,7 +10,7 @@ interface GlowTextProps {
   color?: 'primary' | 'cyan' | 'purple' | 'green' | 'amber' | 'red';
 }
 
-const colorMap = {
+const _colorMap = {
   primary: 'rgba(22, 246, 171, VAR)',
   cyan: 'rgba(0, 194, 194, VAR)',
   purple: 'rgba(139, 92, 246, VAR)',
@@ -19,7 +19,7 @@ const colorMap = {
   red: 'rgba(239, 68, 68, VAR)',
 };
 
-const intensityMap = {
+const _intensityMap = {
   subtle: { shadow: 0.3, spread: 5 },
   normal: { shadow: 0.5, spread: 10 },
   bright: { shadow: 0.7, spread: 15 },

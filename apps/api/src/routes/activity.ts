@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 
-export const activityRouter = Router();
+export const activityRouter: Router = Router();
 
 // GET /api/activity - Get recent activity (root path)
 activityRouter.get('/', (req, res) => {
