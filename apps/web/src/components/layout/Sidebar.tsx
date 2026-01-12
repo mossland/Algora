@@ -15,12 +15,14 @@ import {
   Coins,
   BookOpen,
   Tv,
+  Workflow,
 } from 'lucide-react';
 
 const navItems = [
   { key: 'dashboard', href: '/', icon: LayoutDashboard },
   { key: 'live', href: '/live', icon: Tv, isLive: true },
   { key: 'guide', href: '/guide', icon: BookOpen },
+  { key: 'governance', href: '/governance', icon: Workflow, isNew: true },
   { key: 'agora', href: '/agora', icon: MessageSquare },
   { key: 'agents', href: '/agents', icon: Users },
   { key: 'signals', href: '/signals', icon: Radio },
@@ -58,6 +60,7 @@ export function Sidebar() {
             currentPath === item.href ||
             (item.href !== '/' && currentPath.startsWith(item.href));
           const isLive = 'isLive' in item && item.isLive;
+          const isNew = 'isNew' in item && item.isNew;
 
           return (
             <Link
@@ -68,7 +71,9 @@ export function Sidebar() {
                   ? 'bg-agora-primary/10 text-agora-primary'
                   : isLive
                     ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
-                    : 'text-agora-muted hover:bg-agora-card hover:text-slate-900'
+                    : isNew
+                      ? 'text-agora-accent hover:bg-agora-accent/10 hover:text-agora-accent'
+                      : 'text-agora-muted hover:bg-agora-card hover:text-slate-900'
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -77,6 +82,11 @@ export function Sidebar() {
                 <span className="relative flex h-2 w-2 ml-auto">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+              )}
+              {isNew && (
+                <span className="ml-auto rounded-full bg-agora-accent px-1.5 py-0.5 text-[10px] font-bold text-slate-900">
+                  NEW
                 </span>
               )}
             </Link>

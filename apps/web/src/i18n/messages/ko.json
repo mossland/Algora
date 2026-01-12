@@ -17,6 +17,7 @@
     "dashboard": "대시보드",
     "guide": "가이드",
     "live": "라이브",
+    "governance": "거버넌스 OS",
     "agora": "아고라",
     "agents": "에이전트",
     "signals": "신호",
@@ -524,7 +525,8 @@
       "proposals": "커뮤니티 투표를 위한 거버넌스 제안",
       "treasury": "DAO 트레저리 및 토큰 관리",
       "agents": "거버넌스에 참여하는 AI 에이전트",
-      "engine": "시스템 모니터링 및 설정"
+      "engine": "시스템 모니터링 및 설정",
+      "governance": "문서 레지스트리, 양원제 투표, 안전 자율성을 갖춘 자율 거버넌스 OS"
     }
   },
   "Live": {
@@ -582,6 +584,93 @@
     "footer": {
       "platform": "24/7 라이브 AI 거버넌스 플랫폼",
       "powered": "30개의 AI 에이전트가 구동합니다"
+    }
+  },
+  "Governance": {
+    "title": "거버넌스 OS",
+    "subtitle": "AI 에이전트가 구동하는 자율 거버넌스 운영 시스템",
+    "refresh": "새로고침",
+    "health": {
+      "healthy": "정상",
+      "degraded": "저하됨",
+      "unhealthy": "비정상"
+    },
+    "stats": {
+      "uptime": "가동시간",
+      "pipelines": "파이프라인",
+      "completed": "완료됨",
+      "documents": "문서",
+      "locked": "잠긴 작업"
+    },
+    "tabs": {
+      "overview": "개요",
+      "workflows": "워크플로우",
+      "documents": "문서",
+      "voting": "투표",
+      "approvals": "승인"
+    },
+    "overview": {
+      "recentWorkflows": "최근 워크플로우",
+      "noWorkflows": "활성 워크플로우 없음",
+      "activeVotes": "진행 중인 투표",
+      "noVotes": "진행 중인 투표 없음",
+      "pendingApprovals": "승인 대기 중",
+      "noLocked": "승인 대기 중인 작업 없음"
+    },
+    "pipeline": {
+      "title": "파이프라인 상태",
+      "complete": "완료",
+      "stages": {
+        "signal_intake": "신호",
+        "issue_detection": "감지",
+        "triage": "분류",
+        "research": "연구",
+        "deliberation": "숙의",
+        "decision_packet": "결정",
+        "voting": "투표",
+        "execution": "실행",
+        "outcome_verification": "검증"
+      }
+    },
+    "workflows": {
+      "type": "유형",
+      "active": "활성",
+      "today": "오늘",
+      "pending": "대기"
+    },
+    "documents": {
+      "states": {
+        "draft": "초안",
+        "pending_review": "검토 대기",
+        "in_review": "검토 중",
+        "approved": "승인됨",
+        "published": "발행됨",
+        "superseded": "대체됨",
+        "archived": "보관됨",
+        "rejected": "거부됨"
+      }
+    },
+    "voting": {
+      "status": {
+        "pending": "대기 중",
+        "voting": "투표 중",
+        "passed": "통과",
+        "rejected": "거부",
+        "reconciliation": "조정 중"
+      },
+      "mossCoinHouse": "MossCoin 하원",
+      "openSourceHouse": "OpenSource 하원"
+    },
+    "safeAutonomy": {
+      "status": {
+        "locked": "잠김",
+        "approved": "승인됨",
+        "rejected": "거부됨",
+        "executed": "실행됨"
+      },
+      "lockReason": "잠금 사유",
+      "approvals": "승인",
+      "approve": "승인하기"
     }
   },
   "Witty": {

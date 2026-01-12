@@ -196,3 +196,205 @@ export async function fetchIssues(
   const response = await fetchAPI<{ issues: Issue[] }>(`/api/issues?${params}`);
   return response.issues || [];
 }
+
+// ============================================
+// Governance OS v2.0 API Types & Functions
+// ============================================
+
+// Pipeline Types
+export type PipelineStage =
+  | 'signal_intake'
+  | 'issue_detection'
+  | 'triage'
+  | 'research'
+  | 'deliberation'
+  | 'decision_packet'
+  | 'voting'
+  | 'execution'
+  | 'outcome_verification';
+
+export interface PipelineStatus {
+  issueId: string;
+  currentStage: PipelineStage;
+  stagesCompleted: PipelineStage[];
+  progress: number; // 0-100
+  startedAt: string;
+  updatedAt: string;
+  error?: string;
+}
+
+// Document Types
+export type DocumentType =
+  | 'DP' | 'GP' | 'RM' | 'RC' | 'WGC' | 'WGR'
+  | 'ER' | 'PP' | 'PA' | 'DGP' | 'DG' | 'MR' | 'RR' | 'DR' | 'AR'
+  | 'RD' | 'TA';
+
+export type DocumentState =
+  | 'draft' | 'pending_review' | 'in_review'
+  | 'approved' | 'published' | 'superseded' | 'archived' | 'rejected';
+
+export interface GovernanceDocument {
+  id: string;
+  type: DocumentType;
+  title: string;
+  summary: string;
+  state: DocumentState;
+  version: { major: number; minor: number; patch: number };
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  issueId?: string;
+  contentHash: string;
+}
+
+// Voting Types
+export type HouseType = 'mosscoin' | 'opensource';
+
+export interface DualHouseVote {
+  id: string;
+  proposalId: string;
+  title: string;
+  status: 'pending' | 'voting' | 'passed' | 'rejected' | 'reconciliation';
+  mossCoinHouse: {
+    votesFor: number;
+    votesAgainst: number;
+    votesAbstain: number;
+    quorumReached: boolean;
+    passed?: boolean;
+  };
+  openSourceHouse: {
+    votesFor: number;
+    votesAgainst: number;
+    votesAbstain: number;
+    quorumReached: boolean;
+    passed?: boolean;
+  };
+  createdAt: string;
+  expiresAt: string;
+}
+
+// Safe Autonomy Types
+export type RiskLevel = 'LOW' | 'MID' | 'HIGH';
+
+export interface LockedAction {
+  id: string;
+  actionType: string;
+  riskLevel: RiskLevel;
+  status: 'locked' | 'approved' | 'rejected' | 'executed';
+  lockReason: string;
+  requiredApprovals: string[];
+  receivedApprovals: string[];
+  createdAt: string;
+  documentId?: string;
+}
+
+// Workflow Types
+export type WorkflowType = 'A' | 'B' | 'C' | 'D' | 'E';
+
+export interface WorkflowStatus {
+  type: WorkflowType;
+  name: string;
+  description: string;
+  activeCount: number;
+  completedToday: number;
+  pendingApproval: number;
+}
+
+// Stats Types
+export interface GovernanceOSStats {
+  uptime: number;
+  pipelinesRunning: number;
+  pipelinesCompleted: number;
+  documentsPublished: number;
+  votingSessions: number;
+  lockedActions: number;
+  llmCostsToday: number;
+  lastHeartbeat: string;
+}
+
+export interface GovernanceOSHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  components: {
+    name: string;
+    status: 'up' | 'down' | 'degraded';
+    lastCheck: string;
+  }[];
+}
+
+// API Functions
+export async function fetchGovernanceOSStats(): Promise<GovernanceOSStats> {
+  return fetchAPI<GovernanceOSStats>('/api/governance-os/stats');
+}
+
+export async function fetchGovernanceOSHealth(): Promise<GovernanceOSHealth> {
+  return fetchAPI<GovernanceOSHealth>('/api/governance-os/health');
+}
+
+export async function fetchPipelineStatus(issueId: string): Promise<PipelineStatus> {
+  return fetchAPI<PipelineStatus>(`/api/governance-os/pipeline/issue/${issueId}`);
+}
+
+export async function fetchDocuments(
+  type?: DocumentType,
+  state?: DocumentState,
+  limit = 50
+): Promise<GovernanceDocument[]> {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  if (type) params.append('type', type);
+  if (state) params.append('state', state);
+  const response = await fetchAPI<{ documents: GovernanceDocument[] }>(
+    `/api/governance-os/documents?${params}`
+  );
+  return response.documents || [];
+}
+
+export async function fetchDocument(documentId: string): Promise<GovernanceDocument> {
+  return fetchAPI<GovernanceDocument>(`/api/governance-os/documents/${documentId}`);
+}
+
+export async function fetchDualHouseVotes(status?: string): Promise<DualHouseVote[]> {
+  const params = status ? `?status=${status}` : '';
+  const response = await fetchAPI<{ sessions: DualHouseVote[] }>(
+    `/api/governance-os/voting${params}`
+  );
+  return response.sessions || [];
+}
+
+export async function fetchLockedActions(status?: string): Promise<LockedAction[]> {
+  const params = status ? `?status=${status}` : '';
+  const response = await fetchAPI<{ actions: LockedAction[] }>(
+    `/api/governance-os/approvals${params}`
+  );
+  return response.actions || [];
+}
+
+export async function fetchWorkflowStatuses(): Promise<WorkflowStatus[]> {
+  // Mock data for now - will be replaced with real API
+  return [
+    { type: 'A', name: 'Academic Activity', description: 'AI/Blockchain research', activeCount: 2, completedToday: 5, pendingApproval: 0 },
+    { type: 'B', name: 'Free Debate', description: 'Open-ended deliberation', activeCount: 1, completedToday: 3, pendingApproval: 0 },
+    { type: 'C', name: 'Developer Support', description: 'Grant applications', activeCount: 4, completedToday: 2, pendingApproval: 3 },
+    { type: 'D', name: 'Ecosystem Expansion', description: 'Partnership opportunities', activeCount: 2, completedToday: 1, pendingApproval: 2 },
+    { type: 'E', name: 'Working Groups', description: 'WG formation & management', activeCount: 1, completedToday: 0, pendingApproval: 1 },
+  ];
+}
+
+export async function approveLockedAction(actionId: string, approverId: string): Promise<void> {
+  await fetchAPI(`/api/governance-os/approvals/${actionId}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ approverId }),
+  });
+}
+
+export async function castDualHouseVote(
+  sessionId: string,
+  house: HouseType,
+  vote: 'for' | 'against' | 'abstain',
+  voterId: string,
+  votingPower: number
+): Promise<void> {
+  await fetchAPI(`/api/governance-os/voting/${sessionId}/vote`, {
+    method: 'POST',
+    body: JSON.stringify({ house, vote, voterId, votingPower }),
+  });
+}

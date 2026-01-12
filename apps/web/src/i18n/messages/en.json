@@ -17,6 +17,7 @@
     "dashboard": "Dashboard",
     "guide": "Guide",
     "live": "Live",
+    "governance": "Governance OS",
     "agora": "Agora",
     "agents": "Agents",
     "signals": "Signals",
@@ -524,7 +525,8 @@
       "proposals": "Governance proposals for community voting",
       "treasury": "DAO treasury and token management",
       "agents": "AI agents participating in governance",
-      "engine": "System monitoring and configuration"
+      "engine": "System monitoring and configuration",
+      "governance": "Autonomous governance OS with document registry, dual-house voting, and safe autonomy"
     }
   },
   "Live": {
@@ -582,6 +584,93 @@
     "footer": {
       "platform": "24/7 Live Agentic Governance Platform",
       "powered": "Powered by 30 AI Agents"
+    }
+  },
+  "Governance": {
+    "title": "Governance OS",
+    "subtitle": "Autonomous governance operating system powered by AI agents",
+    "refresh": "Refresh",
+    "health": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "unhealthy": "Unhealthy"
+    },
+    "stats": {
+      "uptime": "Uptime",
+      "pipelines": "Pipelines",
+      "completed": "completed",
+      "documents": "Documents",
+      "locked": "Locked Actions"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "workflows": "Workflows",
+      "documents": "Documents",
+      "voting": "Voting",
+      "approvals": "Approvals"
+    },
+    "overview": {
+      "recentWorkflows": "Recent Workflows",
+      "noWorkflows": "No active workflows",
+      "activeVotes": "Active Votes",
+      "noVotes": "No active votes",
+      "pendingApprovals": "Pending Approvals",
+      "noLocked": "No actions pending approval"
+    },
+    "pipeline": {
+      "title": "Pipeline Status",
+      "complete": "complete",
+      "stages": {
+        "signal_intake": "Signals",
+        "issue_detection": "Detection",
+        "triage": "Triage",
+        "research": "Research",
+        "deliberation": "Deliberation",
+        "decision_packet": "Decision",
+        "voting": "Voting",
+        "execution": "Execution",
+        "outcome_verification": "Verification"
+      }
+    },
+    "workflows": {
+      "type": "Type",
+      "active": "active",
+      "today": "today",
+      "pending": "pending"
+    },
+    "documents": {
+      "states": {
+        "draft": "Draft",
+        "pending_review": "Pending Review",
+        "in_review": "In Review",
+        "approved": "Approved",
+        "published": "Published",
+        "superseded": "Superseded",
+        "archived": "Archived",
+        "rejected": "Rejected"
+      }
+    },
+    "voting": {
+      "status": {
+        "pending": "Pending",
+        "voting": "Voting",
+        "passed": "Passed",
+        "rejected": "Rejected",
+        "reconciliation": "Reconciliation"
+      },
+      "mossCoinHouse": "MossCoin House",
+      "openSourceHouse": "OpenSource House"
+    },
+    "safeAutonomy": {
+      "status": {
+        "locked": "Locked",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "executed": "Executed"
+      },
+      "lockReason": "Lock Reason",
+      "approvals": "Approvals",
+      "approve": "Approve"
     }
   },
   "Witty": {
