@@ -11,8 +11,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Phase 9: Testing & Production Deployment
-- Backend API endpoints connection for Governance OS UI
-- Real-time updates via Socket.IO
+- Real-time updates via Socket.IO for Governance OS
+
+---
+
+## [0.12.1] - 2026-01-13
+
+### Added
+- **Backend API Endpoints for Governance OS** (`@algora/api`):
+  - `GET /governance-os/documents` - List all documents with filters (type, state, limit, offset)
+  - `GET /governance-os/voting` - List all voting sessions with filters (status, limit, offset)
+  - `GET /governance-os/approvals` - List all high-risk approvals/locked actions
+  - `GET /governance-os/approvals/:approvalId` - Get specific approval by ID
+  - `GET /governance-os/workflows` - Get workflow statuses for all 5 workflow types (A-E)
+
+- **GovernanceOSBridge Service Methods** (`apps/api/src/services/governance-os-bridge.ts`):
+  - `listAllDocuments()` - Query documents from Document Registry
+  - `listAllVotings()` - Query voting sessions from Dual-House
+  - `listAllApprovals()` - Query high-risk approvals with lock status
+  - `getApproval()` - Get specific approval by ID
+  - `getWorkflowStatuses()` - Aggregate workflow statistics
+
+- **WittyLoader/WittyMessage Enhancements** (`apps/web/src/components/ui/`, `apps/web/src/hooks/`):
+  - New `'governance'` message category for loading states
+  - New empty state types: `'workflows'`, `'documents'`, `'votes'`, `'approvals'`
+  - Governance-specific loading messages from `governanceMessages`
+
+### Changed
+- **Frontend API Functions** (`apps/web/src/lib/api.ts`):
+  - `fetchGovernanceOSStats()` - Now correctly handles `{ stats }` wrapper response
+  - `fetchDocument()` - Now correctly handles `{ document }` wrapper response
+  - `fetchDocuments()` - Now uses real `/governance-os/documents` endpoint
+  - `fetchDualHouseVotes()` - Now uses real `/governance-os/voting` endpoint
+  - `fetchLockedActions()` - Now uses real `/governance-os/approvals` endpoint
+  - `fetchWorkflowStatuses()` - **Removed mock data**, now uses real `/governance-os/workflows` endpoint
+
+### Removed
+- Mock data from `fetchWorkflowStatuses()` function - now fetches from real API
 
 ---
 

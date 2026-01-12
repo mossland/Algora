@@ -84,6 +84,35 @@ router.get('/pipeline/issue/:issueId', (req: Request, res: Response) => {
 // ==========================================
 
 /**
+ * GET /governance-os/documents
+ * List all documents with optional filters
+ */
+router.get('/documents', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const { type, state, limit, offset } = req.query;
+
+    const result = await bridge.listAllDocuments({
+      type: type as DocumentType | undefined,
+      state: state as string | undefined,
+      limit: limit ? parseInt(limit as string, 10) : 50,
+      offset: offset ? parseInt(offset as string, 10) : 0,
+    });
+
+    return res.json({
+      documents: result.documents,
+      total: result.total,
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] List documents error:', error);
+    return res.status(500).json({
+      error: 'Failed to list documents',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * POST /governance-os/documents
  * Create a document from a proposal
  */
@@ -168,6 +197,34 @@ router.get('/documents/type/:type', async (req: Request, res: Response) => {
 // ==========================================
 // Dual-House Voting Endpoints
 // ==========================================
+
+/**
+ * GET /governance-os/voting
+ * List all voting sessions with optional filters
+ */
+router.get('/voting', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const { status, limit, offset } = req.query;
+
+    const result = await bridge.listAllVotings({
+      status: status as string | undefined,
+      limit: limit ? parseInt(limit as string, 10) : 50,
+      offset: offset ? parseInt(offset as string, 10) : 0,
+    });
+
+    return res.json({
+      sessions: result.sessions,
+      total: result.total,
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] List voting sessions error:', error);
+    return res.status(500).json({
+      error: 'Failed to list voting sessions',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
 
 /**
  * POST /governance-os/voting
@@ -275,6 +332,59 @@ router.post('/voting/:votingId/vote', async (req: Request, res: Response) => {
 // ==========================================
 // High-Risk Approval Endpoints
 // ==========================================
+
+/**
+ * GET /governance-os/approvals
+ * List all high-risk approvals (locked actions) with optional filters
+ */
+router.get('/approvals', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const { status, limit, offset } = req.query;
+
+    const result = await bridge.listAllApprovals({
+      status: status as string | undefined,
+      limit: limit ? parseInt(limit as string, 10) : 50,
+      offset: offset ? parseInt(offset as string, 10) : 0,
+    });
+
+    return res.json({
+      actions: result.actions,
+      total: result.total,
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] List approvals error:', error);
+    return res.status(500).json({
+      error: 'Failed to list approvals',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * GET /governance-os/approvals/:approvalId
+ * Get a specific high-risk approval by ID
+ */
+router.get('/approvals/:approvalId', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const { approvalId } = req.params;
+
+    const approval = await bridge.getApproval(approvalId);
+
+    if (!approval) {
+      return res.status(404).json({ error: 'Approval not found' });
+    }
+
+    return res.json({ approval });
+  } catch (error) {
+    console.error('[GovernanceOS] Get approval error:', error);
+    return res.status(500).json({
+      error: 'Failed to get approval',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
 
 /**
  * POST /governance-os/approvals
@@ -412,6 +522,29 @@ router.post('/model-router/execute', async (req: Request, res: Response) => {
     console.error('[GovernanceOS] Model router error:', error);
     return res.status(500).json({
       error: 'Failed to execute with model router',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// ==========================================
+// Workflow Status Endpoints
+// ==========================================
+
+/**
+ * GET /governance-os/workflows
+ * Get workflow statuses for all workflow types
+ */
+router.get('/workflows', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const workflows = await bridge.getWorkflowStatuses();
+
+    return res.json({ workflows });
+  } catch (error) {
+    console.error('[GovernanceOS] Get workflows error:', error);
+    return res.status(500).json({
+      error: 'Failed to get workflow statuses',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }

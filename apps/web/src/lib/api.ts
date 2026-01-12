@@ -323,7 +323,8 @@ export interface GovernanceOSHealth {
 
 // API Functions
 export async function fetchGovernanceOSStats(): Promise<GovernanceOSStats> {
-  return fetchAPI<GovernanceOSStats>('/api/governance-os/stats');
+  const response = await fetchAPI<{ stats: GovernanceOSStats }>('/api/governance-os/stats');
+  return response.stats;
 }
 
 export async function fetchGovernanceOSHealth(): Promise<GovernanceOSHealth> {
@@ -342,41 +343,40 @@ export async function fetchDocuments(
   const params = new URLSearchParams({ limit: limit.toString() });
   if (type) params.append('type', type);
   if (state) params.append('state', state);
-  const response = await fetchAPI<{ documents: GovernanceDocument[] }>(
+  const response = await fetchAPI<{ documents: GovernanceDocument[]; total: number }>(
     `/api/governance-os/documents?${params}`
   );
   return response.documents || [];
 }
 
 export async function fetchDocument(documentId: string): Promise<GovernanceDocument> {
-  return fetchAPI<GovernanceDocument>(`/api/governance-os/documents/${documentId}`);
+  const response = await fetchAPI<{ document: GovernanceDocument }>(`/api/governance-os/documents/${documentId}`);
+  return response.document;
 }
 
 export async function fetchDualHouseVotes(status?: string): Promise<DualHouseVote[]> {
-  const params = status ? `?status=${status}` : '';
-  const response = await fetchAPI<{ sessions: DualHouseVote[] }>(
-    `/api/governance-os/voting${params}`
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const response = await fetchAPI<{ sessions: DualHouseVote[]; total: number }>(
+    `/api/governance-os/voting${queryString}`
   );
   return response.sessions || [];
 }
 
 export async function fetchLockedActions(status?: string): Promise<LockedAction[]> {
-  const params = status ? `?status=${status}` : '';
-  const response = await fetchAPI<{ actions: LockedAction[] }>(
-    `/api/governance-os/approvals${params}`
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const response = await fetchAPI<{ actions: LockedAction[]; total: number }>(
+    `/api/governance-os/approvals${queryString}`
   );
   return response.actions || [];
 }
 
 export async function fetchWorkflowStatuses(): Promise<WorkflowStatus[]> {
-  // Mock data for now - will be replaced with real API
-  return [
-    { type: 'A', name: 'Academic Activity', description: 'AI/Blockchain research', activeCount: 2, completedToday: 5, pendingApproval: 0 },
-    { type: 'B', name: 'Free Debate', description: 'Open-ended deliberation', activeCount: 1, completedToday: 3, pendingApproval: 0 },
-    { type: 'C', name: 'Developer Support', description: 'Grant applications', activeCount: 4, completedToday: 2, pendingApproval: 3 },
-    { type: 'D', name: 'Ecosystem Expansion', description: 'Partnership opportunities', activeCount: 2, completedToday: 1, pendingApproval: 2 },
-    { type: 'E', name: 'Working Groups', description: 'WG formation & management', activeCount: 1, completedToday: 0, pendingApproval: 1 },
-  ];
+  const response = await fetchAPI<{ workflows: WorkflowStatus[] }>('/api/governance-os/workflows');
+  return response.workflows || [];
 }
 
 export async function approveLockedAction(actionId: string, approverId: string): Promise<void> {

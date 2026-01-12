@@ -7,6 +7,7 @@ import {
   signalMessages,
   sessionMessages,
   emptyStateMessages,
+  governanceMessages,
   getRandomMessage,
 } from '@/lib/wittyMessages';
 
@@ -14,23 +15,61 @@ type MessageCategory =
   | 'loading'
   | 'agent'
   | 'signal'
+  | 'governance'
   | 'session-starting'
   | 'session-active'
   | 'session-concluding'
   | 'empty-sessions'
   | 'empty-signals'
-  | 'empty-agents';
+  | 'empty-agents'
+  | 'empty-workflows'
+  | 'empty-documents'
+  | 'empty-votes'
+  | 'empty-approvals';
+
+// Governance empty state messages
+const governanceEmptyMessages = {
+  workflows: [
+    'Workflows await activation...',
+    'The governance engine idles...',
+    'Pipelines germinating...',
+    'Systems ready for orchestration...',
+  ],
+  documents: [
+    'The registry awaits its first document...',
+    'Official records incubating...',
+    'Archives anticipating entries...',
+    'Documentation crystallizing...',
+  ],
+  votes: [
+    'The dual houses await proposals...',
+    'Voting chambers stand ready...',
+    'Democracy hibernates...',
+    'Consensus awaits formation...',
+  ],
+  approvals: [
+    'All actions flow freely...',
+    'No locks require keys...',
+    'Safe autonomy in harmony...',
+    'Approvals queue empty...',
+  ],
+};
 
 const categoryToMessages: Record<MessageCategory, string[]> = {
   loading: loadingMessages,
   agent: agentActivityMessages,
   signal: signalMessages,
+  governance: [...governanceMessages.voting, ...governanceMessages.proposal, ...governanceMessages.execution],
   'session-starting': sessionMessages.starting,
   'session-active': sessionMessages.active,
   'session-concluding': sessionMessages.concluding,
   'empty-sessions': emptyStateMessages.noSessions,
   'empty-signals': emptyStateMessages.noSignals,
   'empty-agents': emptyStateMessages.noAgents,
+  'empty-workflows': governanceEmptyMessages.workflows,
+  'empty-documents': governanceEmptyMessages.documents,
+  'empty-votes': governanceEmptyMessages.votes,
+  'empty-approvals': governanceEmptyMessages.approvals,
 };
 
 interface UseWittyMessageOptions {

@@ -298,6 +298,25 @@ export class GovernanceOSBridge extends EventEmitter {
     return result.documents;
   }
 
+  /**
+   * List all documents with optional filters.
+   */
+  async listAllDocuments(options?: {
+    type?: DocumentType;
+    state?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ documents: Document[]; total: number }> {
+    const docRegistry = this.governanceOS.getDocumentRegistry();
+    const result = await docRegistry.documents.query({
+      type: options?.type,
+      state: options?.state as 'draft' | 'pending_review' | 'in_review' | 'approved' | 'published' | 'superseded' | 'archived' | 'rejected' | undefined,
+      limit: options?.limit || 50,
+      offset: options?.offset || 0,
+    });
+    return { documents: result.documents, total: result.total };
+  }
+
   // ==========================================
   // Public API: Dual-House Voting
   // ==========================================
@@ -349,6 +368,27 @@ export class GovernanceOSBridge extends EventEmitter {
   async getVoting(votingId: string): Promise<DualHouseVoting | null> {
     const dualHouse = this.governanceOS.getDualHouse();
     return dualHouse.voting.getVoting(votingId);
+  }
+
+  /**
+   * List all voting sessions with optional filters.
+   */
+  async listAllVotings(options?: {
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ sessions: DualHouseVoting[]; total: number }> {
+    const dualHouse = this.governanceOS.getDualHouse();
+    const sessions = await dualHouse.voting.listVotings({
+      status: options?.status as 'pending' | 'voting' | 'both_passed' | 'moc_only' | 'oss_only' | 'reconciliation' | 'executed' | 'rejected' | undefined,
+      limit: options?.limit || 50,
+      offset: options?.offset || 0,
+    });
+    // Count total (without limit/offset)
+    const allSessions = await dualHouse.voting.listVotings({
+      status: options?.status as 'pending' | 'voting' | 'both_passed' | 'moc_only' | 'oss_only' | 'reconciliation' | 'executed' | 'rejected' | undefined,
+    });
+    return { sessions, total: allSessions.length };
   }
 
   /**
@@ -441,6 +481,34 @@ export class GovernanceOSBridge extends EventEmitter {
     }
   }
 
+  /**
+   * List all high-risk approvals (locked actions) with optional filters.
+   */
+  async listAllApprovals(options?: {
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ actions: HighRiskApproval[]; total: number }> {
+    const dualHouse = this.governanceOS.getDualHouse();
+    const lockStatus = options?.status === 'locked' ? 'LOCKED' : options?.status === 'unlocked' ? 'UNLOCKED' : undefined;
+    const actions = await dualHouse.highRisk.listApprovals({
+      lockStatus,
+      limit: options?.limit || 50,
+      offset: options?.offset || 0,
+    });
+    // Count total
+    const allActions = await dualHouse.highRisk.listApprovals({ lockStatus });
+    return { actions, total: allActions.length };
+  }
+
+  /**
+   * Get a specific high-risk approval by ID.
+   */
+  async getApproval(approvalId: string): Promise<HighRiskApproval | null> {
+    const dualHouse = this.governanceOS.getDualHouse();
+    return dualHouse.highRisk.getApproval(approvalId);
+  }
+
   // ==========================================
   // Public API: Model Router Integration
   // ==========================================
@@ -525,6 +593,49 @@ export class GovernanceOSBridge extends EventEmitter {
     const safeAutonomy = this.governanceOS.getSafeAutonomy();
     const locked = await safeAutonomy.lockManager.get(actionId);
     return locked !== null && locked.status === 'LOCKED';
+  }
+
+  // ==========================================
+  // Public API: Workflow Statuses
+  // ==========================================
+
+  /**
+   * Get workflow statuses for all workflow types.
+   */
+  async getWorkflowStatuses(): Promise<{
+    type: WorkflowType;
+    name: string;
+    description: string;
+    activeCount: number;
+    completedToday: number;
+    pendingApproval: number;
+  }[]> {
+    const stats = this.governanceOS.getStats();
+    const dualHouse = this.governanceOS.getDualHouse();
+
+    // Get pending approvals count
+    const pendingApprovals = await dualHouse.highRisk.listApprovals({ lockStatus: 'LOCKED' });
+
+    // Workflow definitions
+    const workflows: { type: WorkflowType; name: string; description: string }[] = [
+      { type: 'A', name: 'Academic Activity', description: 'AI/Blockchain research' },
+      { type: 'B', name: 'Free Debate', description: 'Open-ended deliberation' },
+      { type: 'C', name: 'Developer Support', description: 'Grant applications' },
+      { type: 'D', name: 'Ecosystem Expansion', description: 'Partnership opportunities' },
+      { type: 'E', name: 'Working Groups', description: 'WG formation & management' },
+    ];
+
+    // Calculate active pipelines (total - successful - failed)
+    const activePipelines = Math.max(0, stats.totalPipelines - stats.successfulPipelines - stats.failedPipelines);
+    const completedPipelines = stats.successfulPipelines;
+
+    // Calculate stats per workflow (distribute evenly)
+    return workflows.map((wf) => ({
+      ...wf,
+      activeCount: Math.floor(activePipelines / 5),
+      completedToday: Math.floor(completedPipelines / 5),
+      pendingApproval: wf.type === 'C' || wf.type === 'D' ? Math.floor(pendingApprovals.length / 2) : 0,
+    }));
   }
 
   // ==========================================

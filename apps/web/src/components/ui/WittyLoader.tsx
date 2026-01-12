@@ -7,7 +7,7 @@ interface WittyLoaderProps {
   /** Size of the loader */
   size?: 'sm' | 'md' | 'lg';
   /** Category of messages to show */
-  category?: 'loading' | 'agent' | 'signal';
+  category?: 'loading' | 'agent' | 'signal' | 'governance';
   /** Custom messages */
   messages?: string[];
   /** Show spinner icon */
@@ -85,7 +85,7 @@ export function WittyText({
  * Empty state with witty message
  */
 interface WittyEmptyStateProps {
-  type: 'sessions' | 'signals' | 'agents';
+  type: 'sessions' | 'signals' | 'agents' | 'workflows' | 'documents' | 'votes' | 'approvals';
   icon?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
@@ -101,6 +101,10 @@ export function WittyEmptyState({
     sessions: 'empty-sessions' as const,
     signals: 'empty-signals' as const,
     agents: 'empty-agents' as const,
+    workflows: 'empty-workflows' as const,
+    documents: 'empty-documents' as const,
+    votes: 'empty-votes' as const,
+    approvals: 'empty-approvals' as const,
   };
 
   const { message } = useWittyMessage({

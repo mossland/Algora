@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-13
-**Current Version**: 0.12.0
+**Current Version**: 0.12.1
 
 ---
 
@@ -191,7 +191,11 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
   - [x] Document states
   - [x] Voting status
   - [x] Safe autonomy status
-- [ ] Backend API endpoints connection (mock data currently)
+- [x] Backend API endpoints connection
+  - [x] GovernanceOSBridge new methods (listAllDocuments, listAllVotings, listAllApprovals, getWorkflowStatuses)
+  - [x] New REST endpoints: GET /documents, GET /voting, GET /approvals, GET /workflows
+  - [x] Frontend API functions connected to real endpoints (mock data removed)
+  - [x] WittyLoader/WittyMessage extended with 'governance' category
 - [ ] Real-time updates via Socket.IO
 - [ ] Testing and polish
 
