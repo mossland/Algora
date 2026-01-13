@@ -90,7 +90,7 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-slate-900">{stat.title}</h2>
-              <p className="text-sm text-agora-muted">{t('statDetails')}</p>
+              <p className="text-sm text-agora-muted">{t('statDetails.title')}</p>
             </div>
           </div>
           <button
@@ -107,7 +107,7 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
           <div className="rounded-lg bg-agora-card p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-agora-muted">{t('currentValue')}</p>
+                <p className="text-sm text-agora-muted">{t('statDetails.currentValue')}</p>
                 <p className="text-4xl font-bold text-slate-900 mt-1">
                   {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
                 </p>
@@ -146,7 +146,7 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
             <div>
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 mb-3">
                 <BarChart3 className="h-4 w-4" />
-                {t('breakdown')}
+                {t('statDetails.breakdown')}
               </h3>
               <div className="space-y-3">
                 {/* Progress bar */}
@@ -180,7 +180,7 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
             <div>
               <h3 className="flex items-center gap-2 text-sm font-medium text-slate-900 mb-3">
                 <Clock className="h-4 w-4" />
-                {t('recentActivity')}
+                {t('statDetails.recentActivity')}
               </h3>
               <div className="space-y-2">
                 {activities.map((activity: ActivityType) => (
@@ -210,7 +210,7 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
             onClick={onClose}
             className="w-full rounded-lg bg-agora-card py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
           >
-            {t('close')}
+            {t('statDetails.close')}
           </button>
         </div>
       </div>
