@@ -3,13 +3,17 @@ import { Server as SocketServer } from 'socket.io';
 import { ProposalService } from './proposal';
 import { VotingService } from './voting';
 import { DecisionPacketService } from './decision-packet';
+import type { GovernanceOSBridge } from '../governance-os-bridge';
 
 export class GovernanceService {
   public readonly proposals: ProposalService;
   public readonly voting: VotingService;
   public readonly decisionPackets: DecisionPacketService;
+  private io: SocketServer;
+  private governanceOSBridge: GovernanceOSBridge | null = null;
 
   constructor(db: Database.Database, io: SocketServer) {
+    this.io = io;
     this.proposals = new ProposalService(db, io);
     this.voting = new VotingService(db, io);
     this.decisionPackets = new DecisionPacketService(db, io);
@@ -17,10 +21,22 @@ export class GovernanceService {
     console.log('[Governance] Service initialized');
   }
 
+  /**
+   * Set the GovernanceOS Bridge for document and voting integration
+   */
+  setGovernanceOSBridge(bridge: GovernanceOSBridge): void {
+    this.governanceOSBridge = bridge;
+    console.info('[Governance] GovernanceOS Bridge connected');
+  }
+
   // === Convenience Methods ===
 
   async createProposalFromIssue(issueId: string, proposer: string): Promise<any> {
     const proposal = this.proposals.createFromIssue(issueId, proposer);
+
+    // Create a GP (Governance Proposal) document
+    await this.createProposalDocument(proposal);
+
     return proposal;
   }
 
@@ -33,7 +49,91 @@ export class GovernanceService {
     // Generate decision packet
     await this.decisionPackets.generatePacket(proposalId, 'system');
 
+    // Create dual-house voting session
+    await this.createDualHouseVotingSession(proposal);
+
     return proposal;
+  }
+
+  /**
+   * Create a governance document from a proposal
+   */
+  private async createProposalDocument(proposal: any): Promise<void> {
+    if (!this.governanceOSBridge || !proposal) {
+      return;
+    }
+
+    try {
+      const docRegistry = this.governanceOSBridge.getGovernanceOS().getDocumentRegistry();
+
+      const doc = await docRegistry.documents.create({
+        type: 'GP', // Governance Proposal
+        title: `Proposal: ${proposal.title}`,
+        summary: proposal.description?.substring(0, 500) || proposal.title,
+        content: JSON.stringify({
+          proposalId: proposal.id,
+          title: proposal.title,
+          description: proposal.description,
+          category: proposal.category,
+          status: proposal.status,
+          proposedBy: proposal.proposed_by,
+          issueId: proposal.issue_id,
+          createdAt: proposal.created_at,
+        }),
+        createdBy: proposal.proposed_by || 'governance-service',
+      });
+
+      console.log(`[Governance] Created GP document ${doc.id} for proposal ${proposal.id.slice(0, 8)}`);
+
+      this.io.emit('governance:document:created', {
+        id: doc.id,
+        type: 'GP',
+        title: doc.title,
+        state: doc.state,
+        proposalId: proposal.id,
+        timestamp: new Date().toISOString(),
+      });
+
+    } catch (error) {
+      console.error(`[Governance] Failed to create document for proposal:`, error);
+    }
+  }
+
+  /**
+   * Create a dual-house voting session for a proposal
+   */
+  private async createDualHouseVotingSession(proposal: any): Promise<void> {
+    if (!this.governanceOSBridge || !proposal) {
+      return;
+    }
+
+    try {
+      // Classify risk level based on proposal category
+      const riskLevel = this.governanceOSBridge.classifyRisk(proposal.category || 'general');
+
+      const voting = await this.governanceOSBridge.createDualHouseVoting({
+        proposalId: proposal.id,
+        title: proposal.title,
+        summary: proposal.description?.substring(0, 500) || proposal.title,
+        riskLevel,
+        category: proposal.category || 'general',
+        createdBy: proposal.proposed_by || 'governance-service',
+      });
+
+      console.log(`[Governance] Created dual-house voting ${voting.id} for proposal ${proposal.id.slice(0, 8)}`);
+
+      this.io.emit('governance:voting:created', {
+        id: voting.id,
+        proposalId: proposal.id,
+        title: voting.title,
+        status: voting.status,
+        riskLevel,
+        timestamp: new Date().toISOString(),
+      });
+
+    } catch (error) {
+      console.error(`[Governance] Failed to create voting session for proposal:`, error);
+    }
   }
 
   async getProposalWithDetails(proposalId: string): Promise<any> {

@@ -118,6 +118,7 @@ async function bootstrap() {
 
     // Initialize governance service
     const governance = new GovernanceService(db, io);
+    governance.setGovernanceOSBridge(governanceOSBridge);
     app.locals.governance = governance;
 
     // Initialize proof of outcome service
