@@ -3,6 +3,7 @@ import { Server as SocketServer } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import { llmService, type ModelComplexity } from './llm';
 import { AgoraService } from './agora';
+import type { GovernanceOSBridge } from './governance-os-bridge';
 
 // Issue detection patterns
 interface DetectionPattern {
@@ -63,6 +64,7 @@ export class IssueDetectionService {
   private db: Database.Database;
   private io: SocketServer;
   private agoraService: AgoraService;
+  private governanceOSBridge: GovernanceOSBridge | null = null;
   private isRunning: boolean = false;
   private checkIntervalId: NodeJS.Timeout | null = null;
   private lastPatternTrigger: Map<string, Date> = new Map();
@@ -236,6 +238,14 @@ export class IssueDetectionService {
     this.io = io;
     this.agoraService = new AgoraService(db, io);
     this.initializeTables();
+  }
+
+  /**
+   * Set the GovernanceOS Bridge for direct pipeline triggering
+   */
+  setGovernanceOSBridge(bridge: GovernanceOSBridge): void {
+    this.governanceOSBridge = bridge;
+    console.info('[IssueDetection] GovernanceOS Bridge connected');
   }
 
   private initializeTables(): void {
@@ -456,10 +466,131 @@ export class IssueDetectionService {
 
     console.log(`[IssueDetection] Created issue: ${title} (${signals.length} signals)`);
 
+    // Create governance document for all issues
+    await this.createIssueDocument(issueId, title, description, pattern, signals);
+
     // Auto-create Agora session for critical/high priority issues
     if (pattern.priority === 'critical' || pattern.priority === 'high') {
       await this.createAutoAgoraSession(issueId, title, pattern.category, pattern.priority);
+    } else {
+      // For medium/low priority, trigger pipeline directly
+      await this.triggerPipelineForIssue(issueId, title, pattern.category, pattern.priority);
     }
+  }
+
+  /**
+   * Create a governance document for the detected issue
+   */
+  private async createIssueDocument(
+    issueId: string,
+    title: string,
+    description: string,
+    pattern: DetectionPattern,
+    signals: Signal[]
+  ): Promise<void> {
+    if (!this.governanceOSBridge) {
+      console.log('[IssueDetection] GovernanceOS Bridge not available, skipping document creation');
+      return;
+    }
+
+    try {
+      const docRegistry = this.governanceOSBridge.getGovernanceOS().getDocumentRegistry();
+
+      // Create an RM (Risk Management) document for the issue
+      const doc = await docRegistry.documents.create({
+        type: 'RM', // Risk Management document
+        title: `Issue Report: ${title}`,
+        summary: `Detected issue in category ${pattern.category} with ${pattern.priority} priority`,
+        content: JSON.stringify({
+          issueId,
+          patternId: pattern.id,
+          patternName: pattern.name,
+          category: pattern.category,
+          priority: pattern.priority,
+          signalCount: signals.length,
+          signalSources: [...new Set(signals.map(s => s.source))],
+          description,
+          detectedAt: new Date().toISOString(),
+        }),
+        createdBy: 'issue-detection-service',
+      });
+
+      console.log(`[IssueDetection] Created governance document ${doc.id} for issue ${issueId.slice(0, 8)}`);
+
+      // Emit document creation event
+      this.io.emit('governance:document:created', {
+        id: doc.id,
+        type: 'RM',
+        title: doc.title,
+        state: doc.state,
+        issueId,
+        timestamp: new Date().toISOString(),
+      });
+
+    } catch (error) {
+      console.error(`[IssueDetection] Failed to create document for issue ${issueId}:`, error);
+    }
+  }
+
+  /**
+   * Trigger the governance pipeline directly for an issue
+   */
+  private async triggerPipelineForIssue(
+    issueId: string,
+    title: string,
+    category: string,
+    priority: string
+  ): Promise<void> {
+    if (!this.governanceOSBridge) {
+      console.log('[IssueDetection] GovernanceOS Bridge not available, skipping pipeline');
+      return;
+    }
+
+    try {
+      console.log(`[IssueDetection] Triggering pipeline for issue: ${issueId.slice(0, 8)} - ${title}`);
+
+      // Determine workflow type based on category
+      const workflowType = this.determineWorkflowType(category);
+
+      const result = await this.governanceOSBridge.runPipelineForIssue(issueId, {
+        workflowType,
+      });
+
+      if (result.success) {
+        console.log(`[IssueDetection] Pipeline completed for issue ${issueId.slice(0, 8)}: status=${result.status}`);
+        this.logActivity('PIPELINE', priority === 'medium' ? 'info' : 'warning', `Pipeline started for: ${title}`, {
+          issueId,
+          workflowType,
+        });
+      } else {
+        console.error(`[IssueDetection] Pipeline failed for issue ${issueId.slice(0, 8)}: status=${result.status}`);
+      }
+
+    } catch (error) {
+      console.error(`[IssueDetection] Failed to trigger pipeline for issue ${issueId}:`, error);
+    }
+  }
+
+  /**
+   * Determine workflow type based on issue category
+   */
+  private determineWorkflowType(category: string): 'A' | 'B' | 'C' | 'D' | 'E' {
+    const cat = category.toLowerCase();
+
+    if (cat.includes('ai') || cat.includes('research') || cat.includes('academic')) {
+      return 'A'; // Academic Activity
+    }
+    if (cat.includes('dev') || cat.includes('grant') || cat.includes('developer')) {
+      return 'C'; // Developer Support
+    }
+    if (cat.includes('partnership') || cat.includes('expansion') || cat.includes('ecosystem')) {
+      return 'D'; // Ecosystem Expansion
+    }
+    if (cat.includes('group') || cat.includes('committee') || cat.includes('working')) {
+      return 'E'; // Working Groups
+    }
+    // Default to Free Debate
+    return 'B';
   }
 
   private generateIssueDescription(pattern: DetectionPattern, signals: Signal[]): string {

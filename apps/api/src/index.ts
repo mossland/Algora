@@ -110,6 +110,7 @@ async function bootstrap() {
 
     // Initialize issue detection service
     const issueDetection = new IssueDetectionService(db, io);
+    issueDetection.setGovernanceOSBridge(governanceOSBridge);
     app.locals.issueDetection = issueDetection;
 
     // Start issue detection (runs after signal collectors have initial data)
