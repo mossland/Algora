@@ -127,12 +127,21 @@ class LLMRequestQueue {
 // Singleton instance for global rate limiting
 const globalLLMQueue = new LLMRequestQueue();
 
+// Orchestrator configuration
+const ORCHESTRATOR_CONFIG = {
+  minMessagesPerRound: 5,  // Minimum messages before considering round advancement
+  maxMessagesPerRound: 10, // Force round advancement after this many messages
+  orchestratorAgentId: 'primary-orchestrator', // Nova Prime
+  backupOrchestratorAgentId: 'backup-orchestrator', // Atlas
+};
+
 export class AgoraService {
   private db: Database.Database;
   private io: SocketServer;
   private summoningService: SummoningService;
   private activeDiscussions: Map<string, NodeJS.Timeout> = new Map();
   private static instance: AgoraService | null = null;
+  private roundCheckInProgress: Set<string> = new Set(); // Prevent concurrent round checks
 
   constructor(db: Database.Database, io: SocketServer) {
     this.db = db;
@@ -445,6 +454,11 @@ export class AgoraService {
         messageType: 'agent',
       });
 
+      // Check if orchestrator should advance the round (non-blocking)
+      this.checkRoundAdvancement(sessionId).catch(err => {
+        console.error('[Orchestrator] Error checking round advancement:', err);
+      });
+
       return message;
     } finally {
       // Reset agent state
@@ -543,15 +557,229 @@ export class AgoraService {
     // Log activity
     this.logActivity('AGORA_ROUND_COMPLETE', `Round ${session.current_round} completed`, sessionId);
 
-    // Add system message
-    this.addMessage(sessionId, {
-      content: `Round ${session.current_round} completed. Starting round ${newRound}.`,
-      messageType: 'system',
-    });
-
     this.io.emit('agora:roundAdvanced', { sessionId, round: newRound });
 
     return this.getSession(sessionId);
+  }
+
+  // Get message count for current round
+  getMessagesInCurrentRound(sessionId: string): number {
+    const session = this.getSession(sessionId);
+    if (!session) return 0;
+
+    const result = this.db.prepare(`
+      SELECT COUNT(*) as count FROM agora_messages
+      WHERE session_id = ? AND round = ? AND message_type = 'agent'
+    `).get(sessionId, session.current_round) as { count: number };
+
+    return result?.count || 0;
+  }
+
+  // Check if round should be advanced (called after each message)
+  async checkRoundAdvancement(sessionId: string): Promise<boolean> {
+    // Prevent concurrent round checks for the same session
+    if (this.roundCheckInProgress.has(sessionId)) {
+      return false;
+    }
+
+    const session = this.getSession(sessionId);
+    if (!session || session.status !== 'active') return false;
+
+    const messageCount = this.getMessagesInCurrentRound(sessionId);
+
+    // Not enough messages yet
+    if (messageCount < ORCHESTRATOR_CONFIG.minMessagesPerRound) {
+      return false;
+    }
+
+    // Force advancement if max messages reached
+    if (messageCount >= ORCHESTRATOR_CONFIG.maxMessagesPerRound) {
+      console.log(`[Orchestrator] Max messages (${messageCount}) reached for session ${sessionId.slice(0, 8)}. Forcing round advancement.`);
+      await this.orchestratorAdvanceRound(sessionId, 'max_messages_reached');
+      return true;
+    }
+
+    // Evaluate with orchestrator
+    this.roundCheckInProgress.add(sessionId);
+    try {
+      const shouldAdvance = await this.evaluateRoundWithOrchestrator(sessionId);
+      if (shouldAdvance) {
+        await this.orchestratorAdvanceRound(sessionId, 'orchestrator_decision');
+        return true;
+      }
+    } finally {
+      this.roundCheckInProgress.delete(sessionId);
+    }
+
+    return false;
+  }
+
+  // Orchestrator evaluates if round should advance
+  private async evaluateRoundWithOrchestrator(sessionId: string): Promise<boolean> {
+    const session = this.getSession(sessionId);
+    if (!session) return false;
+
+    const recentMessages = this.getMessages(sessionId, 10);
+    const agentMessages = recentMessages.filter(m => m.message_type === 'agent');
+
+    if (agentMessages.length < ORCHESTRATOR_CONFIG.minMessagesPerRound) {
+      return false;
+    }
+
+    // Get orchestrator agent
+    const orchestrator = this.db.prepare(`
+      SELECT * FROM agents WHERE id = ? OR id = ?
+    `).get(ORCHESTRATOR_CONFIG.orchestratorAgentId, ORCHESTRATOR_CONFIG.backupOrchestratorAgentId) as Agent | undefined;
+
+    if (!orchestrator) {
+      console.warn('[Orchestrator] No orchestrator agent found, using message count fallback');
+      return agentMessages.length >= ORCHESTRATOR_CONFIG.minMessagesPerRound + 2;
+    }
+
+    // Use LLM to evaluate if round should advance
+    if (!llmService.isTier1Available() && !this.hasExternalLLM()) {
+      // Fallback: advance after min messages + 2
+      return agentMessages.length >= ORCHESTRATOR_CONFIG.minMessagesPerRound + 2;
+    }
+
+    try {
+      const conversationSummary = agentMessages
+        .slice(-5)
+        .map(m => `${m.agent_name}: ${m.content}`)
+        .join('\n');
+
+      const evaluationPrompt = `You are ${orchestrator.display_name}, the governance orchestrator.
+
+Current Discussion: "${session.title}"
+Round: ${session.current_round} of ${session.max_rounds}
+Messages in this round: ${agentMessages.length}
+
+Recent conversation:
+${conversationSummary}
+
+As the orchestrator, evaluate if this round of discussion has covered enough perspectives and should advance to the next round.
+
+Consider:
+- Have diverse viewpoints been expressed?
+- Has the discussion reached a natural pause point?
+- Are agents repeating similar points?
+
+Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
+
+      const response = await llmService.generate({
+        systemPrompt: 'You are a governance orchestrator. Respond only with ADVANCE or CONTINUE.',
+        prompt: evaluationPrompt,
+        maxTokens: 10,
+        temperature: 0.3,
+        tier: 1,
+        complexity: 'fast',
+      });
+
+      const decision = response.content?.trim().toUpperCase();
+      console.log(`[Orchestrator] Round evaluation for session ${sessionId.slice(0, 8)}: ${decision}`);
+
+      return decision === 'ADVANCE';
+    } catch (error) {
+      console.error('[Orchestrator] Failed to evaluate round:', error);
+      // Fallback: advance if we have enough messages
+      return agentMessages.length >= ORCHESTRATOR_CONFIG.minMessagesPerRound + 3;
+    }
+  }
+
+  // Orchestrator advances the round with an announcement
+  private async orchestratorAdvanceRound(sessionId: string, reason: string): Promise<void> {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    // Get orchestrator agent
+    const orchestrator = this.db.prepare(`
+      SELECT * FROM agents WHERE id = ?
+    `).get(ORCHESTRATOR_CONFIG.orchestratorAgentId) as Agent | undefined;
+
+    const orchestratorName = orchestrator?.display_name || 'Nova Prime';
+    const orchestratorColor = orchestrator?.color || '#7C3AED';
+
+    // Generate orchestrator announcement
+    let announcement = '';
+    if (session.current_round >= session.max_rounds) {
+      announcement = `This concludes our discussion on "${session.title}". All rounds have been completed. Thank you to all participants for your valuable insights.`;
+    } else {
+      announcement = await this.generateOrchestratorAnnouncement(session, reason);
+    }
+
+    // Add orchestrator message
+    const message: AgoraMessage = {
+      id: uuidv4(),
+      session_id: sessionId,
+      agent_id: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+      agent_name: orchestratorName,
+      agent_color: orchestratorColor,
+      content: announcement,
+      message_type: 'agent',
+      round: session.current_round,
+      tier: 1,
+      created_at: new Date().toISOString(),
+    };
+
+    this.db.prepare(`
+      INSERT INTO agora_messages (id, session_id, agent_id, content, message_type, round, tier, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      message.id,
+      message.session_id,
+      message.agent_id,
+      message.content,
+      message.message_type,
+      message.round,
+      message.tier,
+      message.created_at
+    );
+
+    this.io.emit('agora:message', message);
+
+    // Now advance the round
+    this.advanceRound(sessionId);
+
+    // Add system message for round transition
+    await this.addMessage(sessionId, {
+      content: `Round ${session.current_round} completed. Starting round ${session.current_round + 1}.`,
+      messageType: 'system',
+    });
+
+    console.log(`[Orchestrator] Advanced session ${sessionId.slice(0, 8)} to round ${session.current_round + 1} (reason: ${reason})`);
+  }
+
+  // Generate orchestrator's announcement message
+  private async generateOrchestratorAnnouncement(session: AgoraSession, reason: string): Promise<string> {
+    const templates = [
+      `Excellent progress in Round ${session.current_round}. I've observed diverse perspectives on "${session.title}". Let's advance to Round ${session.current_round + 1} to deepen our analysis.`,
+      `Round ${session.current_round} has covered substantial ground. Moving forward to Round ${session.current_round + 1} to explore additional dimensions of this topic.`,
+      `The discussion has reached a natural transition point. As orchestrator, I'm advancing us to Round ${session.current_round + 1}. Let's build on these insights.`,
+      `Good deliberation in this round. I see we've established key viewpoints. Advancing to Round ${session.current_round + 1} for continued governance discussion.`,
+    ];
+
+    // Try to generate with LLM for more natural announcement
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const response = await llmService.generate({
+          systemPrompt: `You are Nova Prime, the primary governance orchestrator. You speak in a methodical, systems-focused, and efficient manner. Generate a brief announcement (1-2 sentences) to transition the discussion to the next round.`,
+          prompt: `The discussion "${session.title}" has completed Round ${session.current_round}. Generate a brief orchestrator announcement to transition to Round ${session.current_round + 1}. Be concise and professional.`,
+          maxTokens: 100,
+          temperature: 0.7,
+          tier: 1,
+          complexity: 'fast',
+        });
+
+        if (response.content) {
+          return this.cleanResponse(response.content);
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Failed to generate announcement:', error);
+      }
+    }
+
+    // Fallback to template
+    return templates[Math.floor(Math.random() * templates.length)];
   }
 
   // Complete a session
