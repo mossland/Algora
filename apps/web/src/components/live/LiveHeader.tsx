@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import clsx from 'clsx';
 import { LiveIndicator, StatusGlyph } from './TerminalBox';
 
@@ -9,22 +9,45 @@ interface LiveHeaderProps {
 }
 
 export function LiveHeader({ className }: LiveHeaderProps) {
-  const [uptime, setUptime] = useState({ days: 127, hours: 0, minutes: 0, seconds: 0 });
+  const [uptime, setUptime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [currentTime, setCurrentTime] = useState('--:--:--');
+  const baseUptimeRef = useRef<number>(0);
+  const fetchTimeRef = useRef<number>(Date.now());
 
-  // Avoid hydration mismatch by only updating after mount
+  // Fetch real uptime from API on mount
   useEffect(() => {
+    const fetchUptime = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const res = await fetch(`${apiUrl}/api/health`);
+        const data = await res.json();
+        if (data.uptime) {
+          baseUptimeRef.current = data.uptime * 1000; // Convert seconds to ms
+          fetchTimeRef.current = Date.now();
+        }
+      } catch (error) {
+        console.error('Failed to fetch uptime:', error);
+      }
+    };
 
-    // Start from some base uptime (e.g., 127 days)
-    const baseUptime = 127 * 24 * 60 * 60 * 1000; // 127 days in ms
-    const startTime = Date.now() - baseUptime;
+    fetchUptime();
 
+    // Refresh uptime from server every 5 minutes
+    const refreshInterval = setInterval(fetchUptime, 5 * 60 * 1000);
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  // Update display every second
+  useEffect(() => {
     const updateUptime = () => {
-      const elapsed = Date.now() - startTime;
-      const days = Math.floor(elapsed / (24 * 60 * 60 * 1000));
-      const hours = Math.floor((elapsed % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-      const minutes = Math.floor((elapsed % (60 * 60 * 1000)) / (60 * 1000));
-      const seconds = Math.floor((elapsed % (60 * 1000)) / 1000);
+      // Calculate elapsed time since we fetched the uptime
+      const elapsed = Date.now() - fetchTimeRef.current;
+      const totalMs = baseUptimeRef.current + elapsed;
+
+      const days = Math.floor(totalMs / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((totalMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const minutes = Math.floor((totalMs % (60 * 60 * 1000)) / (60 * 1000));
+      const seconds = Math.floor((totalMs % (60 * 1000)) / 1000);
       setUptime({ days, hours, minutes, seconds });
     };
 
