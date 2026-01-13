@@ -486,34 +486,51 @@
     },
     "tour": {
       "welcome": {
-        "title": "Welcome to Algora!",
-        "desc": "Algora is a 24/7 AI-powered governance platform that helps DAOs make better decisions through continuous monitoring and discussion."
+        "title": "Welcome to Algora",
+        "desc": "Algora transforms Mossland's governance from manual discussions into an autonomous AI-powered operating system. 30+ AI agents work 24/7 to analyze, deliberate, and prepare decisions for human approval.",
+        "vision": "Mossland's Vision: Building the bridge between virtual and physical worlds through community-driven governance."
+      },
+      "problem": {
+        "title": "The Challenge We Solve",
+        "desc": "Traditional DAO governance is slow, requires constant human attention, and often misses important signals. Algora solves this by automating the analysis and deliberation process while keeping humans in control of final decisions.",
+        "points": ["24/7 monitoring when humans sleep", "AI agents analyze all incoming data", "Humans approve only final actions"]
       },
       "signals": {
-        "title": "Signals",
-        "desc": "This is where data is collected in real-time from RSS feeds, GitHub repositories, and blockchain events."
+        "title": "Step 1: Signal Collection",
+        "desc": "The system continuously monitors RSS feeds, GitHub, blockchain events, and social media. Every piece of relevant information is captured, categorized, and prioritized automatically.",
+        "scenario": "Example: A new partnership announcement appears on Twitter → Algora captures it instantly → AI tags it as 'high priority' → You're notified."
       },
       "issues": {
-        "title": "Issues",
-        "desc": "AI analyzes signals and automatically detects important issues that need attention."
+        "title": "Step 2: Issue Detection",
+        "desc": "AI analyzes signals to detect governance issues that need attention. Pattern recognition identifies trends, anomalies, and opportunities that humans might miss.",
+        "scenario": "Example: Multiple signals about a competing project → AI identifies a strategic threat → Creates an issue for discussion."
       },
       "agora": {
-        "title": "Agora",
-        "desc": "The discussion arena where AI agents debate issues from different perspectives."
+        "title": "Step 3: AI Deliberation",
+        "desc": "This is where the magic happens. 30+ AI agents with different perspectives (Visionaries, Builders, Guardians, etc.) debate issues and reach consensus on recommendations.",
+        "scenario": "Example: Agents debate a treasury proposal → Guardians raise security concerns → Investors analyze ROI → A balanced Decision Packet is created."
       },
       "proposals": {
-        "title": "Proposals",
-        "desc": "Community members vote on proposals using their tokens to make final decisions."
+        "title": "Step 4: Human Governance",
+        "desc": "MOC token holders have the final say. AI prepares comprehensive Decision Packets, but humans vote on whether to approve actions. High-risk actions are always locked until human approval.",
+        "scenario": "Example: AI recommends a grant → Decision Packet shows pros/cons → MOC holders vote → Action is unlocked if approved."
+      },
+      "safeAutonomy": {
+        "title": "Safe Autonomy Guarantee",
+        "desc": "The system NEVER executes high-risk actions without human approval. Fund transfers, contracts, and partnerships are always LOCKED until explicitly approved. The system continues operating, but dangerous actions wait for you.",
+        "guarantee": "Your assets are safe. AI recommends, humans decide."
       },
       "complete": {
-        "title": "You're Ready!",
-        "desc": "You now understand how Algora works. Explore each section to see the system in action."
+        "title": "Ready to Explore!",
+        "desc": "You now understand how Algora empowers Mossland's governance. The AI works for you 24/7, but you remain in control of all important decisions.",
+        "cta": "Start by checking the latest Signals or visit the Governance OS dashboard."
       },
-      "skip": "Skip",
+      "skip": "Skip Tour",
       "next": "Next",
       "prev": "Back",
-      "finish": "Get Started",
-      "goToPage": "Go to page"
+      "finish": "Start Exploring",
+      "goToPage": "Go to page",
+      "stepOf": "Step {current} of {total}"
     },
     "help": {
       "startTour": "Restart Tour",
@@ -719,5 +736,37 @@
       "manifested": "Manifested!",
       "harmonized": "Harmonized!"
     }
+  },
+  "Experimental": {
+    "badge": "Experimental Environment",
+    "title": "Research / Testing / Non-Production",
+    "description": "This service is an experimental environment for research, testing, and PoC purposes. Data loss and service interruption may occur."
+  },
+  "MockData": {
+    "badge": "Mock Data",
+    "title": "Simulated Data",
+    "description": "This section displays simulated/mock data for demonstration purposes. In production, this will be replaced with real-time data from the governance system."
+  },
+  "HelpTooltips": {
+    "systemStatus": "Real-time status of the Algora governance engine. 'Running' means all systems are operational.",
+    "budget": "Daily API budget for external LLM calls (Claude/GPT). The system uses local LLMs when budget is low.",
+    "nextTier2": "Scheduled time for the next high-quality AI deliberation using external LLM services.",
+    "queue": "Number of pending tasks waiting to be processed by the governance engine.",
+    "liveButton": "View the real-time dashboard showing all governance activities as they happen.",
+    "walletConnect": "Connect your MOC wallet to participate in governance voting and earn delegation rewards.",
+    "signalSource": "Source of the collected signal - RSS feeds, GitHub events, blockchain data, or external APIs.",
+    "signalPriority": "AI-assigned priority based on relevance, urgency, and potential impact on governance.",
+    "issueStatus": "Current stage in the issue lifecycle - from detection through resolution.",
+    "issuePriority": "Severity level determined by AI analysis and community input.",
+    "proposalVoting": "Token-weighted voting where your MOC holdings determine your voting power.",
+    "proposalQuorum": "Minimum participation required for the vote to be valid (typically 10% of total supply).",
+    "agoraSession": "Live deliberation session where AI agents discuss and debate governance issues.",
+    "agentCluster": "Agents are grouped by expertise - Visionaries, Builders, Investors, Guardians, etc.",
+    "agentStatus": "Current agent state: idle (waiting), active (working), speaking (in discussion).",
+    "dualHouse": "Dual-house voting system: MossCoin House (token holders) and OpenSource House (contributors).",
+    "safeAutonomy": "Safety mechanism that locks high-risk actions until explicit human approval.",
+    "pipelineStage": "Current stage in the 9-stage governance pipeline from signal to execution.",
+    "documentState": "Document lifecycle: draft → review → approved → published.",
+    "tierUsage": "LLM tier usage - Tier 0 (free), Tier 1 (local Ollama), Tier 2 (external Claude/GPT)."
   }
 }

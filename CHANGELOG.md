@@ -10,7 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 9: Testing & Production Deployment
+- Full integration testing
+- Performance optimization
+- Security audit
+
+---
+
+## [0.12.3] - 2026-01-13
+
+### Added
+- **Production Deployment** (`https://algora.moss.land`):
+  - pm2 ecosystem configuration (`ecosystem.config.cjs`) for process management
+  - nginx reverse proxy configuration for Lightsail server
+  - SSL/TLS with Let's Encrypt for secure connections
+  - WebSocket proxy support for Socket.IO real-time features
+  - Static asset caching headers for performance
+
+### Fixed
+- **Next.js i18n Middleware** (`apps/web/src/middleware.ts`):
+  - Fixed middleware matcher to exclude `_next` paths from locale processing
+  - Resolved 500 errors on static assets (`/_next/static/...`)
+  - Fixed `ERR_TOO_MANY_REDIRECTS` caused by locale prefix conflicts
+  - Matcher now properly excludes: `_next`, `api`, `favicon.ico`, and file extensions
+
+### Changed
+- Updated `apps/web/.env.local` with production API URL (`https://algora.moss.land`)
+- DEVELOPMENT_STATUS.md updated with Phase 9 deployment completion
 
 ---
 

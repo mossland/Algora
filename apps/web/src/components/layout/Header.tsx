@@ -9,9 +9,11 @@ import { usePathname } from 'next/navigation';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
 import { HelpMenu } from '@/components/guide/HelpMenu';
 import { WelcomeTour } from '@/components/guide/WelcomeTour';
+import { HelpTooltip } from '@/components/guide/HelpTooltip';
 
 export function Header() {
   const t = useTranslations('Header');
+  const th = useTranslations('HelpTooltips');
   const pathname = usePathname();
   const [showTour, setShowTour] = useState(false);
 
@@ -63,6 +65,7 @@ export function Header() {
                 ? t('degraded')
                 : t('maintenance')}
           </span>
+          <HelpTooltip content={th('systemStatus')} position="bottom" />
         </div>
 
         {/* Budget */}
@@ -72,6 +75,7 @@ export function Header() {
           <span className="text-sm font-medium text-slate-900">
             ${health?.budget?.remaining?.toFixed(2) || '0.00'}
           </span>
+          <HelpTooltip content={th('budget')} position="bottom" />
         </div>
 
         {/* Next Tier2 */}
@@ -83,6 +87,7 @@ export function Header() {
               ? new Date(health.scheduler.nextTier2).toLocaleTimeString()
               : '--:--'}
           </span>
+          <HelpTooltip content={th('nextTier2')} position="bottom" />
         </div>
 
         {/* Queue */}
@@ -91,6 +96,7 @@ export function Header() {
           <span className="text-sm font-medium text-slate-900">
             {health?.scheduler?.queueLength || 0}
           </span>
+          <HelpTooltip content={th('queue')} position="bottom" />
         </div>
       </div>
 

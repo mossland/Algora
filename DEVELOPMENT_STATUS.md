@@ -3,7 +3,8 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-13
-**Current Version**: 0.12.2
+**Current Version**: 0.12.3
+**Production URL**: https://algora.moss.land
 
 ---
 
@@ -246,7 +247,20 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
   - [x] OllamaLLMProvider adapter for ModelRouter
   - [x] Factory functions: createOllamaModelRoutingSystem, createOllamaModelRoutingSystemWithDefaults
 
-### Phase 9: Testing & Production Deployment (UPCOMING)
+### Phase 9: Production Deployment (COMPLETED)
+- [x] **pm2 Process Management**
+  - [x] `ecosystem.config.cjs` for managing both api and web apps
+  - [x] Local machine deployment (211.196.73.206)
+  - [x] api on port 3201, web on port 3200
+  - [x] Auto-restart configuration with memory limits
+- [x] **nginx Reverse Proxy**
+  - [x] Lightsail server (13.209.131.190) with nginx
+  - [x] SSL/TLS with Let's Encrypt
+  - [x] WebSocket proxy for Socket.IO
+  - [x] Static asset caching headers
+- [x] **Next.js i18n Middleware Fix**
+  - [x] Fixed middleware matcher to exclude `_next` paths
+  - [x] Resolved static asset 500 errors and redirect loops
 - [ ] Full integration testing
 - [ ] Performance optimization
 - [ ] Security audit

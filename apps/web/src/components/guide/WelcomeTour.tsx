@@ -11,8 +11,10 @@ import {
   AlertCircle,
   MessageSquare,
   FileText,
-  Target,
-  Sparkles,
+  ShieldCheck,
+  Lightbulb,
+  CheckCircle,
+  Building2,
 } from 'lucide-react';
 
 const TOUR_STORAGE_KEY = 'algora-tour-completed';
@@ -23,14 +25,27 @@ interface TourStep {
   color: string;
   bgColor: string;
   href?: string;
+  hasScenario?: boolean;
+  hasVision?: boolean;
+  hasPoints?: boolean;
+  hasGuarantee?: boolean;
+  hasCta?: boolean;
 }
 
 const tourSteps: TourStep[] = [
   {
     key: 'welcome',
-    icon: Sparkles,
+    icon: Building2,
     color: 'text-agora-primary',
-    bgColor: 'bg-agora-primary/10',
+    bgColor: 'bg-gradient-to-br from-agora-primary/20 to-agora-accent/20',
+    hasVision: true,
+  },
+  {
+    key: 'problem',
+    icon: Lightbulb,
+    color: 'text-amber-500',
+    bgColor: 'bg-amber-500/10',
+    hasPoints: true,
   },
   {
     key: 'signals',
@@ -38,6 +53,7 @@ const tourSteps: TourStep[] = [
     color: 'text-agora-accent',
     bgColor: 'bg-agora-accent/10',
     href: '/signals',
+    hasScenario: true,
   },
   {
     key: 'issues',
@@ -45,6 +61,7 @@ const tourSteps: TourStep[] = [
     color: 'text-agora-warning',
     bgColor: 'bg-agora-warning/10',
     href: '/issues',
+    hasScenario: true,
   },
   {
     key: 'agora',
@@ -52,6 +69,7 @@ const tourSteps: TourStep[] = [
     color: 'text-agora-primary',
     bgColor: 'bg-agora-primary/10',
     href: '/agora',
+    hasScenario: true,
   },
   {
     key: 'proposals',
@@ -59,12 +77,22 @@ const tourSteps: TourStep[] = [
     color: 'text-agora-success',
     bgColor: 'bg-agora-success/10',
     href: '/proposals',
+    hasScenario: true,
+  },
+  {
+    key: 'safeAutonomy',
+    icon: ShieldCheck,
+    color: 'text-emerald-500',
+    bgColor: 'bg-emerald-500/10',
+    href: '/governance',
+    hasGuarantee: true,
   },
   {
     key: 'complete',
-    icon: Target,
+    icon: CheckCircle,
     color: 'text-agora-success',
-    bgColor: 'bg-agora-success/10',
+    bgColor: 'bg-gradient-to-br from-agora-success/20 to-agora-primary/20',
+    hasCta: true,
   },
 ];
 
@@ -90,7 +118,6 @@ export function WelcomeTour({ forceShow = false, onComplete }: WelcomeTourProps)
 
     const hasCompletedTour = localStorage.getItem(TOUR_STORAGE_KEY);
     if (!hasCompletedTour) {
-      // Small delay to let the page load first
       const timer = setTimeout(() => setIsOpen(true), 500);
       return () => clearTimeout(timer);
     }
@@ -132,48 +159,104 @@ export function WelcomeTour({ forceShow = false, onComplete }: WelcomeTourProps)
   const isLastStep = currentStep === tourSteps.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-agora-border bg-agora-dark shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-agora-border bg-agora-dark shadow-2xl">
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 text-agora-muted transition-colors hover:text-slate-900"
+          className="absolute right-4 top-4 z-10 rounded-full p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900"
         >
           <X className="h-5 w-5" />
         </button>
 
-        {/* Progress dots */}
-        <div className="flex justify-center gap-1.5 pt-6">
-          {tourSteps.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentStep(index)}
-              className={`h-2 w-2 rounded-full transition-all ${
-                index === currentStep
-                  ? 'w-6 bg-agora-primary'
-                  : index < currentStep
-                    ? 'bg-agora-primary/50'
-                    : 'bg-agora-border'
-              }`}
-            />
-          ))}
+        {/* Step indicator */}
+        <div className="flex items-center justify-between border-b border-agora-border bg-agora-card/50 px-6 py-3">
+          <span className="text-xs font-medium text-agora-muted">
+            {t('stepOf', { current: currentStep + 1, total: tourSteps.length })}
+          </span>
+          <div className="flex gap-1">
+            {tourSteps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`h-1.5 rounded-full transition-all ${
+                  index === currentStep
+                    ? 'w-6 bg-agora-primary'
+                    : index < currentStep
+                      ? 'w-1.5 bg-agora-primary/50'
+                      : 'w-1.5 bg-agora-border'
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Content */}
-        <div className="p-8 text-center">
+        <div className="p-8">
           <div
-            className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full ${step.bgColor}`}
+            className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl ${step.bgColor}`}
           >
             <Icon className={`h-10 w-10 ${step.color}`} />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900">{t(`${step.key}.title`)}</h2>
-          <p className="mt-3 text-agora-muted">{t(`${step.key}.desc`)}</p>
+          <h2 className="text-center text-2xl font-bold text-slate-900">
+            {t(`${step.key}.title`)}
+          </h2>
+          <p className="mt-3 text-center text-agora-muted leading-relaxed">
+            {t(`${step.key}.desc`)}
+          </p>
 
-          {step.href && (
+          {/* Vision text for welcome step */}
+          {step.hasVision && (
+            <div className="mt-4 rounded-lg bg-agora-primary/10 p-3 text-center">
+              <p className="text-sm font-medium text-agora-primary">
+                {t(`${step.key}.vision`)}
+              </p>
+            </div>
+          )}
+
+          {/* Points for problem step */}
+          {step.hasPoints && (
+            <div className="mt-4 space-y-2">
+              {['24/7 monitoring when humans sleep', 'AI agents analyze all incoming data', 'Humans approve only final actions'].map((point, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-lg bg-agora-card p-2">
+                  <CheckCircle className="h-4 w-4 text-agora-success flex-shrink-0" />
+                  <span className="text-sm text-slate-900">{point}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Scenario for steps */}
+          {step.hasScenario && (
+            <div className="mt-4 rounded-lg border border-agora-border bg-agora-card/50 p-3">
+              <p className="text-xs italic text-agora-muted">
+                {t(`${step.key}.scenario`)}
+              </p>
+            </div>
+          )}
+
+          {/* Guarantee for safe autonomy step */}
+          {step.hasGuarantee && (
+            <div className="mt-4 rounded-lg bg-emerald-500/10 p-3 text-center">
+              <ShieldCheck className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
+              <p className="text-sm font-semibold text-emerald-600">
+                {t(`${step.key}.guarantee`)}
+              </p>
+            </div>
+          )}
+
+          {/* CTA for complete step */}
+          {step.hasCta && (
+            <p className="mt-4 text-center text-sm text-agora-muted">
+              {t(`${step.key}.cta`)}
+            </p>
+          )}
+
+          {step.href && !isLastStep && (
             <button
               onClick={handleGoToPage}
-              className={`mt-4 inline-flex items-center gap-2 rounded-lg ${step.bgColor} px-4 py-2 text-sm font-medium ${step.color} transition-colors hover:opacity-80`}
+              className={`mt-4 mx-auto flex items-center gap-2 rounded-lg ${step.bgColor} px-4 py-2 text-sm font-medium ${step.color} transition-colors hover:opacity-80`}
             >
               {t('goToPage')}
               <ChevronRight className="h-4 w-4" />
@@ -214,12 +297,10 @@ export function WelcomeTour({ forceShow = false, onComplete }: WelcomeTourProps)
   );
 }
 
-// Helper to reset tour (for testing or when user wants to see it again)
 export function resetTour() {
   localStorage.removeItem(TOUR_STORAGE_KEY);
 }
 
-// Helper to check if tour has been completed
 export function hasTourCompleted() {
   if (typeof window === 'undefined') return true;
   return localStorage.getItem(TOUR_STORAGE_KEY) === 'true';

@@ -6,6 +6,7 @@ import { Coins, Users, Vote, FileText, ArrowUpRight, ArrowDownRight, RefreshCw }
 import { useState } from 'react';
 
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+import { MockDataBadge } from '@/components/ui/MockDataBadge';
 
 interface TreasuryBalance {
   tokenAddress: string;
@@ -111,6 +112,7 @@ export default function TreasuryPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
             <HelpTooltip content={tGuide('treasury')} />
+            {dashboard?.tokenInfo?.mockMode && <MockDataBadge />}
           </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>

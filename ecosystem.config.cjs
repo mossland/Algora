@@ -1,0 +1,41 @@
+module.exports = {
+  apps: [
+    {
+      name: 'algora-api',
+      cwd: './apps/api',
+      script: 'dist/index.js',
+      interpreter: 'node',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3201,
+      },
+      env_file: '.env',
+      watch: false,
+      max_memory_restart: '1G',
+      error_file: './logs/api-error.log',
+      out_file: './logs/api-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+    {
+      name: 'algora-web',
+      cwd: './apps/web',
+      script: 'node_modules/.bin/next',
+      args: 'start -p 3200',
+      interpreter: 'none',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3200,
+        NEXT_PUBLIC_API_URL: 'https://algora.moss.land',
+      },
+      watch: false,
+      max_memory_restart: '2G',
+      error_file: './logs/web-error.log',
+      out_file: './logs/web-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    },
+  ],
+};

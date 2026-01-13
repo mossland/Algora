@@ -8,6 +8,7 @@ import '../globals.css';
 import { Providers } from '@/components/providers';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { ExperimentalBanner } from '@/components/ui/ExperimentalBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,11 +47,14 @@ export default async function RootLayout({
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
           <Providers>
-            <div className="flex h-screen bg-agora-darker">
-              <Sidebar />
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-auto p-6">{children}</main>
+            <div className="flex h-screen flex-col bg-agora-darker">
+              <ExperimentalBanner />
+              <div className="flex flex-1 overflow-hidden">
+                <Sidebar />
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <Header />
+                  <main className="flex-1 overflow-auto p-6">{children}</main>
+                </div>
               </div>
             </div>
           </Providers>
