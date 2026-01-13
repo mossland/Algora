@@ -186,6 +186,33 @@ interface SessionTimers {
   lastMessageTime: number;
 }
 
+interface FinalSummary {
+  topic: string;
+  totalRounds: number;
+  totalMessages: number;
+  participantCount: number;
+  keyDiscussionPoints: string[];
+  finalConsensus: {
+    score: number;
+    outcome: 'strong_agreement' | 'moderate_agreement' | 'no_consensus' | 'disagreement';
+    mainPosition: string;
+  };
+  actionItems: ActionItem[];
+  recommendations: string[];
+  openIssues: string[];
+}
+
+interface DecisionPacket {
+  id: string;
+  sessionId: string;
+  title: string;
+  summary: FinalSummary;
+  recommendation: string;
+  confidence: number;
+  createdAt: string;
+  status: 'draft' | 'pending_review' | 'approved' | 'rejected';
+}
+
 export class AgoraService {
   private db: Database.Database;
   private io: SocketServer;
@@ -599,12 +626,12 @@ export class AgoraService {
   }
 
   // Advance to next round
-  advanceRound(sessionId: string): AgoraSession | null {
+  async advanceRound(sessionId: string): Promise<AgoraSession | null> {
     const session = this.getSession(sessionId);
     if (!session) return null;
 
     if (session.current_round >= session.max_rounds) {
-      return this.completeSession(sessionId);
+      return await this.completeSession(sessionId);
     }
 
     const newRound = session.current_round + 1;
@@ -837,7 +864,7 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
     this.io.emit('agora:message', message);
 
     // Now advance the round
-    this.advanceRound(sessionId);
+    await this.advanceRound(sessionId);
 
     // Reset round timer
     const timers = this.sessionTimers.get(sessionId);
@@ -1300,7 +1327,7 @@ Return [] if no clear action items. JSON array only:`,
     });
 
     // Advance round
-    this.advanceRound(sessionId);
+    await this.advanceRound(sessionId);
 
     // Reset round timer
     const timers = this.sessionTimers.get(sessionId);
@@ -1344,35 +1371,304 @@ Return [] if no clear action items. JSON array only:`,
     return this.extractedActionItems.get(sessionId) || [];
   }
 
-  // Complete a session
-  completeSession(sessionId: string): AgoraSession | null {
-    const now = new Date().toISOString();
+  // ============================================
+  // SESSION COMPLETION FEATURES
+  // ============================================
 
+  // Generate comprehensive final summary for the session
+  async generateFinalSummary(sessionId: string): Promise<FinalSummary | null> {
+    const session = this.getSession(sessionId);
+    if (!session) return null;
+
+    // Get all messages
+    const allMessages = this.getMessages(sessionId, 100);
+    const agentMessages = allMessages.filter(m => m.message_type === 'agent');
+    const participants = this.getParticipants(sessionId);
+
+    // Get final consensus
+    const consensus = await this.analyzeConsensus(sessionId);
+
+    // Determine outcome based on score
+    let outcome: FinalSummary['finalConsensus']['outcome'];
+    if (consensus.score >= 0.8) outcome = 'strong_agreement';
+    else if (consensus.score >= 0.6) outcome = 'moderate_agreement';
+    else if (consensus.score >= 0.4) outcome = 'no_consensus';
+    else outcome = 'disagreement';
+
+    // Get or generate action items
+    let actionItems = this.getActionItems(sessionId);
+    if (actionItems.length === 0) {
+      actionItems = await this.extractActionItems(sessionId);
+    }
+
+    // Use LLM for detailed summary
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = agentMessages
+          .slice(-30)
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You are a governance analyst creating a final summary. Respond in JSON format only.',
+          prompt: `Create a final summary for this governance discussion.
+
+Topic: "${session.title}"
+Total Rounds: ${session.current_round}
+Total Messages: ${agentMessages.length}
+Participants: ${participants.length}
+Consensus Score: ${consensus.score.toFixed(2)}
+
+Key conversation excerpts:
+${conversation}
+
+Return JSON with:
+- keyDiscussionPoints: array of 3-5 main points discussed
+- recommendations: array of 2-4 recommendations based on the discussion
+- openIssues: array of unresolved issues that need further discussion
+
+JSON only:`,
+          maxTokens: 500,
+          temperature: 0.3,
+          tier: 1,
+          complexity: 'balanced',
+        });
+
+        if (response.content) {
+          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const llmSummary = JSON.parse(jsonMatch[0]);
+            return {
+              topic: session.title,
+              totalRounds: session.current_round,
+              totalMessages: agentMessages.length,
+              participantCount: participants.length,
+              keyDiscussionPoints: llmSummary.keyDiscussionPoints || [],
+              finalConsensus: {
+                score: consensus.score,
+                outcome,
+                mainPosition: consensus.dominantPosition,
+              },
+              actionItems,
+              recommendations: llmSummary.recommendations || [],
+              openIssues: llmSummary.openIssues || [],
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Final summary generation failed:', error);
+      }
+    }
+
+    // Fallback summary
+    return {
+      topic: session.title,
+      totalRounds: session.current_round,
+      totalMessages: agentMessages.length,
+      participantCount: participants.length,
+      keyDiscussionPoints: ['Discussion covered multiple perspectives', 'Various stakeholder views were represented'],
+      finalConsensus: {
+        score: consensus.score,
+        outcome,
+        mainPosition: consensus.dominantPosition || 'No clear position',
+      },
+      actionItems,
+      recommendations: ['Continue monitoring the situation', 'Schedule follow-up discussion if needed'],
+      openIssues: consensus.needsMoreDiscussion ? ['Further discussion recommended'] : [],
+    };
+  }
+
+  // Create a decision packet for governance review
+  async createDecisionPacket(sessionId: string, summary: FinalSummary): Promise<DecisionPacket | null> {
+    const session = this.getSession(sessionId);
+    if (!session) return null;
+
+    // Generate recommendation using LLM
+    let recommendation = '';
+    let confidence = summary.finalConsensus.score;
+
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const response = await llmService.generate({
+          systemPrompt: 'You are a governance advisor. Provide a concise recommendation based on the discussion summary.',
+          prompt: `Based on this discussion summary, provide a clear recommendation (2-3 sentences):
+
+Topic: ${summary.topic}
+Consensus: ${summary.finalConsensus.outcome} (${(summary.finalConsensus.score * 100).toFixed(0)}%)
+Main Position: ${summary.finalConsensus.mainPosition}
+Key Points: ${summary.keyDiscussionPoints.join('; ')}
+Action Items: ${summary.actionItems.map(a => a.description).join('; ')}
+
+Recommendation:`,
+          maxTokens: 150,
+          temperature: 0.5,
+          tier: 1,
+          complexity: 'balanced',
+        });
+
+        if (response.content) {
+          recommendation = response.content.trim();
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Decision packet recommendation failed:', error);
+      }
+    }
+
+    // Fallback recommendation
+    if (!recommendation) {
+      if (summary.finalConsensus.score >= 0.7) {
+        recommendation = `Based on strong consensus (${(summary.finalConsensus.score * 100).toFixed(0)}%), recommend proceeding with: ${summary.finalConsensus.mainPosition}`;
+      } else {
+        recommendation = `Consensus not reached (${(summary.finalConsensus.score * 100).toFixed(0)}%). Recommend further discussion or alternative approaches.`;
+      }
+    }
+
+    const packet: DecisionPacket = {
+      id: uuidv4(),
+      sessionId,
+      title: session.title,
+      summary,
+      recommendation,
+      confidence,
+      createdAt: new Date().toISOString(),
+      status: summary.finalConsensus.score >= 0.7 ? 'pending_review' : 'draft',
+    };
+
+    // Store decision packet in database
+    try {
+      this.db.prepare(`
+        INSERT INTO agora_decision_packets (id, session_id, title, summary, recommendation, confidence, created_at, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        packet.id,
+        packet.sessionId,
+        packet.title,
+        JSON.stringify(packet.summary),
+        packet.recommendation,
+        packet.confidence,
+        packet.createdAt,
+        packet.status
+      );
+      console.log(`[Orchestrator] Created decision packet ${packet.id} for session ${sessionId.slice(0, 8)}`);
+    } catch (error) {
+      // Table might not exist, just log the packet
+      console.log(`[Orchestrator] Decision packet created (not persisted):`, packet.id);
+    }
+
+    // Emit event
+    this.io.emit('governance:decisionPacket', packet);
+
+    return packet;
+  }
+
+  // Add orchestrator closing statement
+  private async addOrchestratorClosingStatement(
+    sessionId: string,
+    summary: FinalSummary,
+    decisionPacket: DecisionPacket | null
+  ): Promise<void> {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    // Build closing statement
+    let closingStatement = `This concludes our deliberation on "${session.title}". `;
+
+    // Add consensus result
+    const consensusText = {
+      'strong_agreement': 'We achieved strong consensus',
+      'moderate_agreement': 'We reached moderate agreement',
+      'no_consensus': 'We did not reach clear consensus',
+      'disagreement': 'Significant disagreements remain',
+    }[summary.finalConsensus.outcome];
+    closingStatement += `${consensusText} (${(summary.finalConsensus.score * 100).toFixed(0)}% agreement). `;
+
+    // Add key outcomes
+    if (summary.keyDiscussionPoints.length > 0) {
+      closingStatement += `Key points: ${summary.keyDiscussionPoints.slice(0, 2).join('; ')}. `;
+    }
+
+    // Add action items count
+    if (summary.actionItems.length > 0) {
+      closingStatement += `${summary.actionItems.length} action item${summary.actionItems.length > 1 ? 's' : ''} identified. `;
+    }
+
+    // Add decision packet reference
+    if (decisionPacket) {
+      closingStatement += `A decision packet has been created for governance review. `;
+    }
+
+    closingStatement += `Thank you to all participants for your valuable contributions.`;
+
+    // Add orchestrator message
+    await this.addMessage(sessionId, {
+      agentId: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+      content: closingStatement,
+      messageType: 'agent',
+    });
+  }
+
+  // Complete a session with full closing flow
+  async completeSession(sessionId: string): Promise<AgoraSession | null> {
+    const session = this.getSession(sessionId);
+    if (!session) return null;
+
+    console.log(`[Orchestrator] Beginning session completion for ${sessionId.slice(0, 8)}`);
+
+    // 1. Generate final summary
+    console.log(`[Orchestrator] Generating final summary...`);
+    const summary = await this.generateFinalSummary(sessionId);
+
+    // 2. Create decision packet if consensus is sufficient
+    let decisionPacket: DecisionPacket | null = null;
+    if (summary) {
+      console.log(`[Orchestrator] Final consensus: ${summary.finalConsensus.outcome} (${(summary.finalConsensus.score * 100).toFixed(0)}%)`);
+
+      // Create decision packet for sessions with meaningful discussion
+      if (summary.totalMessages >= 5) {
+        console.log(`[Orchestrator] Creating decision packet...`);
+        decisionPacket = await this.createDecisionPacket(sessionId, summary);
+      }
+
+      // 3. Add orchestrator closing statement
+      console.log(`[Orchestrator] Adding closing statement...`);
+      await this.addOrchestratorClosingStatement(sessionId, summary, decisionPacket);
+    }
+
+    // 4. Update session status
+    const now = new Date().toISOString();
     this.db.prepare(`
       UPDATE agora_sessions
       SET status = 'completed', updated_at = ?
       WHERE id = ?
     `).run(now, sessionId);
 
-    // Stop automated discussion
+    // 5. Stop automated processes
     this.stopAutomatedDiscussion(sessionId);
-
-    // Stop timeout checker
     this.stopTimeoutChecker(sessionId);
 
-    // Remove all participants
+    // 6. Remove all participants
     const participants = this.getParticipants(sessionId);
     for (const p of participants) {
       this.removeParticipant(sessionId, p.agent_id);
     }
 
-    // Add completion message
-    this.addMessage(sessionId, {
+    // 7. Add system completion message
+    await this.addMessage(sessionId, {
       content: 'Session has been completed. Thank you for participating.',
       messageType: 'system',
     });
 
-    this.io.emit('agora:sessionCompleted', { sessionId });
+    // 8. Log activity
+    this.logActivity('AGORA_SESSION_COMPLETE', `Session completed: ${session.title}`, sessionId);
+
+    // 9. Emit completion event with summary
+    this.io.emit('agora:sessionCompleted', {
+      sessionId,
+      summary,
+      decisionPacket,
+    });
+
+    console.log(`[Orchestrator] Session ${sessionId.slice(0, 8)} completed successfully`);
 
     return this.getSession(sessionId);
   }

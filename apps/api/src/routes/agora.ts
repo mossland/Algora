@@ -313,7 +313,7 @@ agoraRouter.post('/sessions/:id/generate', async (req, res) => {
 });
 
 // POST /api/agora/sessions/:id/advance - Advance to next round
-agoraRouter.post('/sessions/:id/advance', (req, res) => {
+agoraRouter.post('/sessions/:id/advance', async (req, res) => {
   const agoraService = getAgoraService();
   if (!agoraService) {
     return res.status(503).json({ error: 'Agora service not available' });
@@ -322,7 +322,7 @@ agoraRouter.post('/sessions/:id/advance', (req, res) => {
   const { id } = req.params;
 
   try {
-    const session = agoraService.advanceRound(id);
+    const session = await agoraService.advanceRound(id);
     if (session) {
       res.json({ session });
     } else {
@@ -331,6 +331,28 @@ agoraRouter.post('/sessions/:id/advance', (req, res) => {
   } catch (error) {
     console.error('Failed to advance round:', error);
     res.status(500).json({ error: 'Failed to advance round' });
+  }
+});
+
+// POST /api/agora/sessions/:id/complete - Complete a session
+agoraRouter.post('/sessions/:id/complete', async (req, res) => {
+  const agoraService = getAgoraService();
+  if (!agoraService) {
+    return res.status(503).json({ error: 'Agora service not available' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const session = await agoraService.completeSession(id);
+    if (session) {
+      res.json({ session, message: 'Session completed successfully' });
+    } else {
+      res.status(404).json({ error: 'Session not found' });
+    }
+  } catch (error) {
+    console.error('Failed to complete session:', error);
+    res.status(500).json({ error: 'Failed to complete session' });
   }
 });
 

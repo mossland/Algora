@@ -272,6 +272,20 @@ function createSchema(db: Database.Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_agora_messages_session ON agora_messages(session_id);
 
+    CREATE TABLE IF NOT EXISTS agora_decision_packets (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      recommendation TEXT NOT NULL,
+      confidence REAL DEFAULT 0,
+      status TEXT DEFAULT 'draft',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (session_id) REFERENCES agora_sessions(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_agora_decision_packets_session ON agora_decision_packets(session_id);
+
     -- ========================================
     -- Proposals & Voting
     -- ========================================
