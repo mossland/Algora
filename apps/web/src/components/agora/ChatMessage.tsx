@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow, isValid } from 'date-fns';
-import { Info } from 'lucide-react';
+import { Info, User } from 'lucide-react';
 
 interface ChatMessageProps {
   message: {
@@ -13,6 +13,7 @@ interface ChatMessageProps {
     timestamp: string;
     tier: number;
     isSystem?: boolean;
+    isHuman?: boolean;
   };
   index?: number;
   onAgentClick?: (agentId: string) => void;
@@ -74,6 +75,37 @@ export function ChatMessage({ message, index = 0, onAgentClick }: ChatMessagePro
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+            {message.content}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Human message styling
+  if (message.isHuman) {
+    return (
+      <div
+        className="animate-slide-in-left flex gap-3 rounded-lg p-3 bg-emerald-50 border border-emerald-200"
+        style={{
+          animationDelay: `${delayMs}ms`,
+          animationFillMode: 'backwards',
+        }}
+      >
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+          <User className="h-5 w-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-emerald-700">{message.agentName}</span>
+            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600">
+              Human
+            </span>
+            <span className="text-xs text-agora-muted">
+              {formatTimestamp(message.timestamp)}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-slate-700 leading-relaxed">
             {message.content}
           </p>
         </div>

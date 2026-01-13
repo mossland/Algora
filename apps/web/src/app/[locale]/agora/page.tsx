@@ -216,19 +216,36 @@ export default function AgoraPage() {
                 <div className="space-y-4">
                   {messages.length > 0 ? (
                     messages.map((msg: AgoraMessage) => {
-                      const isSystemMessage = msg.message_type === 'system' || (!msg.agent_id && !msg.agent_name);
+                      const isSystemMessage = msg.message_type === 'system';
+                      const isHumanMessage = msg.message_type === 'human';
+
+                      let agentName = 'Agent';
+                      let agentColor = '#6366f1';
+
+                      if (isSystemMessage) {
+                        agentName = 'System';
+                        agentColor = '#64748b';
+                      } else if (isHumanMessage) {
+                        agentName = msg.human_id || 'User';
+                        agentColor = '#10b981'; // Green for human messages
+                      } else if (msg.display_name || msg.agent_name) {
+                        agentName = msg.display_name || msg.agent_name || 'Agent';
+                        agentColor = msg.color || '#6366f1';
+                      }
+
                       return (
                         <ChatMessage
                           key={msg.id}
                           message={{
                             id: msg.id,
-                            agentId: msg.agent_id || 'system',
-                            agentName: isSystemMessage ? 'System' : (msg.display_name || msg.agent_name || 'Agent'),
-                            agentColor: isSystemMessage ? '#64748b' : (msg.color || '#6366f1'),
+                            agentId: msg.agent_id || msg.human_id || 'system',
+                            agentName,
+                            agentColor,
                             content: msg.content,
                             timestamp: msg.created_at,
                             tier: msg.tier_used,
                             isSystem: isSystemMessage,
+                            isHuman: isHumanMessage,
                           }}
                         />
                       );
