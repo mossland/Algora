@@ -2,13 +2,18 @@ import { Server as SocketServer, Socket } from 'socket.io';
 import type Database from 'better-sqlite3';
 import { AgoraService } from './agora';
 import { SummoningService } from './summoning';
+import type { GovernanceOSBridge } from './governance-os-bridge';
 
 // Store service references for socket handlers
 let agoraService: AgoraService | null = null;
 let summoningService: SummoningService | null = null;
 
-export function initializeSocketServices(db: Database.Database, io: SocketServer): void {
-  agoraService = new AgoraService(db, io);
+export function initializeSocketServices(
+  db: Database.Database,
+  io: SocketServer,
+  governanceOSBridge?: GovernanceOSBridge
+): void {
+  agoraService = new AgoraService(db, io, governanceOSBridge);
   summoningService = new SummoningService(db, io);
 }
 
@@ -20,9 +25,13 @@ export function getSummoningService(): SummoningService | null {
   return summoningService;
 }
 
-export function setupSocketHandlers(io: SocketServer, db: Database.Database): void {
+export function setupSocketHandlers(
+  io: SocketServer,
+  db: Database.Database,
+  governanceOSBridge?: GovernanceOSBridge
+): void {
   // Initialize services
-  initializeSocketServices(db, io);
+  initializeSocketServices(db, io, governanceOSBridge);
 
   io.on('connection', (socket: Socket) => {
     console.info(`Client connected: ${socket.id}`);

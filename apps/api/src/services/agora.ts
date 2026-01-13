@@ -3,6 +3,7 @@ import { Server as SocketServer } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import { llmService } from './llm';
 import { SummoningService } from './summoning';
+import type { GovernanceOSBridge } from './governance-os-bridge';
 
 interface Agent {
   id: string;
@@ -217,6 +218,7 @@ export class AgoraService {
   private db: Database.Database;
   private io: SocketServer;
   private summoningService: SummoningService;
+  private governanceOSBridge: GovernanceOSBridge | null = null;
   private activeDiscussions: Map<string, NodeJS.Timeout> = new Map();
   private static instance: AgoraService | null = null;
   private roundCheckInProgress: Set<string> = new Set(); // Prevent concurrent round checks
@@ -224,10 +226,11 @@ export class AgoraService {
   private timeoutCheckers: Map<string, NodeJS.Timeout> = new Map(); // Timeout check intervals
   private extractedActionItems: Map<string, ActionItem[]> = new Map(); // Action items per session
 
-  constructor(db: Database.Database, io: SocketServer) {
+  constructor(db: Database.Database, io: SocketServer, governanceOSBridge?: GovernanceOSBridge) {
     this.db = db;
     this.io = io;
     this.summoningService = new SummoningService(db, io);
+    this.governanceOSBridge = governanceOSBridge || null;
 
     // Store the latest instance for the queue processor
     AgoraService.instance = this;
@@ -1670,7 +1673,89 @@ Recommendation:`,
 
     console.log(`[Orchestrator] Session ${sessionId.slice(0, 8)} completed successfully`);
 
+    // 10. Integrate with Governance OS v2.0
+    await this.integrateWithGovernanceOS(session, summary, decisionPacket);
+
     return this.getSession(sessionId);
+  }
+
+  // Integrate with Governance OS v2.0 on session completion
+  private async integrateWithGovernanceOS(
+    session: AgoraSession,
+    summary: FinalSummary | null,
+    decisionPacket: DecisionPacket | null
+  ): Promise<void> {
+    if (!this.governanceOSBridge) {
+      console.log('[Orchestrator] GovernanceOS Bridge not available, skipping integration');
+      return;
+    }
+
+    try {
+      // Create a governance document from the decision packet
+      if (decisionPacket) {
+        console.log(`[Orchestrator] Creating governance document from decision packet ${decisionPacket.id.slice(0, 8)}...`);
+
+        // Create DP (Decision Packet) document in the registry
+        const docRegistry = this.governanceOSBridge.getGovernanceOS().getDocumentRegistry();
+        const doc = await docRegistry.documents.create({
+          type: 'DP', // Decision Packet
+          title: `Decision Packet: ${session.title}`,
+          summary: decisionPacket.recommendation,
+          content: JSON.stringify({
+            sessionId: session.id,
+            title: session.title,
+            description: session.description,
+            totalRounds: summary?.totalRounds || session.current_round,
+            totalMessages: summary?.totalMessages || 0,
+            participantCount: summary?.participantCount || 0,
+            consensus: summary?.finalConsensus || null,
+            keyDiscussionPoints: summary?.keyDiscussionPoints || [],
+            actionItems: summary?.actionItems || [],
+            recommendations: summary?.recommendations || [],
+            openIssues: summary?.openIssues || [],
+            recommendation: decisionPacket.recommendation,
+            confidence: decisionPacket.confidence,
+            status: decisionPacket.status,
+            createdAt: decisionPacket.createdAt,
+          }),
+          createdBy: 'agora-orchestrator',
+        });
+
+        console.log(`[Orchestrator] Created governance document ${doc.id} for session ${session.id.slice(0, 8)}`);
+
+        // Emit document creation event
+        this.io.emit('governance:document:created', {
+          id: doc.id,
+          type: 'DP',
+          title: doc.title,
+          state: doc.state,
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // If session has an associated issue, trigger the governance pipeline
+      if (session.issue_id) {
+        console.log(`[Orchestrator] Session has issue_id ${session.issue_id.slice(0, 8)}, triggering governance pipeline...`);
+
+        try {
+          const pipelineResult = await this.governanceOSBridge.runPipelineForIssue(
+            session.issue_id,
+            {
+              // Determine workflow type based on session
+              workflowType: 'B', // Free Debate workflow for Agora sessions
+            }
+          );
+
+          console.log(`[Orchestrator] Pipeline ${pipelineResult.success ? 'completed successfully' : 'failed'} for issue ${session.issue_id.slice(0, 8)}`);
+        } catch (pipelineError) {
+          console.error(`[Orchestrator] Failed to run pipeline for issue ${session.issue_id}:`, pipelineError);
+        }
+      }
+
+    } catch (error) {
+      console.error('[Orchestrator] Failed to integrate with GovernanceOS:', error);
+    }
   }
 
   // Get session by ID

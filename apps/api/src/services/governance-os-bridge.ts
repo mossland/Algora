@@ -148,6 +148,76 @@ export class GovernanceOSBridge extends EventEmitter {
     this.governanceOS.on('system:health_check', (data) => {
       this.io.emit('governance-os:health', data);
     });
+
+    // Listen for Agora session completion events
+    this.io.on('connection', (socket) => {
+      // Note: The actual Agora session handling is done in AgoraService.integrateWithGovernanceOS()
+      // This listener can be used for additional coordination if needed
+    });
+  }
+
+  /**
+   * Handle Agora session completion event.
+   * Called by AgoraService when a session completes.
+   */
+  async handleAgoraSessionCompleted(sessionData: {
+    sessionId: string;
+    title: string;
+    issueId?: string;
+    decisionPacketId?: string;
+    consensusScore: number;
+    recommendation: string;
+  }): Promise<void> {
+    console.log(`[GovernanceOSBridge] Handling Agora session completion: ${sessionData.sessionId.slice(0, 8)}`);
+
+    // If this session was for a specific issue, update the issue status
+    if (sessionData.issueId) {
+      const hasStrongConsensus = sessionData.consensusScore >= 0.7;
+
+      // Update issue status based on consensus
+      const newStatus = hasStrongConsensus ? 'in_progress' : 'confirmed';
+      this.db.prepare(`
+        UPDATE issues
+        SET status = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(newStatus, sessionData.issueId);
+
+      console.log(`[GovernanceOSBridge] Updated issue ${sessionData.issueId.slice(0, 8)} status to ${newStatus}`);
+
+      // If strong consensus, create a proposal document
+      if (hasStrongConsensus && sessionData.decisionPacketId) {
+        try {
+          const docRegistry = this.governanceOS.getDocumentRegistry();
+          const proposalDoc = await docRegistry.documents.create({
+            type: 'PP', // Proposal Package
+            title: `Proposal: ${sessionData.title}`,
+            summary: sessionData.recommendation,
+            content: JSON.stringify({
+              sourceType: 'agora_session',
+              sourceId: sessionData.sessionId,
+              decisionPacketId: sessionData.decisionPacketId,
+              consensusScore: sessionData.consensusScore,
+              recommendation: sessionData.recommendation,
+            }),
+            createdBy: 'governance-os-bridge',
+          });
+
+          console.log(`[GovernanceOSBridge] Created proposal document ${proposalDoc.id}`);
+
+          this.io.emit('governance:document:created', {
+            id: proposalDoc.id,
+            type: 'PP',
+            title: proposalDoc.title,
+            state: proposalDoc.state,
+            sessionId: sessionData.sessionId,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error('[GovernanceOSBridge] Failed to create proposal document:', error);
+        }
+      }
+    }
   }
 
   private emitBridgeEvent<K extends keyof BridgeEvents>(
