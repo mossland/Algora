@@ -129,11 +129,62 @@ const globalLLMQueue = new LLMRequestQueue();
 
 // Orchestrator configuration
 const ORCHESTRATOR_CONFIG = {
+  // Round progression settings
   minMessagesPerRound: 5,  // Minimum messages before considering round advancement
-  maxMessagesPerRound: 10, // Force round advancement after this many messages
-  orchestratorAgentId: 'primary-orchestrator', // Nova Prime
-  backupOrchestratorAgentId: 'backup-orchestrator', // Atlas
+  maxMessagesPerRound: 12, // Force round advancement after this many messages
+
+  // Timeout settings (in milliseconds)
+  roundTimeoutMs: 10 * 60 * 1000,   // 10 minutes per round max
+  sessionTimeoutMs: 60 * 60 * 1000, // 60 minutes per session max
+  stagnationTimeoutMs: 3 * 60 * 1000, // 3 minutes without new message = stagnation
+
+  // Agent IDs (using moderators as orchestrators for now)
+  orchestratorAgentId: 'bridge-moderator', // Primary orchestrator
+  backupOrchestratorAgentId: 'evidence-curator', // Backup orchestrator
+
+  // Consensus thresholds
+  consensusThreshold: 0.7,  // 70% agreement = consensus reached
+
+  // Expert groups for dynamic summoning
+  expertGroups: {
+    security: ['risk-sentinel', 'security-auditor'],
+    technical: ['product-architect', 'tech-visionary', 'code-whisperer'],
+    financial: ['treasury-tactician', 'yield-hunter', 'diamond-hand'],
+    community: ['community-voice', 'governance-guru'],
+    legal: ['compliance-officer', 'legal-advisor'],
+  } as Record<string, string[]>,
 };
+
+// Intelligent orchestrator types
+interface ConsensusAnalysis {
+  score: number;           // 0-1, higher = more consensus
+  dominantPosition: string;
+  dissenting: string[];
+  agreements: string[];
+  needsMoreDiscussion: boolean;
+}
+
+interface RoundSummary {
+  keyPoints: string[];
+  agreements: string[];
+  disagreements: string[];
+  openQuestions: string[];
+  suggestedNextSteps: string[];
+}
+
+interface ActionItem {
+  id: string;
+  description: string;
+  assignedGroup: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'proposed' | 'agreed' | 'pending';
+}
+
+interface SessionTimers {
+  roundStartTime: number;
+  sessionStartTime: number;
+  lastMessageTime: number;
+}
 
 export class AgoraService {
   private db: Database.Database;
@@ -142,6 +193,9 @@ export class AgoraService {
   private activeDiscussions: Map<string, NodeJS.Timeout> = new Map();
   private static instance: AgoraService | null = null;
   private roundCheckInProgress: Set<string> = new Set(); // Prevent concurrent round checks
+  private sessionTimers: Map<string, SessionTimers> = new Map(); // Track session/round times
+  private timeoutCheckers: Map<string, NodeJS.Timeout> = new Map(); // Timeout check intervals
+  private extractedActionItems: Map<string, ActionItem[]> = new Map(); // Action items per session
 
   constructor(db: Database.Database, io: SocketServer) {
     this.db = db;
@@ -233,6 +287,9 @@ export class AgoraService {
       content: `Session "${session.title}" has started. Topic: ${session.description || 'General discussion'}`,
       messageType: 'system',
     });
+
+    // Start timeout checker for intelligent orchestration
+    this.startTimeoutChecker(id);
 
     return session;
   }
@@ -402,6 +459,9 @@ export class AgoraService {
 
     // Emit message
     this.io.emit('agora:message', message);
+
+    // Update last message time for stagnation detection
+    this.updateLastMessageTime(sessionId);
 
     return message;
   }
@@ -595,6 +655,11 @@ export class AgoraService {
     // Force advancement if max messages reached
     if (messageCount >= ORCHESTRATOR_CONFIG.maxMessagesPerRound) {
       console.log(`[Orchestrator] Max messages (${messageCount}) reached for session ${sessionId.slice(0, 8)}. Forcing round advancement.`);
+
+      // Generate summary and extract action items before advancing
+      const summary = await this.generateRoundSummary(sessionId);
+      await this.extractActionItems(sessionId);
+
       await this.orchestratorAdvanceRound(sessionId, 'max_messages_reached');
       return true;
     }
@@ -602,8 +667,34 @@ export class AgoraService {
     // Evaluate with orchestrator
     this.roundCheckInProgress.add(sessionId);
     try {
+      // First, analyze consensus
+      const consensus = await this.analyzeConsensus(sessionId);
+      console.log(`[Orchestrator] Consensus analysis for ${sessionId.slice(0, 8)}: score=${consensus.score.toFixed(2)}, needsMore=${consensus.needsMoreDiscussion}`);
+
+      // If consensus is high enough, advance regardless
+      if (consensus.score >= ORCHESTRATOR_CONFIG.consensusThreshold && !consensus.needsMoreDiscussion) {
+        console.log(`[Orchestrator] High consensus (${consensus.score.toFixed(2)}) reached. Advancing round.`);
+
+        // Generate summary and extract action items
+        await this.generateRoundSummary(sessionId);
+        await this.extractActionItems(sessionId);
+
+        await this.orchestratorAdvanceRound(sessionId, 'consensus_reached');
+        return true;
+      }
+
+      // If consensus is low and we're mid-round, try to summon experts
+      if (consensus.score < 0.4 && messageCount >= ORCHESTRATOR_CONFIG.minMessagesPerRound + 2) {
+        await this.summonExpertsIfNeeded(sessionId);
+      }
+
+      // Use LLM-based orchestrator evaluation
       const shouldAdvance = await this.evaluateRoundWithOrchestrator(sessionId);
       if (shouldAdvance) {
+        // Generate summary and extract action items
+        await this.generateRoundSummary(sessionId);
+        await this.extractActionItems(sessionId);
+
         await this.orchestratorAdvanceRound(sessionId, 'orchestrator_decision');
         return true;
       }
@@ -702,7 +793,13 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
     // Generate orchestrator announcement
     let announcement = '';
     if (session.current_round >= session.max_rounds) {
-      announcement = `This concludes our discussion on "${session.title}". All rounds have been completed. Thank you to all participants for your valuable insights.`;
+      // Final round - include action items summary
+      const actionItems = this.getActionItems(sessionId);
+      announcement = `This concludes our discussion on "${session.title}". All rounds have been completed.`;
+      if (actionItems.length > 0) {
+        announcement += ` We've identified ${actionItems.length} action item${actionItems.length > 1 ? 's' : ''} for follow-up.`;
+      }
+      announcement += ` Thank you to all participants for your valuable insights.`;
     } else {
       announcement = await this.generateOrchestratorAnnouncement(session, reason);
     }
@@ -739,6 +836,12 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
 
     // Now advance the round
     this.advanceRound(sessionId);
+
+    // Reset round timer
+    const timers = this.sessionTimers.get(sessionId);
+    if (timers) {
+      timers.roundStartTime = Date.now();
+    }
 
     // Add system message for round transition
     await this.addMessage(sessionId, {
@@ -782,6 +885,463 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
     return templates[Math.floor(Math.random() * templates.length)];
   }
 
+  // ============================================
+  // INTELLIGENT ORCHESTRATOR FEATURES
+  // ============================================
+
+  // 1. Consensus Detection - Analyze if agents are reaching agreement
+  async analyzeConsensus(sessionId: string): Promise<ConsensusAnalysis> {
+    const recentMessages = this.getMessages(sessionId, 15);
+    const agentMessages = recentMessages.filter(m => m.message_type === 'agent');
+
+    if (agentMessages.length < 3) {
+      return {
+        score: 0,
+        dominantPosition: '',
+        dissenting: [],
+        agreements: [],
+        needsMoreDiscussion: true,
+      };
+    }
+
+    // Use LLM to analyze consensus
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = agentMessages
+          .slice(-8)
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You are an expert at analyzing group discussions. Respond in JSON format only.',
+          prompt: `Analyze the following discussion for consensus:
+
+${conversation}
+
+Return a JSON object with:
+- score: number between 0-1 (0=total disagreement, 1=full consensus)
+- dominantPosition: the main viewpoint most agents agree on (brief)
+- dissenting: array of agent names who disagree
+- agreements: array of points most agree on
+- needsMoreDiscussion: boolean
+
+JSON only, no explanation:`,
+          maxTokens: 300,
+          temperature: 0.3,
+          tier: 1,
+          complexity: 'balanced',
+        });
+
+        if (response.content) {
+          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const analysis = JSON.parse(jsonMatch[0]) as ConsensusAnalysis;
+            console.log(`[Orchestrator] Consensus score for ${sessionId.slice(0, 8)}: ${analysis.score}`);
+            return analysis;
+          }
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Consensus analysis failed:', error);
+      }
+    }
+
+    // Fallback: simple heuristic
+    return {
+      score: 0.5,
+      dominantPosition: 'Discussion in progress',
+      dissenting: [],
+      agreements: [],
+      needsMoreDiscussion: true,
+    };
+  }
+
+  // 2. Dynamic Expert Summoning - Bring in relevant experts
+  async summonExpertsIfNeeded(sessionId: string): Promise<string[]> {
+    const session = this.getSession(sessionId);
+    if (!session) return [];
+
+    const recentMessages = this.getMessages(sessionId, 10);
+    const currentParticipants = this.getParticipants(sessionId).map(p => p.agent_id);
+
+    // Use LLM to determine needed expertise
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = recentMessages
+          .filter(m => m.message_type === 'agent')
+          .slice(-5)
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You analyze discussions to identify missing expertise. Respond with a comma-separated list of needed expertise areas.',
+          prompt: `Discussion topic: "${session.title}"
+
+Recent conversation:
+${conversation}
+
+What expertise areas are missing from this discussion? Choose from: security, technical, financial, community, legal
+
+If all areas are covered, respond with "none".
+Respond with only the needed areas (comma-separated):`,
+          maxTokens: 50,
+          temperature: 0.3,
+          tier: 1,
+          complexity: 'fast',
+        });
+
+        if (response.content) {
+          const neededAreas = response.content.toLowerCase().split(',').map(s => s.trim());
+          const summonedAgents: string[] = [];
+
+          for (const area of neededAreas) {
+            if (area === 'none') continue;
+            const experts = ORCHESTRATOR_CONFIG.expertGroups[area] || [];
+
+            for (const expertId of experts) {
+              if (!currentParticipants.includes(expertId)) {
+                // Check if agent exists
+                const agent = this.db.prepare('SELECT id FROM agents WHERE id = ?').get(expertId);
+                if (agent) {
+                  await this.addParticipant(sessionId, expertId);
+                  summonedAgents.push(expertId);
+                  console.log(`[Orchestrator] Summoned expert ${expertId} for ${area} expertise`);
+                  break; // One expert per area
+                }
+              }
+            }
+          }
+
+          if (summonedAgents.length > 0) {
+            // Announce summoning
+            const orchestrator = this.db.prepare('SELECT * FROM agents WHERE id = ?')
+              .get(ORCHESTRATOR_CONFIG.orchestratorAgentId) as Agent | undefined;
+
+            await this.addMessage(sessionId, {
+              agentId: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+              content: `I'm bringing in additional expertise for this discussion. Welcome to our new participants who will provide ${neededAreas.filter(a => a !== 'none').join(', ')} perspectives.`,
+              messageType: 'agent',
+            });
+          }
+
+          return summonedAgents;
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Expert summoning analysis failed:', error);
+      }
+    }
+
+    return [];
+  }
+
+  // 3. Round Summary Generation
+  async generateRoundSummary(sessionId: string): Promise<RoundSummary | null> {
+    const session = this.getSession(sessionId);
+    if (!session) return null;
+
+    const roundMessages = this.db.prepare(`
+      SELECT m.*, a.display_name as agent_name
+      FROM agora_messages m
+      LEFT JOIN agents a ON m.agent_id = a.id
+      WHERE m.session_id = ? AND m.round = ? AND m.message_type = 'agent'
+      ORDER BY m.created_at ASC
+    `).all(sessionId, session.current_round) as AgoraMessage[];
+
+    if (roundMessages.length < 2) return null;
+
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = roundMessages
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You summarize governance discussions. Respond in JSON format only.',
+          prompt: `Summarize this round of discussion on "${session.title}":
+
+${conversation}
+
+Return JSON with:
+- keyPoints: array of main discussion points (max 4)
+- agreements: array of points agents agreed on
+- disagreements: array of points with conflict
+- openQuestions: array of unresolved questions
+- suggestedNextSteps: array of recommended actions
+
+JSON only:`,
+          maxTokens: 400,
+          temperature: 0.3,
+          tier: 1,
+          complexity: 'balanced',
+        });
+
+        if (response.content) {
+          const jsonMatch = response.content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]) as RoundSummary;
+          }
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Summary generation failed:', error);
+      }
+    }
+
+    return null;
+  }
+
+  // 4. Guiding Questions - Inject when discussion stagnates
+  async injectGuidingQuestion(sessionId: string): Promise<void> {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    const recentMessages = this.getMessages(sessionId, 10);
+    const agentMessages = recentMessages.filter(m => m.message_type === 'agent');
+
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = agentMessages.slice(-5)
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You are Nova Prime, a governance orchestrator. Generate a thought-provoking question to advance the discussion.',
+          prompt: `Discussion topic: "${session.title}"
+Round: ${session.current_round}
+
+Recent conversation:
+${conversation}
+
+The discussion seems to be stagnating. Generate ONE concise question (1-2 sentences) to:
+- Address an unexplored angle
+- Challenge assumptions
+- Move toward actionable conclusions
+
+Question only, no preamble:`,
+          maxTokens: 100,
+          temperature: 0.7,
+          tier: 1,
+          complexity: 'fast',
+        });
+
+        if (response.content) {
+          await this.addMessage(sessionId, {
+            agentId: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+            content: `Let me pose a question to advance our discussion: ${this.cleanResponse(response.content)}`,
+            messageType: 'agent',
+          });
+          console.log(`[Orchestrator] Injected guiding question for session ${sessionId.slice(0, 8)}`);
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Guiding question generation failed:', error);
+      }
+    }
+  }
+
+  // 5. Action Items Extraction
+  async extractActionItems(sessionId: string): Promise<ActionItem[]> {
+    const session = this.getSession(sessionId);
+    if (!session) return [];
+
+    const allMessages = this.getMessages(sessionId, 50);
+    const agentMessages = allMessages.filter(m => m.message_type === 'agent');
+
+    if (agentMessages.length < 5) return [];
+
+    if (llmService.isTier1Available() || this.hasExternalLLM()) {
+      try {
+        const conversation = agentMessages
+          .map(m => `${m.agent_name}: ${m.content}`)
+          .join('\n');
+
+        const response = await llmService.generate({
+          systemPrompt: 'You extract actionable items from governance discussions. Respond in JSON array format only.',
+          prompt: `Extract action items from this discussion on "${session.title}":
+
+${conversation}
+
+Return a JSON array of action items, each with:
+- id: unique string
+- description: what needs to be done
+- assignedGroup: who should handle it (visionaries/builders/investors/guardians/operatives/moderators/advisors)
+- priority: high/medium/low
+- status: proposed
+
+Return [] if no clear action items. JSON array only:`,
+          maxTokens: 500,
+          temperature: 0.3,
+          tier: 1,
+          complexity: 'balanced',
+        });
+
+        if (response.content) {
+          const jsonMatch = response.content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            const items = JSON.parse(jsonMatch[0]) as ActionItem[];
+            this.extractedActionItems.set(sessionId, items);
+            console.log(`[Orchestrator] Extracted ${items.length} action items for session ${sessionId.slice(0, 8)}`);
+            return items;
+          }
+        }
+      } catch (error) {
+        console.warn('[Orchestrator] Action item extraction failed:', error);
+      }
+    }
+
+    return [];
+  }
+
+  // 6. Timeout Management
+  startTimeoutChecker(sessionId: string): void {
+    const now = Date.now();
+    this.sessionTimers.set(sessionId, {
+      roundStartTime: now,
+      sessionStartTime: now,
+      lastMessageTime: now,
+    });
+
+    // Check timeouts every 30 seconds
+    const checker = setInterval(() => {
+      this.checkTimeouts(sessionId);
+    }, 30000);
+
+    this.timeoutCheckers.set(sessionId, checker);
+  }
+
+  stopTimeoutChecker(sessionId: string): void {
+    const checker = this.timeoutCheckers.get(sessionId);
+    if (checker) {
+      clearInterval(checker);
+      this.timeoutCheckers.delete(sessionId);
+    }
+    this.sessionTimers.delete(sessionId);
+  }
+
+  private async checkTimeouts(sessionId: string): Promise<void> {
+    const timers = this.sessionTimers.get(sessionId);
+    const session = this.getSession(sessionId);
+
+    if (!timers || !session || session.status !== 'active') {
+      this.stopTimeoutChecker(sessionId);
+      return;
+    }
+
+    const now = Date.now();
+
+    // Check session timeout
+    if (now - timers.sessionStartTime >= ORCHESTRATOR_CONFIG.sessionTimeoutMs) {
+      console.log(`[Orchestrator] Session ${sessionId.slice(0, 8)} timed out (session limit)`);
+      await this.handleSessionTimeout(sessionId);
+      return;
+    }
+
+    // Check round timeout
+    if (now - timers.roundStartTime >= ORCHESTRATOR_CONFIG.roundTimeoutMs) {
+      console.log(`[Orchestrator] Round timeout for session ${sessionId.slice(0, 8)}`);
+      await this.handleRoundTimeout(sessionId);
+      return;
+    }
+
+    // Check stagnation timeout
+    if (now - timers.lastMessageTime >= ORCHESTRATOR_CONFIG.stagnationTimeoutMs) {
+      console.log(`[Orchestrator] Stagnation detected for session ${sessionId.slice(0, 8)}`);
+      await this.handleStagnation(sessionId);
+    }
+  }
+
+  private async handleSessionTimeout(sessionId: string): Promise<void> {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    // Generate final summary
+    const summary = await this.generateRoundSummary(sessionId);
+    const actionItems = await this.extractActionItems(sessionId);
+
+    // Orchestrator announcement
+    let closingMessage = `Time limit reached for this session. `;
+    if (summary && summary.keyPoints.length > 0) {
+      closingMessage += `Key points discussed: ${summary.keyPoints.slice(0, 3).join('; ')}. `;
+    }
+    if (actionItems.length > 0) {
+      closingMessage += `${actionItems.length} action items have been identified for follow-up.`;
+    }
+    closingMessage += ` Thank you all for your contributions.`;
+
+    await this.addMessage(sessionId, {
+      agentId: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+      content: closingMessage,
+      messageType: 'agent',
+    });
+
+    this.completeSession(sessionId);
+  }
+
+  private async handleRoundTimeout(sessionId: string): Promise<void> {
+    const session = this.getSession(sessionId);
+    if (!session) return;
+
+    // Generate round summary before advancing
+    const summary = await this.generateRoundSummary(sessionId);
+
+    let summaryMessage = `Round ${session.current_round} time limit reached. `;
+    if (summary) {
+      if (summary.keyPoints.length > 0) {
+        summaryMessage += `Key points: ${summary.keyPoints.slice(0, 2).join('; ')}. `;
+      }
+      if (summary.openQuestions.length > 0) {
+        summaryMessage += `Open question for next round: ${summary.openQuestions[0]}`;
+      }
+    }
+
+    await this.addMessage(sessionId, {
+      agentId: ORCHESTRATOR_CONFIG.orchestratorAgentId,
+      content: summaryMessage,
+      messageType: 'agent',
+    });
+
+    // Advance round
+    this.advanceRound(sessionId);
+
+    // Reset round timer
+    const timers = this.sessionTimers.get(sessionId);
+    if (timers) {
+      timers.roundStartTime = Date.now();
+    }
+
+    // Add system message
+    await this.addMessage(sessionId, {
+      content: `Round ${session.current_round} completed. Starting round ${session.current_round + 1}.`,
+      messageType: 'system',
+    });
+  }
+
+  private async handleStagnation(sessionId: string): Promise<void> {
+    const timers = this.sessionTimers.get(sessionId);
+    if (!timers) return;
+
+    // Update last message time to prevent repeated triggers
+    timers.lastMessageTime = Date.now();
+
+    // Try summoning experts first
+    const summoned = await this.summonExpertsIfNeeded(sessionId);
+
+    // If no experts summoned, inject a guiding question
+    if (summoned.length === 0) {
+      await this.injectGuidingQuestion(sessionId);
+    }
+  }
+
+  // Update last message time when a message is added
+  updateLastMessageTime(sessionId: string): void {
+    const timers = this.sessionTimers.get(sessionId);
+    if (timers) {
+      timers.lastMessageTime = Date.now();
+    }
+  }
+
+  // Get action items for a session
+  getActionItems(sessionId: string): ActionItem[] {
+    return this.extractedActionItems.get(sessionId) || [];
+  }
+
   // Complete a session
   completeSession(sessionId: string): AgoraSession | null {
     const now = new Date().toISOString();
@@ -794,6 +1354,9 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
 
     // Stop automated discussion
     this.stopAutomatedDiscussion(sessionId);
+
+    // Stop timeout checker
+    this.stopTimeoutChecker(sessionId);
 
     // Remove all participants
     const participants = this.getParticipants(sessionId);
