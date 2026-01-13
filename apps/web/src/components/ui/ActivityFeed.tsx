@@ -73,6 +73,8 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
     queryKey: ['activities'],
     queryFn: () => fetchActivities(25),
     refetchInterval: 10000,
+    staleTime: 30000, // 30 seconds - show cached data immediately
+    gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache
   });
 
   // Track new activities for animation

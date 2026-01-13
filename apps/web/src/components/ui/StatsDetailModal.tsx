@@ -28,6 +28,8 @@ export function StatsDetailModal({ stat, onClose }: StatsDetailModalProps) {
   const { data: activities } = useQuery({
     queryKey: ['activities', 'stats', stat.key],
     queryFn: () => fetchActivities(50),
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
     select: (data) => {
       if (stat.relatedActivityTypes && stat.relatedActivityTypes.length > 0) {
         return data.filter((a: ActivityType) =>
