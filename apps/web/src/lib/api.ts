@@ -688,3 +688,78 @@ export async function fetchDisclosureStats(): Promise<DisclosureStats> {
   const response = await fetchAPI<{ stats: DisclosureStats }>('/api/disclosure/stats');
   return response.stats;
 }
+
+// ==========================================
+// Token/Wallet API
+// ==========================================
+
+export interface TokenHolder {
+  id: string;
+  walletAddress: string;
+  userId?: string;
+  balance: string;
+  votingPower: number;
+  verifiedAt?: string;
+  lastBalanceCheck?: string;
+  isVerified: boolean;
+}
+
+export interface TokenInfo {
+  name: string;
+  symbol: string;
+  decimals: number;
+  totalSupply: string;
+  contractAddress?: string;
+}
+
+export interface VerificationRequest {
+  nonce: string;
+  message: string;
+  expiresAt: string;
+}
+
+export async function requestWalletVerification(
+  walletAddress: string
+): Promise<VerificationRequest> {
+  const response = await fetchAPI<VerificationRequest>('/api/token/verify/request', {
+    method: 'POST',
+    body: JSON.stringify({ walletAddress }),
+  });
+  return response;
+}
+
+export async function confirmWalletVerification(
+  walletAddress: string,
+  signature: string,
+  nonce: string
+): Promise<TokenHolder> {
+  const response = await fetchAPI<{ holder: TokenHolder }>('/api/token/verify/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ walletAddress, signature, nonce }),
+  });
+  return response.holder;
+}
+
+export async function fetchTokenHolder(walletAddress: string): Promise<TokenHolder | null> {
+  try {
+    const response = await fetchAPI<{ holder: TokenHolder }>(
+      `/api/token/holders/wallet/${walletAddress}`
+    );
+    return response.holder;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchTokenInfo(): Promise<TokenInfo> {
+  const response = await fetchAPI<TokenInfo>('/api/token/info');
+  return response;
+}
+
+export async function refreshTokenBalance(holderId: string): Promise<TokenHolder> {
+  const response = await fetchAPI<{ holder: TokenHolder }>(
+    `/api/token/holders/${holderId}/refresh`,
+    { method: 'POST' }
+  );
+  return response.holder;
+}
