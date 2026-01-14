@@ -100,9 +100,12 @@ export type GovernanceEvent =
   | 'governance:approval:director3'
   // Pipeline events
   | 'governance:pipeline:progress'
+  | 'governance:pipeline:completed'
   | 'governance:workflow:state_changed'
   // Health events
   | 'governance:health:update'
+  // Model Router events
+  | 'governance-os:model-router:usage'
   // Legacy events (from governance-os-bridge)
   | 'governance-os:pipeline:completed'
   | 'governance-os:pipeline:stage'
@@ -115,6 +118,18 @@ export type GovernanceEvent =
   | 'governance-os:voting:created'
   | 'governance-os:voting:vote_cast'
   | 'governance-os:health';
+
+// Agora events
+export type AgoraEvent =
+  | 'agora:sessionCreated'
+  | 'agora:sessionStarted'
+  | 'agora:sessionCompleted'
+  | 'agora:roundAdvanced'
+  | 'agora:message'
+  | 'agora:participantJoined'
+  | 'agora:participantLeft'
+  | 'agora:consensusReached'
+  | 'agora:decisionPacketCreated';
 
 export interface GovernanceEventData {
   'governance:document:created': {
@@ -241,9 +256,168 @@ export function useAllGovernanceEvents(
     'governance:action:unlocked',
     'governance:approval:director3',
     'governance:pipeline:progress',
+    'governance:pipeline:completed',
     'governance:workflow:state_changed',
     'governance:health:update',
+    'governance-os:model-router:usage',
+    'governance-os:pipeline:completed',
+    'governance-os:pipeline:started',
   ];
 
   return useGovernanceEvents(allEvents, callback);
+}
+
+// ===========================================
+// Agora Event Data Types
+// ===========================================
+
+export interface AgoraEventData {
+  'agora:sessionCreated': {
+    sessionId: string;
+    title: string;
+    createdBy: string;
+    timestamp: string;
+  };
+  'agora:sessionStarted': {
+    sessionId: string;
+    title: string;
+    participantCount: number;
+    timestamp: string;
+  };
+  'agora:sessionCompleted': {
+    sessionId: string;
+    summary: {
+      totalRounds: number;
+      totalMessages: number;
+      participantCount: number;
+      consensusScore: number;
+    };
+    decisionPacket?: {
+      id: string;
+      recommendation: string;
+      confidence: number;
+    };
+    timestamp: string;
+  };
+  'agora:roundAdvanced': {
+    sessionId: string;
+    currentRound: number;
+    maxRounds: number;
+    timestamp: string;
+  };
+  'agora:message': {
+    sessionId: string;
+    messageId: string;
+    agentId: string;
+    agentName: string;
+    content: string;
+    messageType: 'agent' | 'system' | 'orchestrator';
+    round: number;
+    timestamp: string;
+  };
+  'agora:participantJoined': {
+    sessionId: string;
+    agentId: string;
+    agentName: string;
+    timestamp: string;
+  };
+  'agora:participantLeft': {
+    sessionId: string;
+    agentId: string;
+    agentName: string;
+    timestamp: string;
+  };
+  'agora:consensusReached': {
+    sessionId: string;
+    consensusScore: number;
+    outcome: 'strong_consensus' | 'moderate_consensus' | 'weak_consensus' | 'divided';
+    mainPosition: string;
+    timestamp: string;
+  };
+  'agora:decisionPacketCreated': {
+    sessionId: string;
+    packetId: string;
+    recommendation: string;
+    confidence: number;
+    timestamp: string;
+  };
+}
+
+/**
+ * Hook for subscribing to Agora events
+ */
+export function useAgoraEvents<T extends AgoraEvent>(
+  events: T[],
+  callback: (event: T, data: AgoraEventData[T]) => void
+) {
+  const { subscribe, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const unsubscribes = events.map(event =>
+      subscribe(event, (data) => callback(event, data as AgoraEventData[T]))
+    );
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [events, callback, subscribe, isConnected]);
+
+  return { isConnected };
+}
+
+/**
+ * Hook for subscribing to all Agora events
+ */
+export function useAllAgoraEvents(
+  callback: (event: AgoraEvent, data: unknown) => void
+) {
+  const allEvents: AgoraEvent[] = [
+    'agora:sessionCreated',
+    'agora:sessionStarted',
+    'agora:sessionCompleted',
+    'agora:roundAdvanced',
+    'agora:message',
+    'agora:participantJoined',
+    'agora:participantLeft',
+    'agora:consensusReached',
+    'agora:decisionPacketCreated',
+  ];
+
+  return useAgoraEvents(allEvents, callback);
+}
+
+// ===========================================
+// Model Router Event Data
+// ===========================================
+
+export interface ModelRouterUsageEvent {
+  taskType: string;
+  difficulty: string;
+  tier: number;
+  model: string;
+  tokensUsed: number;
+  timestamp: string;
+}
+
+/**
+ * Hook for subscribing to Model Router usage events
+ */
+export function useModelRouterEvents(
+  callback: (data: ModelRouterUsageEvent) => void
+) {
+  const { subscribe, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const unsub = subscribe('governance-os:model-router:usage', (data) =>
+      callback(data as ModelRouterUsageEvent)
+    );
+
+    return unsub;
+  }, [callback, subscribe, isConnected]);
+
+  return { isConnected };
 }

@@ -105,6 +105,9 @@ export class GovernanceOSBridge extends EventEmitter {
     // Wire up events
     this.wireEvents();
 
+    // Set up bidirectional feedback listeners
+    this.setupFeedbackListeners();
+
     console.log('[GovernanceOSBridge] Service initialized');
   }
 
@@ -883,6 +886,200 @@ export class GovernanceOSBridge extends EventEmitter {
       return 'MID';
     }
     return 'LOW';
+  }
+
+  // ==========================================
+  // Bidirectional Feedback Loop
+  // ==========================================
+
+  /**
+   * Handle pipeline completion and update v1 issue status
+   */
+  async handlePipelineCompletion(
+    issueId: string,
+    result: { success: boolean; status: string; recommendation?: string }
+  ): Promise<void> {
+    const issue = this.db.prepare('SELECT * FROM issues WHERE id = ?').get(issueId) as LocalIssue | null;
+    if (!issue) return;
+
+    let newStatus: string;
+    if (result.success) {
+      // Pipeline completed successfully - move to appropriate status
+      if (result.status === 'approved' || result.status === 'completed') {
+        newStatus = 'resolved';
+      } else if (result.status === 'requires_voting') {
+        newStatus = 'pending_vote';
+      } else {
+        newStatus = 'in_progress';
+      }
+    } else {
+      // Pipeline failed - needs review
+      newStatus = 'needs_review';
+    }
+
+    // Update issue status
+    this.db.prepare(`
+      UPDATE issues
+      SET status = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(newStatus, issueId);
+
+    console.log(`[GovernanceOSBridge] Pipeline feedback: Issue ${issueId.slice(0, 8)} status updated to ${newStatus}`);
+
+    // Emit feedback event
+    this.io.emit('governance:feedback:issue_updated', {
+      issueId,
+      previousStatus: issue.status,
+      newStatus,
+      reason: 'pipeline_completion',
+      pipelineResult: result.status,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Handle voting completion and update v1 proposal status
+   */
+  async handleVotingCompletion(
+    votingId: string,
+    result: {
+      mossCoinPassed: boolean;
+      openSourcePassed: boolean;
+      proposalId: string;
+    }
+  ): Promise<void> {
+    const proposal = this.db.prepare('SELECT * FROM proposals WHERE id = ?').get(result.proposalId) as {
+      id: string;
+      status: string;
+      title: string;
+    } | null;
+
+    if (!proposal) return;
+
+    // Both houses must pass for approval (bicameral requirement)
+    const approved = result.mossCoinPassed && result.openSourcePassed;
+    const newStatus = approved ? 'approved' : 'rejected';
+
+    // Update proposal status
+    this.db.prepare(`
+      UPDATE proposals
+      SET status = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(newStatus, result.proposalId);
+
+    console.log(`[GovernanceOSBridge] Voting feedback: Proposal ${result.proposalId.slice(0, 8)} ${approved ? 'APPROVED' : 'REJECTED'}`);
+
+    // Emit feedback event
+    this.io.emit('governance:feedback:proposal_updated', {
+      proposalId: result.proposalId,
+      votingId,
+      previousStatus: proposal.status,
+      newStatus,
+      mossCoinPassed: result.mossCoinPassed,
+      openSourcePassed: result.openSourcePassed,
+      timestamp: new Date().toISOString(),
+    });
+
+    // If approved and linked to an issue, update issue status
+    const linkedIssue = this.db.prepare(`
+      SELECT issue_id FROM proposals WHERE id = ?
+    `).get(result.proposalId) as { issue_id?: string } | null;
+
+    if (linkedIssue?.issue_id && approved) {
+      this.db.prepare(`
+        UPDATE issues
+        SET status = 'approved_for_action',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(linkedIssue.issue_id);
+
+      this.io.emit('governance:feedback:issue_updated', {
+        issueId: linkedIssue.issue_id,
+        newStatus: 'approved_for_action',
+        reason: 'voting_approved',
+        proposalId: result.proposalId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Handle approval status change (for high-risk actions)
+   */
+  async handleApprovalStatusChange(
+    approvalId: string,
+    status: 'approved' | 'rejected',
+    approvedBy: string
+  ): Promise<void> {
+    console.log(`[GovernanceOSBridge] Approval ${approvalId.slice(0, 8)} ${status} by ${approvedBy}`);
+
+    // Emit approval feedback event
+    this.io.emit('governance:feedback:approval_changed', {
+      approvalId,
+      status,
+      approvedBy,
+      timestamp: new Date().toISOString(),
+    });
+
+    // If approved, add approval to unlock the action
+    if (status === 'approved') {
+      try {
+        const safeAutonomy = this.governanceOS.getSafeAutonomy();
+
+        // Add approval - this will automatically unlock if all requirements are met
+        const result = await safeAutonomy.lockManager.addApproval(approvalId, {
+          reviewerId: approvedBy,
+          reviewerType: 'human',
+          action: 'approve',
+          comments: `Approved by ${approvedBy}`,
+          timestamp: new Date(),
+        });
+
+        if (result.canExecute) {
+          this.io.emit('governance:action:unlocked', {
+            actionId: approvalId,
+            unlockedBy: approvedBy,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error(`[GovernanceOSBridge] Failed to process approval ${approvalId}:`, error);
+      }
+    }
+  }
+
+  /**
+   * Subscribe to v2.0 events and propagate feedback
+   */
+  setupFeedbackListeners(): void {
+    // Listen for pipeline completion from GovernanceOS
+    this.governanceOS.on('pipeline:completed', async (data) => {
+      // Extract issue ID from pipeline result context
+      const issueId = data.result.context.issueId;
+      if (issueId) {
+        await this.handlePipelineCompletion(issueId, {
+          success: data.result.success,
+          status: data.result.status,
+        });
+      }
+    });
+
+    // Listen for execution unlock events
+    this.governanceOS.on('execution:unlocked', async (data) => {
+      this.io.emit('governance:action:unlocked', {
+        actionId: data.actionId,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    // Listen for approval received events
+    this.governanceOS.on('approval:received', async (data) => {
+      await this.handleApprovalStatusChange(data.actionId, 'approved', data.approver);
+    });
+
+    console.log('[GovernanceOSBridge] Feedback listeners set up');
   }
 
   private mapCategoryToTopicCategory(category: string): TopicCategory {

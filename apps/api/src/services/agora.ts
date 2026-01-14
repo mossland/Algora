@@ -1753,6 +1753,19 @@ Recommendation:`,
         }
       }
 
+      // Call bridge's handleAgoraSessionCompleted for additional processing
+      // (updates issue status, creates PP document if strong consensus)
+      await this.governanceOSBridge.handleAgoraSessionCompleted({
+        sessionId: session.id,
+        title: session.title,
+        issueId: session.issue_id || undefined,
+        decisionPacketId: decisionPacket?.id,
+        consensusScore: summary?.finalConsensus?.score || 0,
+        recommendation: decisionPacket?.recommendation || summary?.recommendations?.join('; ') || '',
+      });
+
+      console.log(`[Orchestrator] Bridge handleAgoraSessionCompleted called for session ${session.id.slice(0, 8)}`);
+
     } catch (error) {
       console.error('[Orchestrator] Failed to integrate with GovernanceOS:', error);
     }
@@ -1802,19 +1815,39 @@ Recommendation:`,
         const systemPrompt = this.buildSystemPrompt(agent, session);
         const prompt = this.buildConversationPrompt(recentMessages, session);
 
+        // Use Model Router if available for better task classification
+        if (this.governanceOSBridge) {
+          const response = await this.governanceOSBridge.executeWithModelRouter({
+            content: prompt,
+            taskType: 'debate', // Task type for agent discussions
+            systemPrompt,
+            maxTokens: 200,
+            temperature: 0.7,
+            complexity: 'balanced',
+          });
+
+          if (response.content) {
+            return {
+              content: this.cleanResponse(response.content),
+              tier: response.tier,
+            };
+          }
+        }
+
+        // Fallback to direct LLM service if bridge not available
         const response = await llmService.generate({
           systemPrompt,
           prompt,
           maxTokens: 200,
           temperature: 0.7,
           tier: 1,
-          complexity: 'balanced', // Use balanced model for thoughtful discussions
+          complexity: 'balanced',
         });
 
         if (response.content) {
           return {
             content: this.cleanResponse(response.content),
-            tier: response.tier, // Use actual tier from LLM response
+            tier: response.tier,
           };
         }
       } catch (error) {
@@ -1845,7 +1878,12 @@ Guidelines:
 - Be concise (2-4 sentences)
 - Contribute meaningful insights related to the topic
 - Respond to previous speakers when relevant
-- Do not use any prefixes or quotes around your message`;
+- Do not use any prefixes or quotes around your message
+
+CRITICAL LANGUAGE REQUIREMENT:
+- You MUST respond ONLY in English
+- Do NOT use Chinese, Korean, Japanese, or any other language
+- All responses must be in clear, professional English`;
   }
 
   private buildConversationPrompt(

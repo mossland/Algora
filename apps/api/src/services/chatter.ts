@@ -174,7 +174,12 @@ You are currently in the lobby, making casual observations or comments. Keep you
 - Related to governance, crypto, or general observations
 - Natural and conversational
 
-Do NOT include any prefixes like "Agent:" or quotes around your message.`;
+Do NOT include any prefixes like "Agent:" or quotes around your message.
+
+CRITICAL LANGUAGE REQUIREMENT:
+- You MUST respond ONLY in English
+- Do NOT use Chinese, Korean, Japanese, or any other language
+- All responses must be in clear, professional English`;
   }
 
   private buildChatterPrompt(agent: Agent): string {

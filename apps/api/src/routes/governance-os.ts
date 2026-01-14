@@ -527,6 +527,29 @@ router.post('/model-router/execute', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /governance-os/model-router/stats
+ * Get model router statistics (requests, tokens, costs, tier usage)
+ */
+router.get('/model-router/stats', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+    const stats = bridge.getModelRouterStats();
+
+    return res.json({
+      success: true,
+      stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] Get model router stats error:', error);
+    return res.status(500).json({
+      error: 'Failed to get model router stats',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // ==========================================
 // Workflow Status Endpoints
 // ==========================================
@@ -852,6 +875,133 @@ router.get('/kpi/export', (req: Request, res: Response) => {
     console.error('[GovernanceOS] Export KPI metrics error:', error);
     return res.status(500).json({
       error: 'Failed to export KPI metrics',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// ==========================================
+// Translation Endpoints
+// ==========================================
+
+/**
+ * POST /governance-os/translate
+ * Translate text to Korean
+ */
+router.post('/translate', async (req: Request, res: Response) => {
+  try {
+    const { text, targetLanguage = 'ko' } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ error: 'text is required' });
+    }
+
+    // Use LLM for translation
+    const { llmService } = await import('../services/llm.js');
+
+    const languageNames: Record<string, string> = {
+      ko: 'Korean',
+      en: 'English',
+      ja: 'Japanese',
+      zh: 'Chinese',
+    };
+
+    const targetName = languageNames[targetLanguage] || 'Korean';
+
+    const response = await llmService.generate({
+      systemPrompt: `You are a professional translator. Translate the following text to ${targetName}. Only output the translation, no explanations or notes.`,
+      prompt: text,
+      maxTokens: 500,
+      temperature: 0.3,
+      tier: 1,
+      complexity: 'fast',
+    });
+
+    return res.json({
+      success: true,
+      original: text,
+      translated: response.content,
+      targetLanguage,
+      model: response.model,
+      tier: response.tier,
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] Translation error:', error);
+    return res.status(500).json({
+      error: 'Failed to translate',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /governance-os/translate/batch
+ * Translate multiple texts to Korean (for batch translation)
+ */
+router.post('/translate/batch', async (req: Request, res: Response) => {
+  try {
+    const { texts, targetLanguage = 'ko' } = req.body;
+
+    if (!texts || !Array.isArray(texts) || texts.length === 0) {
+      return res.status(400).json({ error: 'texts array is required' });
+    }
+
+    if (texts.length > 10) {
+      return res.status(400).json({ error: 'Maximum 10 texts per batch' });
+    }
+
+    const { llmService } = await import('../services/llm.js');
+
+    const languageNames: Record<string, string> = {
+      ko: 'Korean',
+      en: 'English',
+      ja: 'Japanese',
+      zh: 'Chinese',
+    };
+
+    const targetName = languageNames[targetLanguage] || 'Korean';
+
+    // Batch translate using a single prompt
+    const numberedTexts = texts.map((t: string, i: number) => `[${i + 1}] ${t}`).join('\n');
+
+    const response = await llmService.generate({
+      systemPrompt: `You are a professional translator. Translate each numbered text to ${targetName}. Keep the same numbering format [1], [2], etc. Only output the translations.`,
+      prompt: numberedTexts,
+      maxTokens: 1500,
+      temperature: 0.3,
+      tier: 1,
+      complexity: 'balanced',
+    });
+
+    // Parse the response back into individual translations
+    const translatedLines = response.content.split('\n').filter((line: string) => line.trim());
+    const translations: string[] = [];
+
+    for (let i = 0; i < texts.length; i++) {
+      const pattern = new RegExp(`\\[${i + 1}\\]\\s*(.+)`, 'i');
+      const match = translatedLines.find((line: string) => pattern.test(line));
+      if (match) {
+        const extracted = match.replace(pattern, '$1').trim();
+        translations.push(extracted);
+      } else {
+        translations.push(texts[i]); // Fallback to original
+      }
+    }
+
+    return res.json({
+      success: true,
+      translations: texts.map((original: string, i: number) => ({
+        original,
+        translated: translations[i] || original,
+      })),
+      targetLanguage,
+      model: response.model,
+      tier: response.tier,
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] Batch translation error:', error);
+    return res.status(500).json({
+      error: 'Failed to batch translate',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
