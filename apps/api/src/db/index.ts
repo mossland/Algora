@@ -548,6 +548,65 @@ function createSchema(db: Database.Database): void {
   `);
 
   console.info('Database schema initialized');
+
+  // Seed default budget config if not exists
+  seedBudgetConfig(db);
+}
+
+function seedBudgetConfig(db: Database.Database): void {
+  const existingConfig = db.prepare('SELECT COUNT(*) as count FROM budget_config').get() as { count: number };
+
+  if (existingConfig.count === 0) {
+    console.info('Seeding default budget configuration from environment...');
+
+    // Read budget settings from environment variables (with defaults)
+    const configs = [
+      {
+        id: 'budget-anthropic',
+        provider: 'anthropic',
+        daily_budget_usd: parseFloat(process.env.ANTHROPIC_DAILY_BUDGET_USD || '10'),
+        hourly_call_limit: parseInt(process.env.ANTHROPIC_HOURLY_LIMIT || '100'),
+        input_token_price: 0.000003,  // $3/1M tokens
+        output_token_price: 0.000015, // $15/1M tokens
+      },
+      {
+        id: 'budget-openai',
+        provider: 'openai',
+        daily_budget_usd: parseFloat(process.env.OPENAI_DAILY_BUDGET_USD || '10'),
+        hourly_call_limit: parseInt(process.env.OPENAI_HOURLY_LIMIT || '100'),
+        input_token_price: 0.000003,
+        output_token_price: 0.000015,
+      },
+      {
+        id: 'budget-google',
+        provider: 'google',
+        daily_budget_usd: parseFloat(process.env.GOOGLE_DAILY_BUDGET_USD || '5'),
+        hourly_call_limit: parseInt(process.env.GOOGLE_HOURLY_LIMIT || '50'),
+        input_token_price: 0.000001,
+        output_token_price: 0.000002,
+      },
+      {
+        id: 'budget-ollama',
+        provider: 'ollama',
+        daily_budget_usd: 0.0, // Free (local)
+        hourly_call_limit: parseInt(process.env.OLLAMA_HOURLY_LIMIT || '1000'),
+        input_token_price: 0.0,
+        output_token_price: 0.0,
+      },
+    ];
+
+    const stmt = db.prepare(`
+      INSERT OR IGNORE INTO budget_config (id, provider, daily_budget_usd, hourly_call_limit, input_token_price, output_token_price)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const config of configs) {
+      stmt.run(config.id, config.provider, config.daily_budget_usd, config.hourly_call_limit, config.input_token_price, config.output_token_price);
+      console.info(`  ${config.provider}: $${config.daily_budget_usd}/day, ${config.hourly_call_limit} calls/hour`);
+    }
+
+    console.info('Budget configuration seeded');
+  }
 }
 
 export type { Database };

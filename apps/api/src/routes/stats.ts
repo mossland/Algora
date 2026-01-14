@@ -82,3 +82,55 @@ statsRouter.get('/', (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
+
+// GET /api/stats/tier-usage - Get tier usage statistics
+statsRouter.get('/tier-usage', (req, res) => {
+  const db: Database.Database = req.app.locals.db;
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    // Count signals collected today (Tier 0 - free)
+    const tier0 = (db.prepare(`
+      SELECT COUNT(*) as count FROM signals
+      WHERE date(timestamp) = ?
+    `).get(today) as any)?.count || 0;
+
+    // Count agent chatter messages today (Tier 1 - local LLM)
+    const tier1Chatter = (db.prepare(`
+      SELECT COUNT(*) as count FROM agent_chatter
+      WHERE date(created_at) = ? AND (tier = 1 OR tier_used LIKE '%local%' OR tier_used LIKE '%ollama%')
+    `).get(today) as any)?.count || 0;
+
+    // Count agora messages using local LLM
+    const tier1Agora = (db.prepare(`
+      SELECT COUNT(*) as count FROM agora_messages
+      WHERE date(created_at) = ? AND (tier = 1 OR tier_used LIKE '%local%' OR tier_used LIKE '%ollama%')
+    `).get(today) as any)?.count || 0;
+
+    const tier1 = tier1Chatter + tier1Agora;
+
+    // Count external LLM calls (Tier 2)
+    const tier2Usage = (db.prepare(`
+      SELECT SUM(call_count) as count FROM budget_usage
+      WHERE date = ? AND tier = 2
+    `).get(today) as any)?.count || 0;
+
+    // Also count agora messages using external LLM
+    const tier2Agora = (db.prepare(`
+      SELECT COUNT(*) as count FROM agora_messages
+      WHERE date(created_at) = ? AND (tier = 2 OR tier_used LIKE '%anthropic%' OR tier_used LIKE '%openai%' OR tier_used LIKE '%google%')
+    `).get(today) as any)?.count || 0;
+
+    const tier2 = tier2Usage + tier2Agora;
+
+    res.json({
+      tier0,
+      tier1,
+      tier2,
+      date: today,
+    });
+  } catch (error) {
+    console.error('Failed to fetch tier usage:', error);
+    res.status(500).json({ error: 'Failed to fetch tier usage' });
+  }
+});

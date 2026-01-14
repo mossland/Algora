@@ -1,7 +1,29 @@
 import { Router } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import type Database from 'better-sqlite3';
 
 export const budgetRouter: Router = Router();
+
+// Admin API key from environment variable
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+
+// Middleware to check admin authentication
+function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  // If no admin key is configured, deny all write access
+  if (!ADMIN_API_KEY) {
+    res.status(403).json({ error: 'Admin API not configured. Set ADMIN_API_KEY environment variable.' });
+    return;
+  }
+
+  const providedKey = req.headers['x-admin-key'] || req.headers['authorization']?.replace('Bearer ', '');
+
+  if (providedKey !== ADMIN_API_KEY) {
+    res.status(401).json({ error: 'Unauthorized. Valid admin API key required.' });
+    return;
+  }
+
+  next();
+}
 
 // GET /api/budget/status - Get budget status
 budgetRouter.get('/status', (req, res) => {
@@ -89,8 +111,8 @@ budgetRouter.get('/status/:provider', (req, res) => {
   }
 });
 
-// PATCH /api/budget/config/:provider - Update budget config
-budgetRouter.patch('/config/:provider', (req, res) => {
+// PATCH /api/budget/config/:provider - Update budget config (Admin only)
+budgetRouter.patch('/config/:provider', requireAdmin, (req, res) => {
   const db: Database.Database = req.app.locals.db;
   const { provider } = req.params;
   const { dailyBudgetUsd, hourlyCallLimit, enabled } = req.body;

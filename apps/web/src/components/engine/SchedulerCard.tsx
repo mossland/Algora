@@ -6,18 +6,19 @@ import { Clock, Play, ListOrdered, Timer } from 'lucide-react';
 
 interface SchedulerCardProps {
   scheduler: {
-    nextTier2: string;
+    nextTier2: string | null;
     queueLength: number;
-    lastRun: string;
+    lastRun?: string | null;
     interval: number;
+    tier2Hours?: number[];
   };
 }
 
 export function SchedulerCard({ scheduler }: SchedulerCardProps) {
   const t = useTranslations('Engine.scheduler');
 
-  const nextRun = new Date(scheduler.nextTier2);
-  const lastRun = new Date(scheduler.lastRun);
+  const nextRun = scheduler.nextTier2 ? new Date(scheduler.nextTier2) : null;
+  const lastRun = scheduler.lastRun ? new Date(scheduler.lastRun) : null;
 
   return (
     <div className="rounded-lg border border-agora-border bg-agora-card p-5">
@@ -34,10 +35,10 @@ export function SchedulerCard({ scheduler }: SchedulerCardProps) {
             <span className="text-xs">{t('nextTier2')}</span>
           </div>
           <p className="mt-2 text-lg font-semibold text-slate-900">
-            {formatDistanceToNow(nextRun, { addSuffix: false })}
+            {nextRun ? formatDistanceToNow(nextRun, { addSuffix: false }) : '--:--'}
           </p>
           <p className="text-xs text-agora-muted">
-            {nextRun.toLocaleTimeString()}
+            {nextRun ? nextRun.toLocaleTimeString() : 'Not scheduled'}
           </p>
         </div>
 
@@ -53,18 +54,29 @@ export function SchedulerCard({ scheduler }: SchedulerCardProps) {
           <p className="text-xs text-agora-muted">{t('pendingTasks')}</p>
         </div>
 
-        {/* Last Run */}
+        {/* Tier2 Schedule */}
         <div className="rounded-lg bg-agora-darker p-3">
           <div className="flex items-center gap-2 text-agora-muted">
             <Play className="h-4 w-4" />
             <span className="text-xs">{t('lastRun')}</span>
           </div>
-          <p className="mt-2 text-lg font-semibold text-slate-900">
-            {formatDistanceToNow(lastRun, { addSuffix: true })}
-          </p>
-          <p className="text-xs text-agora-muted">
-            {lastRun.toLocaleTimeString()}
-          </p>
+          {lastRun ? (
+            <>
+              <p className="mt-2 text-lg font-semibold text-slate-900">
+                {formatDistanceToNow(lastRun, { addSuffix: true })}
+              </p>
+              <p className="text-xs text-agora-muted">
+                {lastRun.toLocaleTimeString()}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-lg font-semibold text-slate-900">
+                {scheduler.tier2Hours?.join(':00, ')}:00
+              </p>
+              <p className="text-xs text-agora-muted">Daily schedule</p>
+            </>
+          )}
         </div>
 
         {/* Interval */}

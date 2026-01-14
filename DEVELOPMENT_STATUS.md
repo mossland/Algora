@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-13
-**Current Version**: 0.12.3
+**Last Updated**: 2026-01-15
+**Current Version**: 0.12.4
 **Production URL**: https://algora.moss.land
 
 ---
@@ -265,6 +265,44 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [ ] Performance optimization
 - [ ] Security audit
 - [ ] Mainnet deployment preparation
+
+### Phase 9.5: System Enhancement (COMPLETED)
+- [x] **Automatic Report Generation System**
+  - [x] `ReportGeneratorService` (`apps/api/src/services/report-generator/`)
+  - [x] `DataCollector` - Aggregates metrics from all tables (signals, issues, proposals, agents, sessions)
+  - [x] `WeeklyReportGenerator` - Weekly governance report with LLM executive summary
+  - [x] `MonthlyReportGenerator` - Comprehensive monthly report with strategic insights
+  - [x] Scheduler integration (weekly: Monday 00:00 UTC, monthly: 1st 00:00 UTC)
+  - [x] Manual generation API: `POST /api/disclosure/generate/weekly`, `POST /api/disclosure/generate/monthly`
+  - [x] Markdown content stored in disclosure_reports table
+  - [x] Frontend markdown rendering with `react-markdown` + `remark-gfm`
+  - [x] Custom styled components for tables, code blocks, headers
+- [x] **Real-time Health Endpoint Enhancement**
+  - [x] `/health` now returns real data: budget, scheduler, agents
+  - [x] Budget: daily limit, spent, remaining (from budget_config + budget_usage)
+  - [x] Scheduler: isRunning, nextTier2, queueLength, tier2Hours
+  - [x] Agents: total, active count
+  - [x] Uptime tracking from server start
+- [x] **Budget Configuration via Environment**
+  - [x] `ANTHROPIC_DAILY_BUDGET_USD`, `ANTHROPIC_HOURLY_LIMIT`
+  - [x] `OPENAI_DAILY_BUDGET_USD`, `OPENAI_HOURLY_LIMIT`
+  - [x] `GOOGLE_DAILY_BUDGET_USD`, `GOOGLE_HOURLY_LIMIT`
+  - [x] `OLLAMA_HOURLY_LIMIT`
+  - [x] Auto-seed budget_config on first run from .env
+- [x] **Admin API Key Protection**
+  - [x] `ADMIN_API_KEY` environment variable
+  - [x] `requireAdmin` middleware for budget modification
+  - [x] `PATCH /api/budget/config/:provider` requires X-Admin-Key header
+- [x] **Engine Room Page Real Data**
+  - [x] Uses real health API data instead of mock
+  - [x] `/api/stats/tier-usage` endpoint for tier statistics
+  - [x] SchedulerCard updated for nullable fields
+- [x] **Modal Portal Pattern**
+  - [x] All modals use React Portal (`createPortal`) for proper z-index
+  - [x] z-[99999] for guaranteed top-level rendering
+  - [x] Fixed modal stacking issues on all pages
+- [x] **Translation Fixes**
+  - [x] Added `Engine.status.ok` key for "All systems operational"
 
 ---
 

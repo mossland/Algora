@@ -16,6 +16,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.4] - 2026-01-15
+
+### Added
+- **Automatic Report Generation System** (`apps/api/src/services/report-generator/`):
+  - `ReportGeneratorService` for automated weekly and monthly report generation
+  - `DataCollector` aggregates metrics from signals, issues, proposals, agents, sessions
+  - `WeeklyReportGenerator` produces governance reports with LLM executive summary
+  - `MonthlyReportGenerator` creates comprehensive reports with strategic insights
+  - Scheduler integration: weekly (Monday 00:00 UTC), monthly (1st 00:00 UTC)
+  - Manual generation API: `POST /api/disclosure/generate/weekly`, `POST /api/disclosure/generate/monthly`
+  - Markdown rendering in DisclosureDetailModal with styled tables, headers, code blocks
+
+- **Real-time Health Endpoint** (`apps/api/src/index.ts`):
+  - `/health` now returns real data: budget status, scheduler info, agent counts
+  - Budget: daily limit, spent today, remaining balance
+  - Scheduler: isRunning, nextTier2 run time, queue length, scheduled hours
+  - Uptime tracking from server start time
+
+- **Budget Configuration via Environment** (`apps/api/src/db/index.ts`):
+  - `ANTHROPIC_DAILY_BUDGET_USD`, `ANTHROPIC_HOURLY_LIMIT`
+  - `OPENAI_DAILY_BUDGET_USD`, `OPENAI_HOURLY_LIMIT`
+  - `GOOGLE_DAILY_BUDGET_USD`, `GOOGLE_HOURLY_LIMIT`
+  - `OLLAMA_HOURLY_LIMIT`
+  - Auto-seed budget_config table on first run from .env values
+
+- **Admin API Key Protection** (`apps/api/src/routes/budget.ts`):
+  - `ADMIN_API_KEY` environment variable for admin operations
+  - `requireAdmin` middleware protects budget modification endpoints
+  - `PATCH /api/budget/config/:provider` requires `X-Admin-Key` header
+
+- **Tier Usage Statistics API** (`apps/api/src/routes/stats.ts`):
+  - `GET /api/stats/tier-usage` returns tier 0/1/2 call counts for today
+
+### Changed
+- **Engine Room Page** (`apps/web/src/app/[locale]/engine/page.tsx`):
+  - Now uses real API data instead of hardcoded mock values
+  - SchedulerCard updated to handle nullable fields gracefully
+
+### Fixed
+- **Modal Portal Pattern** (all modal components):
+  - All modals now use React Portal (`createPortal`) for proper z-index stacking
+  - Fixed modal overlay issues on Governance and other pages
+  - Uses `z-[99999]` for guaranteed top-level rendering
+
+- **Translation Fixes** (`apps/web/src/i18n/messages/en.json`, `ko.json`):
+  - Added `Engine.status.ok` key: "All systems operational" / "모든 시스템 정상 작동 중"
+
+---
+
 ## [0.12.3] - 2026-01-13
 
 ### Added

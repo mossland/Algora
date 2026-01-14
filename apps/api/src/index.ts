@@ -49,13 +49,110 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-  });
+// Server start time for uptime calculation
+const serverStartTime = Date.now();
+
+// Health check with real data
+app.get('/health', (req, res) => {
+  const db = req.app.locals.db;
+  const schedulerService = req.app.locals.schedulerService;
+
+  // Calculate uptime in seconds
+  const uptime = Math.floor((Date.now() - serverStartTime) / 1000);
+
+  // Default response if services not initialized
+  if (!db) {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: NODE_ENV,
+      uptime,
+    });
+    return;
+  }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get budget status
+    const budgetConfigs = db.prepare(`
+      SELECT provider, daily_budget_usd FROM budget_config WHERE enabled = 1 AND provider != 'ollama'
+    `).all() as Array<{ provider: string; daily_budget_usd: number }>;
+
+    const totalDailyBudget = budgetConfigs.reduce((sum, c) => sum + c.daily_budget_usd, 0);
+
+    const usageResult = db.prepare(`
+      SELECT SUM(estimated_cost_usd) as total_spent FROM budget_usage WHERE date = ?
+    `).get(today) as { total_spent: number | null } | undefined;
+
+    const todaySpent = usageResult?.total_spent || 0;
+    const remaining = Math.max(0, totalDailyBudget - todaySpent);
+
+    // Get scheduler status
+    let schedulerStatus = null;
+    if (schedulerService) {
+      const status = schedulerService.getStatus();
+      // Calculate next Tier2 run time based on scheduled hours
+      const now = new Date();
+      const currentHour = now.getHours();
+      const tier2Hours = status.config.tier2ScheduledRuns || [6, 12, 18, 23];
+
+      let nextHour = tier2Hours.find((h: number) => h > currentHour);
+      if (!nextHour) {
+        // Wrap to next day
+        nextHour = tier2Hours[0];
+        now.setDate(now.getDate() + 1);
+      }
+      now.setHours(nextHour, 0, 0, 0);
+
+      // Get queue length (pending tasks)
+      const queueResult = db.prepare(`
+        SELECT COUNT(*) as count FROM scheduler_tasks WHERE status = 'pending'
+      `).get() as { count: number } | undefined;
+
+      schedulerStatus = {
+        isRunning: status.isRunning,
+        nextTier2: now.toISOString(),
+        queueLength: queueResult?.count || 0,
+        tier2Hours: tier2Hours,
+      };
+    }
+
+    // Get agent counts
+    const agentResult = db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN s.status IN ('active', 'speaking', 'listening') THEN 1 ELSE 0 END) as active
+      FROM agents a
+      LEFT JOIN agent_states s ON a.id = s.agent_id
+      WHERE a.is_active = 1
+    `).get() as { total: number; active: number } | undefined;
+
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: NODE_ENV,
+      uptime,
+      budget: {
+        daily: totalDailyBudget,
+        spent: todaySpent,
+        remaining: remaining,
+      },
+      scheduler: schedulerStatus,
+      agents: {
+        total: agentResult?.total || 0,
+        active: agentResult?.active || 0,
+      },
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: NODE_ENV,
+      uptime,
+    });
+  }
 });
 
 // Initialize services

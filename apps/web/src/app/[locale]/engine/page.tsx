@@ -33,41 +33,55 @@ export default function EngineRoomPage() {
     refetchInterval: 5000,
   });
 
-  // Mock additional data
+  // Fetch tier usage stats
+  const { data: tierStats } = useQuery({
+    queryKey: ['tier-stats'],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201'}/api/stats/tier-usage`
+      );
+      if (!res.ok) return null;
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+
+  // Use real data from health endpoint, with fallbacks
   const budgetData = {
     daily: {
-      limit: 10.0,
-      spent: 3.45,
-      remaining: 6.55,
+      limit: health?.budget?.daily || 25.0,
+      spent: health?.budget?.spent || 0,
+      remaining: health?.budget?.remaining || 25.0,
     },
     monthly: {
-      limit: 200.0,
-      spent: 67.89,
-      remaining: 132.11,
+      limit: (health?.budget?.daily || 25.0) * 30,
+      spent: (health?.budget?.spent || 0) * 30, // Estimate
+      remaining: (health?.budget?.remaining || 25.0) * 30,
     },
   };
 
   const tierUsage = {
-    tier0: { calls: 1234, label: 'Free Operations' },
-    tier1: { calls: 456, label: 'Local LLM' },
-    tier2: { calls: 23, label: 'External LLM' },
+    tier0: { calls: tierStats?.tier0 || 0, label: 'Free Operations' },
+    tier1: { calls: tierStats?.tier1 || 0, label: 'Local LLM' },
+    tier2: { calls: tierStats?.tier2 || 0, label: 'External LLM' },
   };
 
   const schedulerData = {
-    nextTier2: health?.scheduler?.nextTier2 || new Date(Date.now() + 3600000).toISOString(),
-    queueLength: health?.scheduler?.queueLength || 5,
-    lastRun: new Date(Date.now() - 180000).toISOString(),
-    interval: 3,
+    nextTier2: health?.scheduler?.nextTier2 || null,
+    queueLength: health?.scheduler?.queueLength || 0,
+    lastRun: null,
+    interval: 6, // Hours between Tier2 runs
+    tier2Hours: health?.scheduler?.tier2Hours || [6, 12, 18, 23],
   };
 
   const systemHealth = {
-    status: health?.status || 'running',
-    uptime: health?.uptime || 12345,
-    memory: 512,
-    dbSize: 24.5,
+    status: health?.status === 'ok' ? 'running' : health?.status || 'running',
+    uptime: health?.uptime || 0,
+    memory: 512, // Would need system metrics API
+    dbSize: 24.5, // Would need file stats API
     agents: {
-      total: 30,
-      active: 5,
+      total: health?.agents?.total || 30,
+      active: health?.agents?.active || 0,
     },
   };
 

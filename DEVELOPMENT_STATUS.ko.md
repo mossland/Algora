@@ -2,8 +2,9 @@
 
 이 파일은 세션 간 개발 연속성을 위해 현재 개발 진행 상황을 추적합니다.
 
-**최종 업데이트**: 2026-01-12
-**현재 버전**: 0.9.0
+**최종 업데이트**: 2026-01-15
+**현재 버전**: 0.12.4
+**프로덕션 URL**: https://algora.moss.land
 
 ---
 
@@ -83,8 +84,225 @@
 - [x] 설정 시스템 - GovernanceOSConfig 및 WorkflowConfigs
 - [x] 팩토리 함수 - createGovernanceOS, createDefaultGovernanceOS
 
-### Phase 7: 예정
-- Phase 7: Testing & Production Deployment
+### Phase 7: 워크플로 구현 및 API 통합 (완료)
+
+#### Step 1: API 통합 (완료)
+- [x] apps/api 통합을 위한 GovernanceOSBridge 서비스
+- [x] Governance OS REST API 엔드포인트:
+  - [x] 파이프라인 엔드포인트: `/governance-os/pipeline/run`, `/governance-os/pipeline/issue/:id`
+  - [x] 문서 엔드포인트: `/governance-os/documents`, `/governance-os/documents/:id`, `/governance-os/documents/type/:type`
+  - [x] 투표 엔드포인트: `/governance-os/voting`, `/governance-os/voting/:id`, `/governance-os/voting/:id/vote`
+  - [x] 승인 엔드포인트: `/governance-os/approvals`, `/governance-os/approvals/:id/approve`
+  - [x] 리스크/잠금 엔드포인트: `/governance-os/risk/classify`, `/governance-os/locks/:id`
+  - [x] 모델 라우터 엔드포인트: `/governance-os/model-router/execute`
+  - [x] 통계/헬스 엔드포인트: `/governance-os/stats`, `/governance-os/health`, `/governance-os/config`
+
+#### Step 2: 워크플로 핸들러 (완료)
+- [x] **Workflow A: 학술 활동** (`workflow-a.ts`)
+  - [x] 타입: AcademicSource, ResearchTopic, AcademicPaper, ResearchBrief
+  - [x] 타입: TechnologyAssessment, ResearchDigest, WorkflowAConfig
+  - [x] WorkflowAHandler 클래스 - executeResearchPhase(), executeDeliberationPhase()
+  - [x] generateResearchDigest() - 주간 다이제스트 문서 생성
+  - [x] generateTechnologyAssessment() - 공식 평가 문서 생성
+  - [x] shouldGenerateAssessment() - 임계값 감지
+  - [x] Orchestrator 통합 (executeWorkflowA 메서드)
+  - [x] 테스트: 12개 테스트 케이스, 모두 통과
+
+- [x] **Workflow B: 자유 토론** (`workflow-b.ts`)
+  - [x] 타입: DebateSource, DebateCategory, DebatePhase, DebateTopic
+  - [x] 타입: DebateArgument, DebateThread, ConsensusAssessment, DebateSummary
+  - [x] WorkflowBHandler 클래스 - initializeDebate(), executeDebatePhase()
+  - [x] executeFullDeliberation() - 완전한 5단계 토론 실행
+  - [x] assessConsensus() - 합의 계산
+  - [x] generateDebateSummary() - 공식 요약 문서 생성
+  - [x] 반론 단계에서 Red Team 도전 생성
+  - [x] Orchestrator 통합 (executeWorkflowB 메서드)
+  - [x] 테스트: 13개 테스트 케이스, 모두 통과
+
+- [x] **Workflow C: 개발자 지원** (`workflow-c.ts`)
+  - [x] 타입: GrantStatus, GrantCategory, MilestoneStatus, RewardStatus
+  - [x] 타입: GrantApplication, GrantMilestone, DeveloperGrant, MilestoneReport
+  - [x] 타입: RetroactiveReward, GrantProposal, ApplicationEvaluation, MilestoneReview
+  - [x] WorkflowCHandler 클래스 - processGrantApplication(), evaluateApplication()
+  - [x] processMilestoneReport() - 마일스톤 추적
+  - [x] processRetroactiveReward() - 소급 보상 지명 처리
+  - [x] Dual-House 승인 통합 (MossCoin + OpenSource)
+  - [x] 고액 그랜트(>$5,000)에 대한 Director 3 승인
+  - [x] 자금 지급을 위한 LOCK 메커니즘
+  - [x] Orchestrator 통합 (executeWorkflowC, processMilestoneReport, processRetroactiveReward)
+  - [x] 테스트: 19개 테스트 케이스, 모두 통과
+
+- [x] **Workflow D: 생태계 확장** (`workflow-d.ts`)
+  - [x] 타입: ExpansionOrigin, OpportunityCategory, OpportunityStatus, PartnershipStatus
+  - [x] 타입: ExpansionOpportunity, OpportunityAssessment, PartnershipProposal
+  - [x] 타입: PartnershipAgreement, EcosystemReport, DetectedSignal
+  - [x] 타입: AlwaysOnConfig, AntiAbuseConfig - 인테이크 관리용
+  - [x] WorkflowDHandler 클래스 - processCallBasedOpportunity(), processAlwaysOnSignal()
+  - [x] assessOpportunity() - SWOT 분석
+  - [x] createPartnershipProposal() - 승인 요건 포함
+  - [x] createPartnershipAgreement() - LOCK 메커니즘
+  - [x] generateEcosystemReport() - 정기 보고서 생성
+  - [x] 스팸 방지 가드레일 (속도 제한, 중복 제거, 품질 필터)
+  - [x] 파트너십(>$1,000)에 대한 Dual-House 승인
+  - [x] 고액 거래(>$10,000) 또는 고위험 카테고리에 대한 Director 3 승인
+  - [x] 테스트: 21개 테스트 케이스, 모두 통과
+
+- [x] **Workflow E: 워킹 그룹** (`workflow-e.ts`)
+  - [x] 타입: WorkingGroupStatus, CharterDuration, WGDocumentType, WGProposalOrigin
+  - [x] 타입: WorkingGroupProposal, WorkingGroupCharter, WGPublishingRules
+  - [x] 타입: WorkingGroup, WGStatusReport, WGDissolutionRequest, IssuePattern
+  - [x] WorkflowEHandler 클래스 - processWGProposal(), evaluateProposal()
+  - [x] createCharter() - 승인된 제안서에서 헌장 생성
+  - [x] activateWorkingGroup() - 헌장에서 WG 활성화
+  - [x] canPublishDocument() 및 recordPublication() - 게시 권한
+  - [x] generateStatusReport() - WG 상태 보고서
+  - [x] processDissolulutionRequest() - WG 해산 처리
+  - [x] detectPatterns() - 자동 제안 이슈 패턴 감지
+  - [x] generateAutoProposal() - 오케스트레이터 주도 WG 제안서 생성
+  - [x] 모든 WG 결성에 대한 Dual-House 승인
+  - [x] 고예산 WG(>$5,000)에 대한 Director 3 승인
+  - [x] 테스트: 31개 테스트 케이스, 모두 통과
+
+**전체 Orchestrator 테스트: 96개 통과**
+
+### Phase 8: 프론트엔드 UI 통합 및 v2.0 완료 (완료)
+- [x] `apps/web/src/lib/api.ts`에 Governance OS API 타입
+  - [x] PipelineStage, PipelineStatus 타입
+  - [x] DocumentType, DocumentState, GovernanceDocument 타입
+  - [x] DualHouseVote, HouseType - 투표용
+  - [x] LockedAction, RiskLevel - Safe Autonomy용
+  - [x] WorkflowStatus, GovernanceOSStats, GovernanceOSHealth
+  - [x] API 함수: fetchGovernanceOSStats, fetchDocuments, fetchDualHouseVotes 등
+- [x] Governance OS 컴포넌트 (`apps/web/src/components/governance/`)
+  - [x] PipelineVisualization - 9단계 파이프라인 표시 및 진행률
+  - [x] WorkflowCard - 워크플로 타입 카드(A-E) 및 통계
+  - [x] DocumentCard - 공식 문서 카드 및 상태 배지
+  - [x] DualHouseVoteCard - Dual-House 투표 진행률 및 상태
+  - [x] LockedActionCard - Safe Autonomy 작업 카드 및 승인 추적
+- [x] Governance OS 페이지 (`apps/web/src/app/[locale]/governance/page.tsx`)
+  - [x] 통계 카드가 있는 대시보드 개요
+  - [x] 탭 네비게이션 (개요, 워크플로, 문서, 투표, 승인)
+  - [x] 파이프라인 시각화
+  - [x] TanStack Query 데이터 페칭 통합
+- [x] 네비게이션 업데이트
+  - [x] 사이드바에 "Governance OS" 메뉴 항목 추가 및 NEW 배지
+- [x] i18n 번역 (EN/KO)
+  - [x] 모든 UI 문자열이 포함된 Governance 섹션
+  - [x] 파이프라인 단계 이름
+  - [x] 문서 상태
+  - [x] 투표 상태
+  - [x] Safe Autonomy 상태
+- [x] 백엔드 API 엔드포인트 연결
+  - [x] GovernanceOSBridge 새 메서드 (listAllDocuments, listAllVotings, listAllApprovals, getWorkflowStatuses)
+  - [x] 새 REST 엔드포인트: GET /documents, GET /voting, GET /approvals, GET /workflows
+  - [x] 실제 엔드포인트에 연결된 프론트엔드 API 함수 (목업 데이터 제거)
+  - [x] WittyLoader/WittyMessage에 'governance' 카테고리 확장
+- [x] **에이전트 클러스터 확장 (30→38 에이전트)**
+  - [x] 새 클러스터 타입 추가: 'orchestrators', 'archivists', 'red-team', 'scouts'
+  - [x] 8명의 새 에이전트: Nova Prime, Atlas (오케스트레이터), Archive Alpha, Trace Master (아키비스트),
+        Contrarian Carl, Breach Tester, Base Questioner (레드팀), Horizon Seeker (스카우트)
+  - [x] 새 그룹에 대한 i18n 번역 업데이트 (EN/KO)
+- [x] **Governance 이벤트를 위한 실시간 Socket.IO**
+  - [x] `apps/api/src/services/socket.ts`에 새 브로드캐스트 함수:
+        - broadcastDocumentCreated, broadcastDocumentStateChanged
+        - broadcastVotingCreated, broadcastVoteCast, broadcastVotingStatusChanged
+        - broadcastActionLocked, broadcastActionUnlocked, broadcastDirector3Approval
+        - broadcastPipelineProgress, broadcastWorkflowStateChanged, broadcastHealthUpdate
+  - [x] `apps/web/src/hooks/useSocket.ts`에 새 프론트엔드 훅:
+        - GovernanceEvent 타입 - 11개 이벤트 타입
+        - useGovernanceEvents 훅 - 여러 이벤트 구독
+- [x] **운영 KPI 계측**
+  - [x] 새 KPI 모듈: `packages/governance-os/src/kpi.ts`
+        - DecisionQualityMetrics (DP 완성도, 옵션 다양성, 레드팀 커버리지)
+        - ExecutionSpeedMetrics (신호-이슈, 이슈-DP, 엔드투엔드 타이밍)
+        - SystemHealthMetrics (업타임, LLM 가용성, 큐 깊이, 에러율)
+  - [x] KPICollector 클래스 - recordSample, recordHeartbeat, recordOperation, recordExecutionTiming
+  - [x] `apps/api/src/routes/governance-os.ts`에 7개 새 API 엔드포인트:
+        - GET /kpi/dashboard, /kpi/decision-quality, /kpi/execution-speed
+        - GET /kpi/system-health, /kpi/alerts, /kpi/targets, /kpi/export
+- [x] **보안 스팸 방지 (Anti-Abuse 가드)**
+  - [x] 새 모듈: `packages/safe-autonomy/src/anti-abuse.ts`
+        - AntiAbuseGuard 클래스 - 속도 제한, 중복 제거, 품질 필터링
+        - 블랙리스트 관리, 거부 후 쿨다운
+        - 다중 소스 검증 요구
+        - 중복 제거를 위한 토픽 해시 생성
+- [x] **E2E 파이프라인 테스트**
+  - [x] 새 테스트 파일: `packages/governance-os/src/__tests__/e2e-pipeline.test.ts`
+        - 전체 파이프라인 실행 테스트 (LOW/MID/HIGH 리스크)
+        - Document Registry 통합 테스트
+        - Dual-House Voting 통합 테스트
+        - Model Router 통합 테스트
+        - KPI Collector 통합 테스트
+        - 헬스 모니터링 테스트
+        - 파이프라인 단계 검증 (9단계)
+        - 워크플로 타입 커버리지 (A, B, C, D, E)
+- [x] **Ollama 모델 통합**
+  - [x] 새 프로바이더: `packages/model-router/src/providers/ollama.ts`
+        - OllamaProvider 클래스 - 로컬 LLM 추론
+        - Chat 및 generate API 지원
+        - RAG용 임베딩 지원
+        - 헬스 체크 및 모델 목록
+        - 모델 풀 기능
+        - OLLAMA_INSTALL_COMMANDS 및 OLLAMA_HARDWARE_REQUIREMENTS 상수
+  - [x] ModelRouter용 OllamaLLMProvider 어댑터
+  - [x] 팩토리 함수: createOllamaModelRoutingSystem, createOllamaModelRoutingSystemWithDefaults
+
+### Phase 9: 프로덕션 배포 (완료)
+- [x] **pm2 프로세스 관리**
+  - [x] api 및 web 앱 관리를 위한 `ecosystem.config.cjs`
+  - [x] 로컬 머신 배포 (211.196.73.206)
+  - [x] api는 포트 3201, web은 포트 3200
+  - [x] 메모리 제한이 있는 자동 재시작 설정
+- [x] **nginx 리버스 프록시**
+  - [x] nginx가 설치된 Lightsail 서버 (13.209.131.190)
+  - [x] Let's Encrypt SSL/TLS
+  - [x] Socket.IO를 위한 WebSocket 프록시
+  - [x] 정적 자산 캐싱 헤더
+- [x] **Next.js i18n 미들웨어 수정**
+  - [x] `_next` 경로를 제외하도록 미들웨어 매처 수정
+  - [x] 정적 자산 500 오류 및 리다이렉트 루프 해결
+- [ ] 전체 통합 테스트
+- [ ] 성능 최적화
+- [ ] 보안 감사
+- [ ] 메인넷 배포 준비
+
+### Phase 9.5: 시스템 개선 (완료)
+- [x] **자동 보고서 생성 시스템**
+  - [x] `ReportGeneratorService` (`apps/api/src/services/report-generator/`)
+  - [x] `DataCollector` - 모든 테이블에서 메트릭 집계 (signals, issues, proposals, agents, sessions)
+  - [x] `WeeklyReportGenerator` - LLM 요약이 포함된 주간 거버넌스 보고서
+  - [x] `MonthlyReportGenerator` - 전략적 인사이트가 포함된 월간 종합 보고서
+  - [x] 스케줄러 통합 (주간: 월요일 00:00 UTC, 월간: 1일 00:00 UTC)
+  - [x] 수동 생성 API: `POST /api/disclosure/generate/weekly`, `POST /api/disclosure/generate/monthly`
+  - [x] disclosure_reports 테이블에 마크다운 콘텐츠 저장
+  - [x] `react-markdown` + `remark-gfm`을 사용한 프론트엔드 마크다운 렌더링
+  - [x] 테이블, 코드 블록, 헤더를 위한 커스텀 스타일 컴포넌트
+- [x] **실시간 헬스 엔드포인트 개선**
+  - [x] `/health`가 이제 실제 데이터 반환: budget, scheduler, agents
+  - [x] Budget: 일일 한도, 사용량, 잔여 (budget_config + budget_usage에서)
+  - [x] Scheduler: isRunning, nextTier2, queueLength, tier2Hours
+  - [x] Agents: 전체 수, 활성 수
+  - [x] 서버 시작 시간부터 업타임 추적
+- [x] **환경 변수를 통한 예산 설정**
+  - [x] `ANTHROPIC_DAILY_BUDGET_USD`, `ANTHROPIC_HOURLY_LIMIT`
+  - [x] `OPENAI_DAILY_BUDGET_USD`, `OPENAI_HOURLY_LIMIT`
+  - [x] `GOOGLE_DAILY_BUDGET_USD`, `GOOGLE_HOURLY_LIMIT`
+  - [x] `OLLAMA_HOURLY_LIMIT`
+  - [x] 첫 실행 시 .env에서 budget_config 자동 시드
+- [x] **Admin API 키 보호**
+  - [x] `ADMIN_API_KEY` 환경 변수
+  - [x] 예산 수정을 위한 `requireAdmin` 미들웨어
+  - [x] `PATCH /api/budget/config/:provider`는 X-Admin-Key 헤더 필요
+- [x] **Engine Room 페이지 실제 데이터**
+  - [x] 목업 대신 실제 health API 데이터 사용
+  - [x] tier 통계를 위한 `/api/stats/tier-usage` 엔드포인트
+  - [x] nullable 필드를 위한 SchedulerCard 업데이트
+- [x] **Modal Portal 패턴**
+  - [x] 모든 모달이 적절한 z-index를 위해 React Portal (`createPortal`) 사용
+  - [x] 최상위 렌더링을 보장하는 z-[99999]
+  - [x] 모든 페이지에서 모달 겹침 문제 해결
+- [x] **번역 수정**
+  - [x] "All systems operational"을 위한 `Engine.status.ok` 키 추가
 
 ---
 
@@ -132,8 +350,12 @@
 - [x] StatsDetailModal 컴포넌트 (세부 내역, 활동 목록)
 - [x] **에이전트 페이지** - 그리드 뷰, 클러스터 필터, 상세 모달, 소환/퇴장
 - [x] **아고라 페이지** - 실시간 채팅, 세션 관리, 참가자 목록
+  - [x] 데이터베이스에서 실시간 메시지 페칭
+  - [x] 참가자 목록에 색상 코딩된 에이전트 그룹 표시
+  - [x] 랜덤 간격(30초-2분)으로 토론 자동 시작
 - [x] **UI 애니메이션** - 모달 fade-in/scale-in, 카드 호버 효과, 새 항목 slide-in
 - [x] **상세 모달** - 모든 모달 일관된 애니메이션 적용 (7개 파일)
+- [x] **공개 페이지** - 투명성 보고서 및 거버넌스 공개
 - [x] **신호 페이지** - 소스 필터링, 우선순위 표시, 통계
 - [x] **이슈 페이지** - 상태 워크플로우, 우선순위 필터, 검색
 - [x] **제안 페이지** - 투표 진행률, 정족수 추적, 필터
@@ -145,6 +367,12 @@
   - [x] TerminalBox, GlowText 공유 컴포넌트
   - [x] Socket.io 실시간 업데이트
   - [x] 헤더에 LIVE 배지, 사이드바에 LIVE 메뉴
+- [x] **UX 가이드 시스템**
+  - [x] WelcomeTour 컴포넌트 (다단계 가이드 투어)
+  - [x] SystemFlowDiagram 컴포넌트 (시각적 파이프라인)
+  - [x] HelpTooltip 컴포넌트 (고정 위치, z-index 9999)
+  - [x] HelpMenu 컴포넌트 (헤더 빠른 액세스 메뉴)
+  - [x] 투어 완료를 위한 localStorage 지속성
 
 #### 에이전트 시스템 (100%)
 - [x] 3-tier 지원 LLM 서비스 (llm.ts)
@@ -200,6 +428,11 @@
 - [x] LLM 강화 분석
   - [x] 고우선순위 항목 AI 분석
   - [x] 권장 조치 생성
+- [x] 아고라 세션 자동 생성
+  - [x] Critical/High 우선순위 이슈에 대해 아고라 세션 자동 생성
+  - [x] 카테고리 기반 에이전트 자동 소환
+  - [x] 쿨다운 메커니즘 (critical: 30분, high: 60분)
+  - [x] AGORA_SESSION_AUTO_CREATED 활동 타입
 - [x] API 엔드포인트 (/api/issues/detection/*)
 
 #### 휴먼 거버넌스 (100%)
@@ -300,11 +533,13 @@
   - [x] 대시보드 엔드포인트
 
 #### 공유 패키지
-- [x] packages/core - TypeScript 타입
-- [x] packages/safe-autonomy - LOCK/UNLOCK, 리스크 분류, 승인 라우팅 (v2.0)
+- [x] packages/core - TypeScript 타입 (38 에이전트 클러스터, 11 클러스터 타입)
+- [x] packages/safe-autonomy - LOCK/UNLOCK, 리스크 분류, 승인 라우팅, Anti-Abuse 가드 (v2.0)
 - [x] packages/orchestrator - 워크플로 오케스트레이션, 상태 머신, TODO 관리 (v2.0)
 - [x] packages/document-registry - 공식 문서 저장소, 버전 관리, 출처 추적 (v2.0)
-- [x] packages/model-router - LLM 난이도 기반 라우팅, 품질 게이트, RAG (v2.0)
+- [x] packages/model-router - LLM 난이도 기반 라우팅, 품질 게이트, RAG, Ollama 프로바이더 (v2.0)
+- [x] packages/dual-house - Dual-House 거버넌스, 투표, 조정 (v2.0)
+- [x] packages/governance-os - 통합 통합 계층, KPI 컬렉터, E2E 테스트 (v2.0)
 - [ ] packages/reality-oracle - 신호 수집
 - [ ] packages/inference-mining - 이슈 탐지
 - [ ] packages/agentic-consensus - 에이전트 시스템
@@ -316,6 +551,7 @@
 - [x] ARCHITECTURE.md / ARCHITECTURE.ko.md
 - [x] CONTRIBUTING.md / CONTRIBUTING.ko.md
 - [x] ALGORA_PROJECT_SPEC.md / ALGORA_PROJECT_SPEC.ko.md
+- [x] USER_GUIDE.md / USER_GUIDE.ko.md
 - [x] CLAUDE.md
 - [x] CHANGELOG.md
 - [x] DEVELOPMENT_STATUS.md (이 파일)
@@ -324,23 +560,31 @@
 
 ## 다음 단계 (우선순위 순)
 
-### 8단계: UI 통합 및 폴리싱
+### Phase 10: 통합 및 폴리싱
 1. 토큰 지갑 연결 UI (MetaMask, WalletConnect)
 2. 잔액 시각화가 포함된 트레저리 대시보드
 3. 제안의 토큰 가중 투표 UI
 4. 홀더 프로필 및 투표 이력 페이지
 5. 토큰 이벤트를 위한 실시간 WebSocket 통합
 
-### 9단계: 프로덕션 배포
+### Phase 11: 프로덕션 강화
 1. 메인넷 컨트랙트 통합
 2. 보안 감사
 3. 성능 최적화
-4. 모니터링 및 알림
+4. 모니터링 및 알림 (pm2 monit, 로그 로테이션)
+
+### Phase 12: 고급 기능
+1. packages/reality-oracle - 신호 수집 리팩토링
+2. packages/inference-mining - 이슈 탐지 리팩토링
+3. packages/agentic-consensus - 에이전트 시스템 리팩토링
+4. packages/human-governance - 투표 리팩토링
+5. packages/proof-of-outcome - 결과 추적 리팩토링
 
 ---
 
 ## 프로젝트 실행
 
+### 개발 모드
 ```bash
 # 의존성 설치
 pnpm install
@@ -353,21 +597,41 @@ cd apps/api && pnpm dev   # 백엔드 :3201
 cd apps/web && pnpm dev   # 프론트엔드 :3200
 ```
 
+### 프로덕션 모드 (pm2)
+```bash
+# 모든 패키지 빌드
+pnpm build
+
+# pm2로 시작
+pm2 start ecosystem.config.cjs
+
+# 관리 명령어
+pm2 status              # 상태 확인
+pm2 logs algora-api     # API 로그
+pm2 logs algora-web     # 웹 로그
+pm2 restart all         # 전체 재시작
+pm2 stop all            # 전체 중지
+
+# 재부팅 시 자동 시작
+pm2 save
+pm2 startup
+```
+
+### 프로덕션 URL
+- **프로덕션**: https://algora.moss.land
+- **로컬 개발**: http://localhost:3200 (web), http://localhost:3201 (api)
+
 ---
 
-## Git 커밋 히스토리
+## Git 커밋 히스토리 (최근)
 
 ```
-451a1d0 feat(web): Add Engine Room page with system monitoring
-b1d61a3 feat(web): Add Proposals page with voting interface
-5b1a6de feat(web): Add Issues page with status workflow
-0816720 feat(web): Add Signals page with source filtering
-40b7bcc feat(web): Add Agora page with live deliberation interface
-e388a3a feat(web): Add Agents page with grid view and detail modal
-00d555d docs: Add development status tracking
-e7354e9 fix(api): Add missing /api/stats and /api/activity endpoints
-e413b1b fix(web): Fix API response handling
-66e5dda fix(web): Add missing date-fns dependency
+3086f08 docs: Update USER_GUIDE.md and USER_GUIDE.ko.md with v2.0 features
+2568ccd feat: Add production deployment with pm2 and nginx reverse proxy
+bafeae9 test: Add comprehensive tests for v2.0 packages and fix exports
+835ab91 feat: Complete v2.0 Plan Implementation - Phase 8 Finalization
+541a049 feat(api): Connect backend API to Governance OS UI and remove mock data
+b0e94f6 docs: Update documentation for v0.12.0 - Governance OS UI
 ```
 
 ---
@@ -377,6 +641,7 @@ e413b1b fix(web): Fix API response handling
 1. Next.js 14.1.0이 구버전임 (경미한 경고)
 2. 서버 재시작 시 에이전트 상태가 유지되지 않음 (초기화 필요)
 3. 스키마 변경 후 데이터베이스 재초기화 필요 (algora.db 삭제 후 db:init 실행)
+4. 프로덕션 API 연결 시 localhost CORS 이슈 (예상된 동작)
 
 ---
 
@@ -386,6 +651,7 @@ e413b1b fix(web): Fix API response handling
 - pnpm (모노레포용)
 - SQLite 데이터베이스: `apps/api/data/algora.db`
 - 첫 실행 시 데이터베이스 자동 초기화
+- Tier 1 LLM을 위해 Ollama 필요 (http://localhost:11434)
 
 ---
 
@@ -395,5 +661,19 @@ e413b1b fix(web): Fix API response handling
 1. 이 파일을 먼저 읽어 현재 상태 파악
 2. CLAUDE.md에서 프로젝트 컨텍스트와 가이드라인 확인
 3. `git log --oneline -10`으로 최근 변경사항 확인
-4. `pnpm dev`로 개발 서버 시작
+4. `pnpm dev`로 개발 서버 시작 (또는 프로덕션에서는 `pm2 start ecosystem.config.cjs`)
 5. 중요한 변경 후 이 파일과 CHANGELOG.md 업데이트
+6. 문서 변경 시 한국어 번역 (*.ko.md) 업데이트
+
+### 알아야 할 주요 파일
+- `ecosystem.config.cjs` - pm2 설정
+- `apps/web/src/middleware.ts` - Next.js i18n 미들웨어 (`_next` 경로 제외)
+- `apps/web/.env.local` - 프론트엔드 환경 (NEXT_PUBLIC_API_URL)
+- `apps/api/.env` - 백엔드 환경
+
+### 현재 아키텍처
+```
+인터넷 → algora.moss.land (DNS)
+       → Lightsail 13.209.131.190 (nginx + SSL)
+       → 로컬 211.196.73.206 (pm2: api:3201, web:3200)
+```
