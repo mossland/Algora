@@ -51,7 +51,7 @@ export default async function RootLayout({
               <ExperimentalBanner />
               <div className="flex flex-1 overflow-hidden">
                 <Sidebar />
-                <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex flex-1 flex-col overflow-hidden relative z-20">
                   <Header />
                   <main className="flex-1 overflow-auto p-6">{children}</main>
                 </div>
