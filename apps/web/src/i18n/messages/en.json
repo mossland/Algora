@@ -402,13 +402,15 @@
     "allocations": "Allocations",
     "transactions": "Transactions",
     "holders": "Token Holders",
+    "refresh": "Refresh",
+    "connected": "Connected",
     "stats": {
       "totalBalance": "Total Balance",
       "mocBalance": "MOC Balance",
       "ethBalance": "ETH Balance",
       "holders": "Verified Holders",
       "activeVoting": "Active Voting",
-      "allocations": "Allocations"
+      "allocations": "Total Allocations"
     },
     "allocation": {
       "pending": "Pending",
@@ -422,12 +424,43 @@
       "transfer": "Transfer",
       "allocation": "Allocation"
     },
+    "balanceDistribution": "Balance Distribution",
+    "allocationBreakdown": "Allocation Status",
+    "spendingLimits": {
+      "title": "Spending Limits",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "used": "used",
+      "noLimits": "No spending limits configured"
+    },
+    "modals": {
+      "allocationDetail": "Allocation Details",
+      "transactionDetail": "Transaction Details",
+      "viewProposal": "View Proposal",
+      "viewOnExplorer": "View on Explorer",
+      "close": "Close"
+    },
+    "recipient": "Recipient",
+    "amount": "Amount",
+    "description": "Description",
+    "status": "Status",
+    "from": "From",
+    "to": "To",
+    "txHash": "Transaction Hash",
+    "createdAt": "Created",
+    "approvedAt": "Approved",
+    "disbursedAt": "Disbursed",
+    "confirmedAt": "Confirmed",
+    "copy": "Copy",
+    "viewOnEtherscan": "View on Etherscan",
     "votingPower": "Voting Power",
     "tokenBalance": "Token Balance",
-    "verifiedAt": "Verified At",
+    "verifiedAt": "Verified",
     "noHolders": "No verified token holders yet",
     "noAllocations": "No allocations yet",
-    "noTransactions": "No transactions yet"
+    "noTransactions": "No transactions yet",
+    "noBalances": "No balance data available"
   },
   "Guide": {
     "title": "How Algora Works",

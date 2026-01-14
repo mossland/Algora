@@ -1,0 +1,276 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  X,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowLeftRight,
+  FileText,
+  Copy,
+  Check,
+  ExternalLink,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { TreasuryTransaction } from './TransactionCard';
+
+interface TransactionDetailModalProps {
+  transaction: TreasuryTransaction | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  deposit: ArrowDownRight,
+  withdrawal: ArrowUpRight,
+  transfer: ArrowLeftRight,
+  allocation: FileText,
+};
+
+const typeColors: Record<string, { bg: string; icon: string; text: string }> = {
+  deposit: { bg: 'bg-green-500/20', icon: 'text-green-400', text: 'text-green-400' },
+  withdrawal: { bg: 'bg-red-500/20', icon: 'text-red-400', text: 'text-red-400' },
+  transfer: { bg: 'bg-blue-500/20', icon: 'text-blue-400', text: 'text-blue-400' },
+  allocation: { bg: 'bg-purple-500/20', icon: 'text-purple-400', text: 'text-purple-400' },
+};
+
+const statusConfig = {
+  pending: { icon: Clock, color: 'text-yellow-500', bgColor: 'bg-yellow-500/20' },
+  confirmed: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/20' },
+  failed: { icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-500/20' },
+};
+
+export function TransactionDetailModal({
+  transaction,
+  isOpen,
+  onClose,
+}: TransactionDetailModalProps) {
+  const t = useTranslations('Treasury');
+  const [mounted, setMounted] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted || !transaction) return null;
+
+  const formatBalance = (balance: string, decimals: number = 18) => {
+    const value = BigInt(balance) / BigInt(10 ** decimals);
+    return value.toLocaleString();
+  };
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const TypeIcon = typeIcons[transaction.type] || ArrowLeftRight;
+  const colors = typeColors[transaction.type] || typeColors.transfer;
+  const StatusIcon = statusConfig[transaction.status]?.icon || Clock;
+  const isInflow = transaction.type === 'deposit';
+  const sign = isInflow ? '+' : '-';
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-agora-border bg-agora-dark p-6 shadow-2xl">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Header */}
+        <div className="mb-6 flex items-center gap-4">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${colors.bg}`}>
+            <TypeIcon className={`h-6 w-6 ${colors.icon}`} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">{t('modals.transactionDetail')}</h2>
+            <p className="text-sm text-agora-muted">{t(`transaction.${transaction.type}`)}</p>
+          </div>
+        </div>
+
+        {/* Status Badge */}
+        <div className={`mb-6 flex items-center gap-2 rounded-lg p-3 ${statusConfig[transaction.status]?.bgColor}`}>
+          <StatusIcon className={`h-5 w-5 ${statusConfig[transaction.status]?.color}`} />
+          <span className={`font-medium ${statusConfig[transaction.status]?.color}`}>
+            {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+          </span>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-4">
+          {/* Amount */}
+          <div className="rounded-lg bg-agora-card p-4">
+            <div className="text-sm text-agora-muted">{t('amount')}</div>
+            <div className={`text-2xl font-bold ${colors.text}`}>
+              {sign}
+              {formatBalance(transaction.amount)} {transaction.tokenSymbol}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="rounded-lg bg-agora-card p-4">
+            <div className="mb-1 text-sm text-agora-muted">{t('description')}</div>
+            <div className="text-slate-900">{transaction.description}</div>
+          </div>
+
+          {/* From Address */}
+          {transaction.fromAddress && (
+            <div className="rounded-lg bg-agora-card p-4">
+              <div className="mb-1 text-sm text-agora-muted">{t('from')}</div>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm text-slate-900">
+                  {formatAddress(transaction.fromAddress)}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => copyToClipboard(transaction.fromAddress!, 'from')}
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    {copiedField === 'from' ? (
+                      <Check className="h-4 w-4 text-agora-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                  <a
+                    href={`https://etherscan.io/address/${transaction.fromAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* To Address */}
+          {transaction.toAddress && (
+            <div className="rounded-lg bg-agora-card p-4">
+              <div className="mb-1 text-sm text-agora-muted">{t('to')}</div>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm text-slate-900">
+                  {formatAddress(transaction.toAddress)}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => copyToClipboard(transaction.toAddress!, 'to')}
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    {copiedField === 'to' ? (
+                      <Check className="h-4 w-4 text-agora-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                  <a
+                    href={`https://etherscan.io/address/${transaction.toAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Transaction Hash */}
+          {transaction.txHash && (
+            <div className="rounded-lg bg-agora-card p-4">
+              <div className="mb-1 text-sm text-agora-muted">{t('txHash')}</div>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm text-slate-900">
+                  {transaction.txHash.slice(0, 10)}...{transaction.txHash.slice(-8)}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => copyToClipboard(transaction.txHash!, 'txHash')}
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    {copiedField === 'txHash' ? (
+                      <Check className="h-4 w-4 text-agora-success" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                  <a
+                    href={`https://etherscan.io/tx/${transaction.txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded p-1 text-agora-muted transition-colors hover:bg-agora-border hover:text-slate-900"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Timestamps */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-lg bg-agora-card p-4">
+              <div className="mb-1 text-sm text-agora-muted">{t('createdAt')}</div>
+              <div className="text-sm text-slate-900">
+                {new Date(transaction.createdAt).toLocaleString()}
+              </div>
+            </div>
+            {transaction.confirmedAt && (
+              <div className="rounded-lg bg-agora-card p-4">
+                <div className="mb-1 text-sm text-agora-muted">{t('confirmedAt')}</div>
+                <div className="text-sm text-slate-900">
+                  {new Date(transaction.confirmedAt).toLocaleString()}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* View on Explorer Button */}
+        {transaction.txHash && (
+          <a
+            href={`https://etherscan.io/tx/${transaction.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-agora-accent px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-accent/80"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {t('modals.viewOnExplorer')}
+          </a>
+        )}
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="mt-4 w-full rounded-lg bg-agora-card px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
+        >
+          {t('modals.close')}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}

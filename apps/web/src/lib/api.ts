@@ -763,3 +763,130 @@ export async function refreshTokenBalance(holderId: string): Promise<TokenHolder
   );
   return response.holder;
 }
+
+// ==========================================
+// Treasury API
+// ==========================================
+
+export interface TreasuryBalance {
+  tokenAddress: string;
+  tokenSymbol: string;
+  balance: string;
+  balanceFormatted: number;
+  usdValue?: number;
+}
+
+export interface BudgetAllocation {
+  id: string;
+  proposalId: string;
+  category: string;
+  tokenSymbol: string;
+  amount: string;
+  recipient: string;
+  status: 'pending' | 'approved' | 'disbursed' | 'cancelled';
+  description: string;
+  createdAt: string;
+  approvedAt?: string;
+  disbursedAt?: string;
+  txHash?: string;
+}
+
+export interface TreasuryTransaction {
+  id: string;
+  type: 'deposit' | 'withdrawal' | 'transfer' | 'allocation';
+  tokenSymbol: string;
+  amount: string;
+  fromAddress?: string;
+  toAddress?: string;
+  status: 'pending' | 'confirmed' | 'failed';
+  description: string;
+  txHash?: string;
+  createdAt: string;
+  confirmedAt?: string;
+}
+
+export interface SpendingLimit {
+  id: string;
+  category: string;
+  tokenAddress: string;
+  tokenSymbol: string;
+  dailyLimit: string | null;
+  weeklyLimit: string | null;
+  monthlyLimit: string | null;
+  requiresProposal: boolean;
+  currentDaily: string;
+  currentWeekly: string;
+  currentMonthly: string;
+}
+
+export interface TreasuryStats {
+  totalBalance: number;
+  totalAllocations: number;
+  pendingAllocations: number;
+  approvedAllocations: number;
+  disbursedAllocations: number;
+  cancelledAllocations: number;
+  totalTransactions: number;
+  depositsCount: number;
+  withdrawalsCount: number;
+}
+
+export interface TreasuryDashboard {
+  tokenInfo: TokenInfo & { mockMode: boolean };
+  token: {
+    holders: { total: number; verified: number };
+  };
+  voting: {
+    totalVotes: number;
+    totalVotingPowerUsed: number;
+    activeVoting: number;
+    completedVoting: number;
+  };
+  treasury: TreasuryStats;
+  balances: TreasuryBalance[];
+}
+
+export async function fetchTreasuryDashboard(): Promise<TreasuryDashboard> {
+  return fetchAPI<TreasuryDashboard>('/api/token/dashboard');
+}
+
+export async function fetchTreasuryBalances(): Promise<TreasuryBalance[]> {
+  const response = await fetchAPI<{ balances: TreasuryBalance[] }>('/api/token/treasury/balances');
+  return response.balances || [];
+}
+
+export async function fetchTreasuryStats(): Promise<TreasuryStats> {
+  const response = await fetchAPI<{ stats: TreasuryStats }>('/api/token/treasury/stats');
+  return response.stats;
+}
+
+export async function fetchTreasuryAllocations(
+  status?: string,
+  limit = 50
+): Promise<BudgetAllocation[]> {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  if (status) params.append('status', status);
+  const response = await fetchAPI<BudgetAllocation[]>(`/api/token/treasury/allocations?${params}`);
+  return response || [];
+}
+
+export async function fetchTreasuryTransactions(
+  type?: string,
+  limit = 50
+): Promise<TreasuryTransaction[]> {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  if (type) params.append('type', type);
+  const response = await fetchAPI<TreasuryTransaction[]>(`/api/token/treasury/transactions?${params}`);
+  return response || [];
+}
+
+export async function fetchSpendingLimits(): Promise<SpendingLimit[]> {
+  const response = await fetchAPI<SpendingLimit[]>('/api/token/treasury/limits');
+  return response || [];
+}
+
+export async function fetchTokenHolders(limit = 50): Promise<TokenHolder[]> {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  const response = await fetchAPI<TokenHolder[]>(`/api/token/holders?${params}`);
+  return response || [];
+}

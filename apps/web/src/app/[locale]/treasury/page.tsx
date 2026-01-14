@@ -2,93 +2,84 @@
 
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { Coins, Users, Vote, FileText, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
+import { Coins, Users, Vote, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useState } from 'react';
 
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
 import { MockDataBadge } from '@/components/ui/MockDataBadge';
+import {
+  AllocationCard,
+  TransactionCard,
+  HolderCard,
+  BalanceDistributionChart,
+  AllocationStatusBreakdown,
+  SpendingLimitsCard,
+  AllocationDetailModal,
+  TransactionDetailModal,
+} from '@/components/treasury';
+import type { BudgetAllocation, TreasuryTransaction, TokenHolder } from '@/components/treasury';
+import { useSocket } from '@/hooks/useSocket';
+import {
+  fetchTreasuryDashboard,
+  fetchTreasuryAllocations,
+  fetchTreasuryTransactions,
+  fetchSpendingLimits,
+  fetchTokenHolders,
+  type TreasuryDashboard,
+  type SpendingLimit,
+} from '@/lib/api';
 
-interface TreasuryBalance {
-  tokenAddress: string;
-  tokenSymbol: string;
-  balance: string;
-  balanceFormatted: number;
-}
-
-interface TokenHolder {
-  id: string;
-  walletAddress: string;
-  balance: string;
-  votingPower: number;
-  verifiedAt: string;
-  isVerified: boolean;
-}
-
-interface Allocation {
-  id: string;
-  proposalId: string;
-  category: string;
-  tokenSymbol: string;
-  amount: string;
-  recipient: string;
-  status: string;
-  description: string;
-  createdAt: string;
-}
-
-interface Transaction {
-  id: string;
-  type: string;
-  tokenSymbol: string;
-  amount: string;
-  fromAddress?: string;
-  toAddress?: string;
-  status: string;
-  description: string;
-  createdAt: string;
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
+type TabKey = 'overview' | 'allocations' | 'transactions' | 'holders';
 
 export default function TreasuryPage() {
   const t = useTranslations('Treasury');
   const tGuide = useTranslations('Guide.tooltips');
-  const [activeTab, setActiveTab] = useState<'overview' | 'allocations' | 'transactions' | 'holders'>('overview');
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-  const { data: dashboard, isLoading, refetch } = useQuery({
+  // Modal state
+  const [selectedAllocation, setSelectedAllocation] = useState<BudgetAllocation | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<TreasuryTransaction | null>(null);
+
+  // WebSocket
+  const { isConnected } = useSocket();
+
+  // Main dashboard query
+  const {
+    data: dashboard,
+    isLoading,
+    refetch,
+  } = useQuery<TreasuryDashboard>({
     queryKey: ['treasury-dashboard'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/token/dashboard`);
-      return res.json();
-    },
+    queryFn: fetchTreasuryDashboard,
     refetchInterval: 30000,
   });
 
-  const { data: holders } = useQuery({
-    queryKey: ['token-holders'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/token/holders`);
-      return res.json();
-    },
-    enabled: activeTab === 'holders',
+  // Spending limits query
+  const { data: spendingLimits } = useQuery<SpendingLimit[]>({
+    queryKey: ['treasury-limits'],
+    queryFn: fetchSpendingLimits,
+    enabled: activeTab === 'overview',
   });
 
-  const { data: allocations } = useQuery({
+  // Allocations query
+  const { data: allocations } = useQuery<BudgetAllocation[]>({
     queryKey: ['treasury-allocations'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/token/treasury/allocations`);
-      return res.json();
-    },
-    enabled: activeTab === 'allocations',
+    queryFn: () => fetchTreasuryAllocations(),
+    enabled: activeTab === 'allocations' || activeTab === 'overview',
   });
 
-  const { data: transactions } = useQuery({
+  // Transactions query
+  const { data: transactions } = useQuery<TreasuryTransaction[]>({
     queryKey: ['treasury-transactions'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/token/treasury/transactions`);
-      return res.json();
-    },
+    queryFn: () => fetchTreasuryTransactions(),
     enabled: activeTab === 'transactions',
+  });
+
+  // Holders query
+  const { data: holders } = useQuery<TokenHolder[]>({
+    queryKey: ['token-holders'],
+    queryFn: () => fetchTokenHolders(),
+    enabled: activeTab === 'holders',
   });
 
   const formatBalance = (balance: string, decimals: number = 18) => {
@@ -96,13 +87,17 @@ export default function TreasuryPage() {
     return value.toLocaleString();
   };
 
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
+  const balances = dashboard?.balances || [];
+  const mocBalance = balances.find((b) => b.tokenSymbol === 'MOC');
+  const ethBalance = balances.find((b) => b.tokenSymbol === 'ETH');
 
-  const balances: TreasuryBalance[] = dashboard?.balances || [];
-  const mocBalance = balances.find(b => b.tokenSymbol === 'MOC');
-  const ethBalance = balances.find(b => b.tokenSymbol === 'ETH');
+  // Calculate allocation stats for breakdown
+  const allocationStats = {
+    pending: allocations?.filter((a) => a.status === 'pending').length || 0,
+    approved: allocations?.filter((a) => a.status === 'approved').length || 0,
+    disbursed: allocations?.filter((a) => a.status === 'disbursed').length || 0,
+    cancelled: allocations?.filter((a) => a.status === 'cancelled').length || 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -116,14 +111,27 @@ export default function TreasuryPage() {
           </div>
           <p className="text-agora-muted">{t('subtitle')}</p>
         </div>
-        <button
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          {t('overview')}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Connection Status */}
+          <div
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
+              isConnected
+                ? 'bg-agora-success/20 text-agora-success'
+                : 'bg-agora-muted/20 text-agora-muted'
+            }`}
+          >
+            {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            {isConnected ? t('connected') : 'Offline'}
+          </div>
+          <button
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {t('refresh')}
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -205,191 +213,150 @@ export default function TreasuryPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Token Info */}
-          <div className="rounded-xl border border-agora-border bg-agora-card p-6">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">Token Info</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Name</span>
-                <span className="text-slate-900">{dashboard?.tokenInfo?.name || 'MOC'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Symbol</span>
-                <span className="text-slate-900">{dashboard?.tokenInfo?.symbol || 'MOC'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Total Supply</span>
-                <span className="text-slate-900">
-                  {dashboard?.tokenInfo?.totalSupply
-                    ? formatBalance(dashboard.tokenInfo.totalSupply)
-                    : '0'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Chain ID</span>
-                <span className="text-slate-900">{dashboard?.tokenInfo?.chainId || 1}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Mode</span>
-                <span className={`rounded px-2 py-0.5 text-xs ${
-                  dashboard?.tokenInfo?.mockMode
-                    ? 'bg-yellow-500/20 text-yellow-400'
-                    : 'bg-green-500/20 text-green-400'
-                }`}>
-                  {dashboard?.tokenInfo?.mockMode ? 'Mock' : 'Live'}
-                </span>
-              </div>
+      <div className="animate-fade-in">
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <BalanceDistributionChart balances={balances} />
+              <AllocationStatusBreakdown stats={allocationStats} />
             </div>
-          </div>
 
-          {/* Voting Stats */}
-          <div className="rounded-xl border border-agora-border bg-agora-card p-6">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">Voting Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Total Votes</span>
-                <span className="text-slate-900">{dashboard?.voting?.totalVotes || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Voting Power Used</span>
-                <span className="text-slate-900">{dashboard?.voting?.totalVotingPowerUsed || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Active Voting</span>
-                <span className="text-slate-900">{dashboard?.voting?.activeVoting || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-agora-muted">Completed</span>
-                <span className="text-slate-900">{dashboard?.voting?.completedVoting || 0}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            {/* Spending Limits */}
+            <SpendingLimitsCard limits={spendingLimits || []} />
 
-      {activeTab === 'allocations' && (
-        <div className="rounded-xl border border-agora-border bg-agora-card">
-          {allocations && allocations.length > 0 ? (
-            <div className="divide-y divide-agora-border">
-              {allocations.map((allocation: Allocation) => (
-                <div key={allocation.id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-agora-accent/20">
-                      <FileText className="h-5 w-5 text-agora-accent" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{allocation.category}</p>
-                      <p className="text-sm text-agora-muted">{allocation.description}</p>
-                    </div>
+            {/* Token Info & Voting Stats */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-xl border border-agora-border bg-agora-card p-6">
+                <h3 className="mb-4 text-lg font-semibold text-slate-900">Token Info</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Name</span>
+                    <span className="text-slate-900">{dashboard?.tokenInfo?.name || 'MOC'}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-slate-900">
-                      {formatBalance(allocation.amount)} {allocation.tokenSymbol}
-                    </p>
-                    <span className={`rounded px-2 py-0.5 text-xs ${
-                      allocation.status === 'disbursed' ? 'bg-green-500/20 text-green-400' :
-                      allocation.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
-                      allocation.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
-                      'bg-yellow-500/20 text-yellow-400'
-                    }`}>
-                      {allocation.status}
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Symbol</span>
+                    <span className="text-slate-900">{dashboard?.tokenInfo?.symbol || 'MOC'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Total Supply</span>
+                    <span className="text-slate-900">
+                      {dashboard?.tokenInfo?.totalSupply
+                        ? formatBalance(dashboard.tokenInfo.totalSupply)
+                        : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Mode</span>
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs ${
+                        dashboard?.tokenInfo?.mockMode
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-green-500/20 text-green-400'
+                      }`}
+                    >
+                      {dashboard?.tokenInfo?.mockMode ? 'Mock' : 'Live'}
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-agora-muted" />
-              <p className="mt-4 text-agora-muted">{t('noAllocations')}</p>
-            </div>
-          )}
-        </div>
-      )}
+              </div>
 
-      {activeTab === 'transactions' && (
-        <div className="rounded-xl border border-agora-border bg-agora-card">
-          {transactions && transactions.length > 0 ? (
-            <div className="divide-y divide-agora-border">
-              {transactions.map((tx: Transaction) => (
-                <div key={tx.id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                      tx.type === 'deposit' ? 'bg-green-500/20' : 'bg-red-500/20'
-                    }`}>
-                      {tx.type === 'deposit' ? (
-                        <ArrowDownRight className="h-5 w-5 text-green-400" />
-                      ) : (
-                        <ArrowUpRight className="h-5 w-5 text-red-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{tx.type === 'deposit' ? t('transaction.deposit') : t('transaction.withdrawal')}</p>
-                      <p className="text-sm text-agora-muted">{tx.description}</p>
-                    </div>
+              <div className="rounded-xl border border-agora-border bg-agora-card p-6">
+                <h3 className="mb-4 text-lg font-semibold text-slate-900">Voting Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Total Votes</span>
+                    <span className="text-slate-900">{dashboard?.voting?.totalVotes || 0}</span>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-medium ${
-                      tx.type === 'deposit' ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {tx.type === 'deposit' ? '+' : '-'}{formatBalance(tx.amount)} {tx.tokenSymbol}
-                    </p>
-                    <p className="text-xs text-agora-muted">
-                      {new Date(tx.createdAt).toLocaleDateString()}
-                    </p>
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Voting Power Used</span>
+                    <span className="text-slate-900">
+                      {dashboard?.voting?.totalVotingPowerUsed || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Active Voting</span>
+                    <span className="text-slate-900">{dashboard?.voting?.activeVoting || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-agora-muted">Completed</span>
+                    <span className="text-slate-900">
+                      {dashboard?.voting?.completedVoting || 0}
+                    </span>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Coins className="h-12 w-12 text-agora-muted" />
-              <p className="mt-4 text-agora-muted">{t('noTransactions')}</p>
-            </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {activeTab === 'holders' && (
-        <div className="rounded-xl border border-agora-border bg-agora-card">
-          {holders && holders.length > 0 ? (
-            <div className="divide-y divide-agora-border">
-              {holders.map((holder: TokenHolder) => (
-                <div key={holder.id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-agora-accent/20">
-                      <Users className="h-5 w-5 text-agora-accent" />
-                    </div>
-                    <div>
-                      <p className="font-mono text-sm font-medium text-slate-900">
-                        {formatAddress(holder.walletAddress)}
-                      </p>
-                      <p className="text-sm text-agora-muted">
-                        {t('verifiedAt')}: {new Date(holder.verifiedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-slate-900">
-                      {holder.votingPower.toLocaleString()} {t('votingPower')}
-                    </p>
-                    <p className="text-sm text-agora-muted">
-                      {formatBalance(holder.balance)} MOC
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Users className="h-12 w-12 text-agora-muted" />
-              <p className="mt-4 text-agora-muted">{t('noHolders')}</p>
-            </div>
-          )}
-        </div>
-      )}
+        {activeTab === 'allocations' && (
+          <div className="space-y-3">
+            {allocations && allocations.length > 0 ? (
+              allocations.map((allocation, index) => (
+                <AllocationCard
+                  key={allocation.id}
+                  allocation={allocation}
+                  onClick={() => setSelectedAllocation(allocation)}
+                  index={index}
+                />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-agora-border bg-agora-card py-12">
+                <Coins className="h-12 w-12 text-agora-muted" />
+                <p className="mt-4 text-agora-muted">{t('noAllocations')}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'transactions' && (
+          <div className="space-y-3">
+            {transactions && transactions.length > 0 ? (
+              transactions.map((transaction, index) => (
+                <TransactionCard
+                  key={transaction.id}
+                  transaction={transaction}
+                  onClick={() => setSelectedTransaction(transaction)}
+                  index={index}
+                />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-agora-border bg-agora-card py-12">
+                <Coins className="h-12 w-12 text-agora-muted" />
+                <p className="mt-4 text-agora-muted">{t('noTransactions')}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'holders' && (
+          <div className="space-y-3">
+            {holders && holders.length > 0 ? (
+              holders.map((holder, index) => (
+                <HolderCard key={holder.id} holder={holder} index={index} />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-agora-border bg-agora-card py-12">
+                <Users className="h-12 w-12 text-agora-muted" />
+                <p className="mt-4 text-agora-muted">{t('noHolders')}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      <AllocationDetailModal
+        allocation={selectedAllocation}
+        isOpen={!!selectedAllocation}
+        onClose={() => setSelectedAllocation(null)}
+      />
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        isOpen={!!selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+      />
     </div>
   );
 }
