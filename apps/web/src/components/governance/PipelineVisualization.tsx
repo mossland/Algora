@@ -134,7 +134,7 @@ export function PipelineVisualization({ status, compact = false }: PipelineVisua
               <div key={stage.key} className="flex items-center">
                 {/* Stage */}
                 <div
-                  className={`relative ${isHovered ? 'z-50' : 'z-0'}`}
+                  className={`relative ${isHovered ? 'z-[9999]' : 'z-0'}`}
                   onMouseEnter={() => setHoveredStage(stage.key)}
                   onMouseLeave={() => setHoveredStage(null)}
                 >
@@ -174,10 +174,10 @@ export function PipelineVisualization({ status, compact = false }: PipelineVisua
                     </span>
                   </div>
 
-                  {/* Tooltip - positioned above */}
+                  {/* Tooltip */}
                   {isHovered && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-[100] w-48 animate-scale-in">
-                      <div className="rounded-lg border border-agora-border bg-agora-card p-3 shadow-2xl">
+                    <div className="absolute bottom-full left-1/2 mb-3 w-48 -translate-x-1/2 z-[9999]">
+                      <div className="rounded-lg border border-agora-border bg-white p-3 shadow-2xl">
                         <div className="text-xs font-semibold text-slate-900 mb-1">
                           {t(`stages.${stage.key}`)}
                         </div>
@@ -189,7 +189,7 @@ export function PipelineVisualization({ status, compact = false }: PipelineVisua
                           <span>Avg: {stage.avgDuration}</span>
                         </div>
                       </div>
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-agora-card border-r border-b border-agora-border" />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-white border-r border-b border-agora-border" />
                     </div>
                   )}
                 </div>
