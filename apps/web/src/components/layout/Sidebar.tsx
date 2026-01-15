@@ -41,7 +41,7 @@ export function Sidebar() {
   const currentPath = pathname.replace(/^\/[a-z]{2}/, '') || '/';
 
   return (
-    <aside className="flex w-64 flex-col border-r border-agora-border bg-agora-dark relative z-10">
+    <aside className="hidden md:flex w-64 flex-col border-r border-agora-border bg-agora-dark relative z-10">
       {/* Logo */}
       <div className="flex h-14 items-center border-b border-agora-border px-6">
         <Link href={`/${locale}`} className="flex items-center gap-3">
