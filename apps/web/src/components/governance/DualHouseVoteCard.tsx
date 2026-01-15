@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { type DualHouseVote } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 
 interface DualHouseVoteCardProps {
   vote: DualHouseVote;
@@ -124,8 +125,8 @@ export function DualHouseVoteCard({ vote, onClick, index = 0 }: DualHouseVoteCar
           <h3 className="font-semibold text-slate-900 line-clamp-1">{vote.title}</h3>
           <p className="text-xs text-agora-muted mt-1">
             {vote.status === 'voting'
-              ? `Ends ${formatDistanceToNow(new Date(vote.expiresAt), { addSuffix: true })}`
-              : `Created ${formatDistanceToNow(new Date(vote.createdAt), { addSuffix: true })}`}
+              ? `Ends ${safeFormatDate(vote.expiresAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}`
+              : `Created ${safeFormatDate(vote.createdAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}`}
           </p>
         </div>
 

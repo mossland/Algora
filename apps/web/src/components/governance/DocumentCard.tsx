@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { type GovernanceDocument, type DocumentState } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 
 interface DocumentCardProps {
   document: GovernanceDocument;
@@ -94,7 +95,7 @@ export function DocumentCard({ document, onClick, index = 0 }: DocumentCardProps
           <div className="mt-3 flex items-center gap-4 text-xs text-agora-muted">
             <span>v{document.version.major}.{document.version.minor}.{document.version.patch}</span>
             <span>
-              {formatDistanceToNow(new Date(document.updatedAt), { addSuffix: true })}
+              {safeFormatDate(document.updatedAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
             </span>
           </div>
         </div>

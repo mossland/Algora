@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { type LockedAction, type RiskLevel } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 
 interface LockedActionCardProps {
   action: LockedAction;
@@ -107,7 +108,7 @@ export function LockedActionCard({ action, onClick, onApprove, index = 0 }: Lock
       {/* Footer */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-agora-muted">
-          {formatDistanceToNow(new Date(action.createdAt), { addSuffix: true })}
+          {safeFormatDate(action.createdAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
         </span>
 
         {action.status === 'locked' && onApprove && (
