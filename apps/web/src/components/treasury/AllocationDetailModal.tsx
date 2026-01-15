@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { BudgetAllocation } from './AllocationCard';
+import { safeFormatDate } from '@/lib/utils';
 
 interface AllocationDetailModalProps {
   allocation: BudgetAllocation | null;
@@ -77,29 +78,31 @@ export function AllocationDetailModal({
       />
 
       {/* Modal */}
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-agora-border bg-agora-dark p-6 shadow-2xl">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
+      <div className="relative max-h-[90vh] w-full max-w-lg flex flex-col rounded-xl border border-agora-border bg-agora-dark shadow-2xl">
         {/* Header */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${statusConfig[allocation.status]?.bgColor}`}>
-            <FileText className={`h-6 w-6 ${statusConfig[allocation.status]?.color}`} />
+        <div className="flex items-start justify-between border-b border-agora-border p-4 sm:p-6 flex-shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className={`flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-lg flex-shrink-0 ${statusConfig[allocation.status]?.bgColor}`}>
+              <FileText className={`h-5 sm:h-6 w-5 sm:w-6 ${statusConfig[allocation.status]?.color}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">{t('modals.allocationDetail')}</h2>
+              <p className="text-sm text-agora-muted">{allocation.category}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">{t('modals.allocationDetail')}</h2>
-            <p className="text-sm text-agora-muted">{allocation.category}</p>
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 flex-shrink-0"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
         {/* Status Timeline */}
         {allocation.status !== 'cancelled' && (
-          <div className="mb-6 rounded-lg bg-agora-card p-4">
+          <div className="mb-4 sm:mb-6 rounded-lg bg-agora-card p-4">
             <h3 className="mb-3 text-sm font-medium text-slate-900">{t('status')}</h3>
             <div className="flex items-center justify-between">
               {statusSteps.map((step, index) => {
@@ -147,7 +150,7 @@ export function AllocationDetailModal({
 
         {/* Cancelled Status */}
         {allocation.status === 'cancelled' && (
-          <div className="mb-6 rounded-lg bg-red-500/10 p-4">
+          <div className="mb-4 sm:mb-6 rounded-lg bg-red-500/10 p-4">
             <div className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-red-500" />
               <span className="font-medium text-red-400">{t('allocation.cancelled')}</span>
@@ -234,18 +237,18 @@ export function AllocationDetailModal({
           )}
 
           {/* Timestamps */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-lg bg-agora-card p-4">
               <div className="mb-1 text-sm text-agora-muted">{t('createdAt')}</div>
               <div className="text-sm text-slate-900">
-                {new Date(allocation.createdAt).toLocaleString()}
+                {safeFormatDate(allocation.createdAt, (d) => d.toLocaleString())}
               </div>
             </div>
             {allocation.approvedAt && (
               <div className="rounded-lg bg-agora-card p-4">
                 <div className="mb-1 text-sm text-agora-muted">{t('approvedAt')}</div>
                 <div className="text-sm text-slate-900">
-                  {new Date(allocation.approvedAt).toLocaleString()}
+                  {safeFormatDate(allocation.approvedAt, (d) => d.toLocaleString())}
                 </div>
               </div>
             )}
@@ -253,20 +256,23 @@ export function AllocationDetailModal({
               <div className="rounded-lg bg-agora-card p-4">
                 <div className="mb-1 text-sm text-agora-muted">{t('disbursedAt')}</div>
                 <div className="text-sm text-slate-900">
-                  {new Date(allocation.disbursedAt).toLocaleString()}
+                  {safeFormatDate(allocation.disbursedAt, (d) => d.toLocaleString())}
                 </div>
               </div>
             )}
           </div>
         </div>
+        </div>
 
-        {/* Close Button */}
+        {/* Footer */}
+        <div className="border-t border-agora-border p-4 flex-shrink-0">
         <button
           onClick={onClose}
-          className="mt-6 w-full rounded-lg bg-agora-card px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
+          className="w-full rounded-lg bg-agora-card px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
         >
           {t('modals.close')}
         </button>
+        </div>
       </div>
     </div>,
     document.body

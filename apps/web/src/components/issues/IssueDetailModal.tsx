@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import type { Issue } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 
 interface IssueDetailModalProps {
   issue: Issue;
@@ -98,23 +99,23 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
+      <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
           {/* Header */}
           <div
-            className="animate-slide-up flex items-start justify-between border-b border-agora-border p-6"
+            className="animate-slide-up flex items-start justify-between border-b border-agora-border p-4 sm:p-6 flex-shrink-0"
             style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
               <div
                 className={`
-                  rounded-lg border p-3 transition-transform duration-300 hover:scale-110
+                  rounded-lg border p-2 sm:p-3 transition-transform duration-300 hover:scale-110 flex-shrink-0
                   ${statusConfig[issue.status].bg} ${statusConfig[issue.status].border}
                 `}
               >
                 <StatusIcon className={`h-5 w-5 ${statusConfig[issue.status].color}`} />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 pr-8">{issue.title}</h2>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 pr-8 line-clamp-2 break-words">{issue.title}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   {/* Status Badge */}
                   <span
@@ -148,7 +149,7 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
           </div>
 
           {/* Content */}
-          <div className="max-h-[60vh] overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
             {/* Description */}
             <div
               className="animate-slide-up rounded-lg border border-agora-border bg-agora-card p-4"
@@ -158,14 +159,14 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
                 <FileText className="h-4 w-4" />
                 <span>{t('detail.description')}</span>
               </div>
-              <p className="text-slate-900 whitespace-pre-wrap leading-relaxed">
+              <p className="text-slate-900 whitespace-pre-wrap leading-relaxed break-words overflow-hidden">
                 {issue.description}
               </p>
             </div>
 
             {/* Stats Grid */}
             <div
-              className="animate-slide-up mt-4 grid grid-cols-2 gap-4"
+              className="animate-slide-up mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4"
               style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
             >
               {/* Signals */}
@@ -200,10 +201,10 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
                   <span>{t('detail.created')}</span>
                 </div>
                 <p className="text-slate-900 font-medium">
-                  {format(new Date(issue.created_at), 'PPpp')}
+                  {safeFormatDate(issue.created_at, (d) => format(d, 'PPpp'))}
                 </p>
                 <p className="text-sm text-agora-muted mt-1">
-                  {formatDistanceToNow(new Date(issue.created_at), { addSuffix: true })}
+                  {safeFormatDate(issue.created_at, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                 </p>
               </div>
 
@@ -214,10 +215,10 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
                   <span>{t('detail.lastUpdated')}</span>
                 </div>
                 <p className="text-slate-900 font-medium">
-                  {format(new Date(issue.updated_at), 'PPpp')}
+                  {safeFormatDate(issue.updated_at, (d) => format(d, 'PPpp'))}
                 </p>
                 <p className="text-sm text-agora-muted mt-1">
-                  {formatDistanceToNow(new Date(issue.updated_at), { addSuffix: true })}
+                  {safeFormatDate(issue.updated_at, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                 </p>
               </div>
             </div>
@@ -282,33 +283,33 @@ export function IssueDetailModal({ issue, onClose }: IssueDetailModalProps) {
 
           {/* Footer */}
           <div
-            className="animate-slide-up flex items-center justify-between border-t border-agora-border p-4"
+            className="animate-slide-up flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-agora-border p-4 flex-shrink-0"
             style={{ animationDelay: '250ms', animationFillMode: 'backwards' }}
           >
-            <div className="flex items-center gap-2 text-sm text-agora-muted">
-              <Tag className="h-4 w-4" />
-              <span>Issue #{issue.id}</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-agora-muted truncate">
+              <Tag className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Issue #{issue.id}</span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               {issue.status === 'detected' && (
-                <button className="flex items-center gap-2 rounded-lg bg-agora-accent px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-accent/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-accent/30">
-                  <Eye className="h-4 w-4" />
-                  Confirm Issue
+                <button className="flex items-center justify-center gap-2 rounded-lg bg-agora-accent px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-accent/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-accent/30">
+                  <Eye className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Confirm Issue</span>
                 </button>
               )}
 
               {issue.status === 'confirmed' && (
-                <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
-                  <Users className="h-4 w-4" />
-                  {t('detail.startDiscussion')}
+                <button className="flex items-center justify-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
+                  <Users className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{t('detail.startDiscussion')}</span>
                 </button>
               )}
 
               {issue.status === 'in_progress' && (
-                <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
-                  <Vote className="h-4 w-4" />
-                  {t('detail.createProposal')}
+                <button className="flex items-center justify-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
+                  <Vote className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{t('detail.createProposal')}</span>
                 </button>
               )}
             </div>

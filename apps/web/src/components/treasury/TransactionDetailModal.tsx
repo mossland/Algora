@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { TreasuryTransaction } from './TransactionCard';
+import { safeFormatDate } from '@/lib/utils';
 
 interface TransactionDetailModalProps {
   transaction: TreasuryTransaction | null;
@@ -89,28 +90,30 @@ export function TransactionDetailModal({
       />
 
       {/* Modal */}
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-agora-border bg-agora-dark p-6 shadow-2xl">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
+      <div className="relative max-h-[90vh] w-full max-w-lg flex flex-col rounded-xl border border-agora-border bg-agora-dark shadow-2xl">
         {/* Header */}
-        <div className="mb-6 flex items-center gap-4">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${colors.bg}`}>
-            <TypeIcon className={`h-6 w-6 ${colors.icon}`} />
+        <div className="flex items-start justify-between border-b border-agora-border p-4 sm:p-6 flex-shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className={`flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-lg flex-shrink-0 ${colors.bg}`}>
+              <TypeIcon className={`h-5 sm:h-6 w-5 sm:w-6 ${colors.icon}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">{t('modals.transactionDetail')}</h2>
+              <p className="text-sm text-agora-muted">{t(`transaction.${transaction.type}`)}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">{t('modals.transactionDetail')}</h2>
-            <p className="text-sm text-agora-muted">{t(`transaction.${transaction.type}`)}</p>
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 flex-shrink-0"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
         {/* Status Badge */}
-        <div className={`mb-6 flex items-center gap-2 rounded-lg p-3 ${statusConfig[transaction.status]?.bgColor}`}>
+        <div className={`mb-4 sm:mb-6 flex items-center gap-2 rounded-lg p-3 ${statusConfig[transaction.status]?.bgColor}`}>
           <StatusIcon className={`h-5 w-5 ${statusConfig[transaction.status]?.color}`} />
           <span className={`font-medium ${statusConfig[transaction.status]?.color}`}>
             {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
@@ -231,31 +234,34 @@ export function TransactionDetailModal({
           )}
 
           {/* Timestamps */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-lg bg-agora-card p-4">
               <div className="mb-1 text-sm text-agora-muted">{t('createdAt')}</div>
               <div className="text-sm text-slate-900">
-                {new Date(transaction.createdAt).toLocaleString()}
+                {safeFormatDate(transaction.createdAt, (d) => d.toLocaleString())}
               </div>
             </div>
             {transaction.confirmedAt && (
               <div className="rounded-lg bg-agora-card p-4">
                 <div className="mb-1 text-sm text-agora-muted">{t('confirmedAt')}</div>
                 <div className="text-sm text-slate-900">
-                  {new Date(transaction.confirmedAt).toLocaleString()}
+                  {safeFormatDate(transaction.confirmedAt, (d) => d.toLocaleString())}
                 </div>
               </div>
             )}
           </div>
         </div>
+        </div>
 
+        {/* Footer */}
+        <div className="flex flex-col gap-3 border-t border-agora-border p-4 flex-shrink-0">
         {/* View on Explorer Button */}
         {transaction.txHash && (
           <a
             href={`https://etherscan.io/tx/${transaction.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-agora-accent px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-accent/80"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-agora-accent px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-accent/80"
           >
             <ExternalLink className="h-4 w-4" />
             {t('modals.viewOnExplorer')}
@@ -265,10 +271,11 @@ export function TransactionDetailModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="mt-4 w-full rounded-lg bg-agora-card px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
+          className="w-full rounded-lg bg-agora-card px-4 py-3 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border"
         >
           {t('modals.close')}
         </button>
+        </div>
       </div>
     </div>,
     document.body

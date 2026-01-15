@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 import {
   FileText,
   CheckCircle,
@@ -93,21 +94,21 @@ export function ProposalCard({ proposal, onClick }: ProposalCardProps) {
       className={`group cursor-pointer rounded-lg border bg-agora-card p-5 transition-all hover:shadow-lg hover:bg-agora-card/80 ${statusConfig[proposal.status].border}`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className={`rounded-lg p-2 ${statusConfig[proposal.status].bg}`}>
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="flex items-start gap-2 sm:gap-4 min-w-0 flex-1">
+          <div className={`rounded-lg p-2 flex-shrink-0 ${statusConfig[proposal.status].bg}`}>
             <StatusIcon className={`h-5 w-5 ${statusConfig[proposal.status].color}`} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-agora-muted">{proposal.id}</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-mono text-agora-muted truncate max-w-[80px] sm:max-w-none">{proposal.id}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].color}`}
               >
                 {t(`status.${proposal.status}`)}
               </span>
             </div>
-            <h3 className="mt-1 font-semibold text-slate-900 group-hover:text-agora-primary transition-colors">
+            <h3 className="mt-1 font-semibold text-slate-900 group-hover:text-agora-primary transition-colors line-clamp-2 break-words">
               {proposal.title}
             </h3>
           </div>
@@ -119,19 +120,19 @@ export function ProposalCard({ proposal, onClick }: ProposalCardProps) {
 
       {/* Voting Progress */}
       <div className="mt-4">
-        <div className="flex items-center justify-between text-xs mb-2">
-          <div className="flex items-center gap-4">
-            <span className="text-agora-success">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs mb-2">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <span className="text-agora-success whitespace-nowrap">
               {t('for')}: {formatNumber(proposal.votesFor)} ({forPercent.toFixed(1)}%)
             </span>
-            <span className="text-agora-error">
+            <span className="text-agora-error whitespace-nowrap">
               {t('against')}: {formatNumber(proposal.votesAgainst)} ({againstPercent.toFixed(1)}%)
             </span>
-            <span className="text-agora-muted">
+            <span className="text-agora-muted whitespace-nowrap hidden sm:inline">
               {t('abstain')}: {formatNumber(proposal.votesAbstain)}
             </span>
           </div>
-          <span className={quorumReached ? 'text-agora-success' : 'text-agora-warning'}>
+          <span className={`whitespace-nowrap ${quorumReached ? 'text-agora-success' : 'text-agora-warning'}`}>
             {t('quorum')}: {quorumPercent.toFixed(0)}%
           </span>
         </div>
@@ -156,17 +157,17 @@ export function ProposalCard({ proposal, onClick }: ProposalCardProps) {
       </div>
 
       {/* Footer */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4 text-xs">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <span className="flex items-center gap-1 text-agora-muted">
-            <User className="h-3 w-3" />
-            {proposal.author}
+            <User className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate max-w-[100px] sm:max-w-none">{proposal.author}</span>
           </span>
-          <span className="flex items-center gap-1 text-agora-muted">
-            <Clock className="h-3 w-3" />
+          <span className="flex items-center gap-1 text-agora-muted whitespace-nowrap">
+            <Clock className="h-3 w-3 flex-shrink-0" />
             {isActive && !hasEnded
-              ? `${t('endsIn')} ${formatDistanceToNow(endDate)}`
-              : `${t('ended')} ${formatDistanceToNow(endDate, { addSuffix: true })}`}
+              ? `${t('endsIn')} ${safeFormatDate(endDate, (d) => formatDistanceToNow(d))}`
+              : `${t('ended')} ${safeFormatDate(endDate, (d) => formatDistanceToNow(d, { addSuffix: true }))}`}
           </span>
         </div>
 

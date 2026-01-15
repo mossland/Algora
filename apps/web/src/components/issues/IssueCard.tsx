@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 import {
   AlertCircle,
   Radio,
@@ -123,12 +124,12 @@ export function IssueCard({ issue, index = 0, onClick }: IssueCardProps) {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-semibold text-slate-900 group-hover:text-agora-primary transition-colors">
+          <div className="flex items-start justify-between gap-2 sm:gap-4">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-slate-900 group-hover:text-agora-primary transition-colors line-clamp-1 break-words">
                 {issue.title}
               </h3>
-              <p className="mt-1 text-sm text-agora-muted line-clamp-2">
+              <p className="mt-1 text-sm text-agora-muted line-clamp-2 break-words">
                 {issue.description}
               </p>
             </div>
@@ -167,9 +168,9 @@ export function IssueCard({ issue, index = 0, onClick }: IssueCardProps) {
             )}
 
             {/* Updated */}
-            <span className="flex items-center gap-1 text-agora-muted">
-              <Clock className="h-3 w-3" />
-              {t('updated')} {formatDistanceToNow(new Date(issue.updated_at), { addSuffix: true })}
+            <span className="flex items-center gap-1 text-agora-muted whitespace-nowrap">
+              <Clock className="h-3 w-3 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('updated')}</span> {safeFormatDate(issue.updated_at, (d) => formatDistanceToNow(d, { addSuffix: true }))}
             </span>
 
             {/* View Details */}

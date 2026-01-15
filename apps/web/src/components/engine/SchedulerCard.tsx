@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
 import { Clock, Play, ListOrdered, Timer } from 'lucide-react';
+import { safeFormatDate } from '@/lib/utils';
 
 interface SchedulerCardProps {
   scheduler: {
@@ -35,10 +36,10 @@ export function SchedulerCard({ scheduler }: SchedulerCardProps) {
             <span className="text-xs">{t('nextTier2')}</span>
           </div>
           <p className="mt-2 text-lg font-semibold text-slate-900">
-            {nextRun ? formatDistanceToNow(nextRun, { addSuffix: false }) : '--:--'}
+            {nextRun ? safeFormatDate(nextRun, (d) => formatDistanceToNow(d, { addSuffix: false })) : '--:--'}
           </p>
           <p className="text-xs text-agora-muted">
-            {nextRun ? nextRun.toLocaleTimeString() : 'Not scheduled'}
+            {nextRun ? safeFormatDate(nextRun, (d) => d.toLocaleTimeString()) : 'Not scheduled'}
           </p>
         </div>
 
@@ -63,10 +64,10 @@ export function SchedulerCard({ scheduler }: SchedulerCardProps) {
           {lastRun ? (
             <>
               <p className="mt-2 text-lg font-semibold text-slate-900">
-                {formatDistanceToNow(lastRun, { addSuffix: true })}
+                {safeFormatDate(lastRun, (d) => formatDistanceToNow(d, { addSuffix: true }))}
               </p>
               <p className="text-xs text-agora-muted">
-                {lastRun.toLocaleTimeString()}
+                {safeFormatDate(lastRun, (d) => d.toLocaleTimeString())}
               </p>
             </>
           ) : (

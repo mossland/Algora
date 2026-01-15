@@ -22,10 +22,26 @@ import {
   Zap,
   ChevronRight,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 import { fetchActivities, type Activity } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 import { WittyLoader, WittyText } from '@/components/ui/WittyLoader';
+
+// Format time in a compact way for mobile
+function formatTimeCompact(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 interface ActivityFeedProps {
   onActivityClick?: (activity: Activity) => void;
@@ -210,11 +226,9 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
             </div>
 
             {/* Time + Arrow */}
-            <div className="flex items-center gap-1 text-xs text-agora-muted whitespace-nowrap">
-              <span>
-                {formatDistanceToNow(new Date(activity.timestamp || activity.created_at), {
-                  addSuffix: true,
-                })}
+            <div className="flex items-center gap-1 text-xs text-agora-muted shrink-0">
+              <span className="whitespace-nowrap">
+                {safeFormatDate(activity.timestamp || activity.created_at, formatTimeCompact)}
               </span>
               <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>

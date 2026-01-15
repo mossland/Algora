@@ -54,6 +54,7 @@ import {
   type ProposalLink,
 } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { safeFormatDate } from '@/lib/utils';
 
 interface Proposal {
   id: string;
@@ -214,15 +215,15 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-agora-border p-6">
-          <div className="flex items-start gap-4">
-            <div className={`rounded-lg border p-3 ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].border}`}>
+        <div className="flex items-start justify-between border-b border-agora-border p-4 sm:p-6 flex-shrink-0">
+          <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className={`rounded-lg border p-2 sm:p-3 flex-shrink-0 ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].border}`}>
               <StatusIcon className={`h-5 w-5 ${statusConfig[proposal.status].color}`} />
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
                 <CopyableHash hash={proposal.id} truncateLength={8} className="text-agora-muted" />
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].color}`}
@@ -230,15 +231,15 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
                   {t(`status.${proposal.status}`)}
                 </span>
               </div>
-              <h2 className="text-xl font-bold text-slate-900 pr-8">{proposal.title}</h2>
-              <div className="mt-2 flex items-center gap-3 text-sm text-agora-muted">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 pr-8 line-clamp-2 break-words">{proposal.title}</h2>
+              <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-agora-muted">
                 <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {proposal.author}
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate max-w-[100px] sm:max-w-none">{proposal.author}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {format(new Date(proposal.created_at), 'PPP')}
+                <span className="flex items-center gap-1 whitespace-nowrap">
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  {safeFormatDate(proposal.created_at, (d) => format(d, 'PPP'))}
                 </span>
               </div>
             </div>
@@ -253,25 +254,25 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-agora-border bg-agora-darker/50">
+        <div className="flex overflow-x-auto border-b border-agora-border bg-agora-darker/50 flex-shrink-0 scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-agora-primary text-agora-primary'
                   : 'border-transparent text-agora-muted hover:text-slate-900'
               }`}
             >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
+              <tab.icon className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Content */}
-        <div className="max-h-[60vh] overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-4">
@@ -1377,8 +1378,8 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-agora-border p-4">
-          <div className="flex items-center gap-2 text-sm text-agora-muted">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-agora-border p-4 flex-shrink-0">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-agora-muted truncate">
             <CopyableHash hash={proposal.id} truncateLength={8} />
             {proposal.issueId && (
               <>
@@ -1391,8 +1392,8 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border">
-              <Share2 className="h-4 w-4" />
+            <button className="flex items-center justify-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-border">
+              <Share2 className="h-4 w-4 flex-shrink-0" />
               {tDetail('share')}
             </button>
           </div>

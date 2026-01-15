@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, FileText } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { safeFormatDate } from '@/lib/utils';
 
 export interface TreasuryTransaction {
   id: string;
@@ -60,24 +61,24 @@ export function TransactionCard({ transaction, onClick, index = 0 }: Transaction
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-between rounded-lg border border-agora-border bg-agora-card p-4 transition-all hover:border-agora-accent/50 hover:shadow-md ${onClick ? 'cursor-pointer' : ''} animate-slide-up`}
+      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-agora-border bg-agora-card p-4 transition-all hover:border-agora-accent/50 hover:shadow-md ${onClick ? 'cursor-pointer' : ''} animate-slide-up`}
       style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
     >
-      <div className="flex items-center gap-4">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${colors.bg}`}>
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-lg flex-shrink-0 ${colors.bg}`}>
           <Icon className={`h-5 w-5 ${colors.icon}`} />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="font-medium text-slate-900">{t(`transaction.${transaction.type}`)}</p>
-          <p className="text-sm text-agora-muted">{transaction.description}</p>
+          <p className="text-sm text-agora-muted line-clamp-1 break-words">{transaction.description}</p>
           {transaction.txHash && (
-            <p className="mt-1 font-mono text-xs text-agora-muted">
+            <p className="mt-1 font-mono text-xs text-agora-muted truncate">
               {transaction.txHash.slice(0, 10)}...{transaction.txHash.slice(-8)}
             </p>
           )}
         </div>
       </div>
-      <div className="text-right">
+      <div className="text-left sm:text-right flex-shrink-0">
         <p className={`font-semibold ${colors.text}`}>
           {sign}
           {formatBalance(transaction.amount)} {transaction.tokenSymbol}
@@ -88,7 +89,7 @@ export function TransactionCard({ transaction, onClick, index = 0 }: Transaction
           {transaction.status}
         </span>
         <p className="mt-1 text-xs text-agora-muted">
-          {new Date(transaction.createdAt).toLocaleDateString()}
+          {safeFormatDate(transaction.createdAt, (d) => d.toLocaleDateString())}
         </p>
       </div>
     </div>

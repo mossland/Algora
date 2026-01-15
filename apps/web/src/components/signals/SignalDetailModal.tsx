@@ -20,6 +20,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import type { Signal } from '@/lib/api';
+import { safeFormatDate } from '@/lib/utils';
 
 interface SignalDetailModalProps {
   signal: Signal;
@@ -121,23 +122,23 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
+      <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl border border-agora-border bg-agora-dark shadow-2xl animate-slide-up">
           {/* Header */}
           <div
-            className="animate-slide-up flex items-start justify-between border-b border-agora-border p-6"
+            className="animate-slide-up flex items-start justify-between border-b border-agora-border p-4 sm:p-6 flex-shrink-0"
             style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
               <div
                 className={`
-                  rounded-lg border p-3 transition-transform duration-300 hover:scale-110 hover:rotate-6
+                  rounded-lg border p-2 sm:p-3 transition-transform duration-300 hover:scale-110 hover:rotate-6 flex-shrink-0
                   ${sourceColors[sourceType] || sourceColors.api}
                 `}
               >
                 {sourceIcons[sourceType] || sourceIcons.api}
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 pr-8">{title}</h2>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 pr-8 line-clamp-2 break-words">{title}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   {/* Source Badge */}
                   <span className={`flex items-center gap-1.5 text-sm ${(sourceColors[sourceType] || sourceColors.api).split(' ')[0]}`}>
@@ -170,7 +171,7 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
           </div>
 
           {/* Content */}
-          <div className="max-h-[60vh] overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
             {/* Main Content */}
             <div
               className="animate-slide-up rounded-lg border border-agora-border bg-agora-card p-4"
@@ -180,7 +181,7 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                 <FileText className="h-4 w-4" />
                 <span>{t('detail.content')}</span>
               </div>
-              <p className="text-slate-900 whitespace-pre-wrap leading-relaxed">
+              <p className="text-slate-900 whitespace-pre-wrap leading-relaxed break-words overflow-hidden">
                 {signal.description}
               </p>
             </div>
@@ -197,10 +198,10 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                   <span>{t('detail.timestamp')}</span>
                 </div>
                 <p className="text-slate-900 font-medium">
-                  {format(new Date(signal.timestamp || signal.created_at), 'PPpp')}
+                  {safeFormatDate(signal.timestamp || signal.created_at, (d) => format(d, 'PPpp'))}
                 </p>
                 <p className="text-sm text-agora-muted mt-1">
-                  {formatDistanceToNow(new Date(signal.timestamp || signal.created_at), { addSuffix: true })}
+                  {safeFormatDate(signal.timestamp || signal.created_at, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                 </p>
               </div>
 
@@ -228,9 +229,9 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
                 </div>
                 <div className="space-y-2">
                   {Object.entries(metadata).map(([key, value]) => (
-                    <div key={key} className="flex items-start gap-2 text-sm">
-                      <span className="text-agora-muted min-w-[100px]">{key}:</span>
-                      <span className="text-slate-900 font-mono break-all">
+                    <div key={key} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-sm">
+                      <span className="text-agora-muted sm:min-w-[100px] flex-shrink-0">{key}:</span>
+                      <span className="text-slate-900 font-mono break-all overflow-hidden text-ellipsis">
                         {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                       </span>
                     </div>
@@ -242,29 +243,29 @@ export function SignalDetailModal({ signal, onClose }: SignalDetailModalProps) {
 
           {/* Footer */}
           <div
-            className="animate-slide-up flex items-center justify-between border-t border-agora-border p-4"
+            className="animate-slide-up flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-agora-border p-4 flex-shrink-0"
             style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}
           >
-            <div className="text-sm text-agora-muted">
+            <div className="text-xs sm:text-sm text-agora-muted truncate">
               {t('detail.source')}: {signal.source}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               {url && (
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-border hover:scale-105"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-agora-card px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-border hover:scale-105"
                 >
-                  <ExternalLink className="h-4 w-4" />
-                  {t('viewSource')}
+                  <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{t('viewSource')}</span>
                 </a>
               )}
 
-              <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                {t('detail.createIssue')}
+              <button className="flex items-center justify-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-all duration-200 hover:bg-agora-primary/80 hover:scale-105 hover:shadow-lg hover:shadow-agora-primary/30">
+                <ArrowRight className="h-4 w-4 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+                <span className="truncate">{t('detail.createIssue')}</span>
               </button>
             </div>
           </div>

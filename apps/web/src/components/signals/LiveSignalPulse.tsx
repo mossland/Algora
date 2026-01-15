@@ -15,15 +15,15 @@ interface TimeStatCardProps {
 
 function TimeStatCard({ label, value, icon, color, pulse }: TimeStatCardProps) {
   return (
-    <div className={`relative rounded-lg border border-agora-border bg-agora-card p-3 transition-all hover:border-${color}/50`}>
+    <div className={`relative rounded-lg border border-agora-border bg-agora-card p-2 sm:p-3 transition-all hover:border-${color}/50`}>
       {pulse && value > 0 && (
-        <span className={`absolute top-2 right-2 h-2 w-2 rounded-full bg-${color} animate-ping`} />
+        <span className={`absolute top-1 right-1 sm:top-2 sm:right-2 h-2 w-2 rounded-full bg-${color} animate-ping`} />
       )}
-      <div className="flex items-center gap-2 text-agora-muted mb-1">
+      <div className="flex items-center gap-1 sm:gap-2 text-agora-muted mb-0.5 sm:mb-1">
         {icon}
-        <span className="text-xs uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] sm:text-xs uppercase tracking-wide truncate">{label}</span>
       </div>
-      <div className={`text-2xl font-bold text-${color}`}>
+      <div className={`text-lg sm:text-2xl font-bold text-${color}`}>
         {value.toLocaleString()}
       </div>
     </div>
@@ -146,7 +146,7 @@ export function LiveSignalPulse() {
       </div>
 
       {/* Time-based stats grid */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         <TimeStatCard
           label="10 min"
           value={timeStats.last10min}
