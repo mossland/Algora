@@ -178,6 +178,7 @@
     "title": "엔진룸",
     "subtitle": "시스템 모니터링 및 설정",
     "refresh": "새로고침",
+    "refreshed": "완료",
     "uptime": "가동시간",
     "status": {
       "ok": "모든 시스템 정상 작동 중",

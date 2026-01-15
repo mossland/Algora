@@ -119,7 +119,7 @@ export default function EngineRoomPage() {
           {showSuccess ? (
             <>
               <Check className="h-4 w-4" />
-              {t('refreshed') || 'Refreshed'}
+              {t('refreshed')}
             </>
           ) : (
             <>

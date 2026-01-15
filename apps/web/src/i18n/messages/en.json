@@ -178,6 +178,7 @@
     "title": "Engine Room",
     "subtitle": "System monitoring and configuration",
     "refresh": "Refresh",
+    "refreshed": "Refreshed",
     "uptime": "Uptime",
     "status": {
       "ok": "All systems operational",
