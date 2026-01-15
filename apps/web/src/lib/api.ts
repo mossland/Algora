@@ -545,6 +545,91 @@ export type ProposalStatus =
   | 'executed'
   | 'cancelled';
 
+// Proposal Type
+export type ProposalType = 'policy' | 'budget' | 'grant' | 'technical' | 'partnership' | 'operations' | 'general';
+
+// Rich Proposal Content Structure
+export interface ProposalContent {
+  // Abstract / TL;DR
+  abstract?: {
+    summary: string;
+    decisionPoints?: string[];
+  };
+  // Background & Problem
+  background?: {
+    currentSituation: string;
+    limitations?: string;
+    risks?: string;
+  };
+  // Objectives & KPIs
+  objectives?: {
+    goals: string[];
+    kpis?: Array<{
+      metric: string;
+      target: string;
+      current?: string;
+    }>;
+  };
+  // Proposal Details
+  details?: {
+    executionPlan: string;
+    scope?: {
+      inScope: string[];
+      outOfScope?: string[];
+    };
+    alternatives?: Array<{
+      option: string;
+      title: string;
+      description: string;
+      pros?: string[];
+      cons?: string[];
+      recommended?: boolean;
+    }>;
+  };
+  // Governance & RACI
+  governance?: {
+    decisionMaker?: string;
+    executor?: string;
+    accountable?: string;
+    consulted?: string[];
+    informed?: string[];
+  };
+  // Result Reporting
+  reporting?: {
+    cycle?: string;
+    kpiTracking?: boolean;
+    retroFunding?: boolean;
+  };
+  // Technical Specs
+  technicalSpecs?: string;
+  // Additional Notes
+  notes?: string;
+}
+
+// Budget Structure
+export interface ProposalBudget {
+  total?: number;
+  currency?: string;
+  items?: Array<{
+    category: string;
+    amount: number;
+    description?: string;
+  }>;
+  paymentMethod?: 'upfront' | 'milestone' | 'completion';
+  milestones?: Array<{
+    name: string;
+    amount: number;
+    criteria: string;
+  }>;
+}
+
+// Related Links
+export interface ProposalLink {
+  type: 'document' | 'repo' | 'discussion' | 'external';
+  title: string;
+  url: string;
+}
+
 export interface Proposal {
   id: string;
   title: string;
@@ -564,6 +649,14 @@ export interface Proposal {
   execution_tx?: string;
   created_at: string;
   updated_at: string;
+  // Extended fields (v2)
+  proposal_type?: ProposalType;
+  co_proposers?: string[];
+  version?: number;
+  execution_date?: string;
+  content?: ProposalContent;
+  budget?: ProposalBudget;
+  related_links?: ProposalLink[];
 }
 
 export interface ProposalTally {
@@ -711,6 +804,30 @@ export async function fetchDecisionPacket(proposalId: string): Promise<DecisionP
   }
 }
 
+export async function generateDecisionPacket(proposalId: string, requestedBy: string = 'user'): Promise<DecisionPacket | null> {
+  try {
+    const response = await fetchAPI<{ packet: any }>(`/api/proposals/${proposalId}/decision-packet/generate`, {
+      method: 'POST',
+      body: JSON.stringify({ requestedBy }),
+    });
+    if (!response.packet) return null;
+    return {
+      id: response.packet.id,
+      proposalId: response.packet.proposal_id,
+      version: response.packet.version,
+      content: typeof response.packet.content === 'string'
+        ? JSON.parse(response.packet.content)
+        : response.packet.content,
+      summary: response.packet.summary,
+      generatedAt: response.packet.generated_at,
+      generatedBy: response.packet.generated_by,
+      modelUsed: response.packet.model_used,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchProposalVoteHistory(proposalId: string): Promise<ProposalVote[]> {
   try {
     const response = await fetchAPI<{ votes: any[] }>(`/api/proposals/${proposalId}/votes`);
@@ -735,6 +852,34 @@ export async function fetchIssue(id: string): Promise<Issue | null> {
     return response.issue;
   } catch {
     return null;
+  }
+}
+
+// Proposal History
+export interface ProposalHistoryEntry {
+  id: string;
+  proposalId: string;
+  fromStatus: string;
+  toStatus: string;
+  changedBy?: string;
+  reason?: string;
+  createdAt: string;
+}
+
+export async function fetchProposalHistory(proposalId: string): Promise<ProposalHistoryEntry[]> {
+  try {
+    const response = await fetchAPI<{ history: any[] }>(`/api/proposals/${proposalId}/history`);
+    return (response.history || []).map(h => ({
+      id: h.id,
+      proposalId: h.proposal_id,
+      fromStatus: h.from_status,
+      toStatus: h.to_status,
+      changedBy: h.changed_by,
+      reason: h.reason,
+      createdAt: h.created_at,
+    }));
+  } catch {
+    return [];
   }
 }
 

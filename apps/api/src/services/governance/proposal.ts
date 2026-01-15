@@ -13,6 +13,79 @@ export type ProposalStatus =
   | 'executed'        // Decision implemented
   | 'cancelled';      // Cancelled by proposer
 
+// Proposal type enum
+export type ProposalType = 'policy' | 'budget' | 'grant' | 'technical' | 'partnership' | 'operations' | 'general';
+
+// Structured content interfaces
+export interface ProposalContent {
+  abstract?: {
+    summary: string;
+    decisionPoints?: string[];
+  };
+  background?: {
+    currentSituation: string;
+    limitations?: string;
+    risks?: string;
+  };
+  objectives?: {
+    goals: string[];
+    kpis?: Array<{
+      metric: string;
+      target: string;
+      current?: string;
+    }>;
+  };
+  details?: {
+    executionPlan: string;
+    scope?: {
+      inScope: string[];
+      outOfScope?: string[];
+    };
+    alternatives?: Array<{
+      title: string;
+      description: string;
+      pros: string[];
+      cons: string[];
+    }>;
+  };
+  governance?: {
+    decisionMaker?: string;
+    executor?: string;
+    accountable?: string;
+    consulted?: string[];
+    informed?: string[];
+  };
+  reporting?: {
+    cycle?: string;
+    kpiTracking?: boolean;
+    retroFunding?: boolean;
+  };
+  technicalSpecs?: string;
+  notes?: string;
+}
+
+export interface ProposalBudget {
+  total?: number;
+  currency?: string;
+  items?: Array<{
+    category: string;
+    amount: number;
+    description?: string;
+  }>;
+  paymentMethod?: 'upfront' | 'milestone' | 'completion';
+  milestones?: Array<{
+    name: string;
+    amount: number;
+    criteria: string;
+  }>;
+}
+
+export interface ProposalLink {
+  type: 'document' | 'repo' | 'discussion' | 'external';
+  title: string;
+  url: string;
+}
+
 export interface Proposal {
   id: string;
   title: string;
@@ -32,6 +105,14 @@ export interface Proposal {
   execution_tx?: string;
   created_at: string;
   updated_at: string;
+  // Extended fields (v2)
+  proposal_type?: ProposalType;
+  co_proposers?: string[];
+  version?: number;
+  execution_date?: string;
+  content?: ProposalContent;
+  budget?: ProposalBudget;
+  related_links?: ProposalLink[];
 }
 
 export interface ProposalCreateInput {
@@ -45,6 +126,13 @@ export interface ProposalCreateInput {
   votingDurationHours?: number;
   quorumRequired?: number;
   approvalThreshold?: number;
+  // Extended fields (v2)
+  proposalType?: ProposalType;
+  coProposers?: string[];
+  executionDate?: string;
+  content?: ProposalContent;
+  budget?: ProposalBudget;
+  relatedLinks?: ProposalLink[];
 }
 
 export class ProposalService {
@@ -115,11 +203,18 @@ export class ProposalService {
     const votingStarts = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Start in 24h
     const votingEnds = new Date(Date.now() + (24 + votingDuration) * 60 * 60 * 1000).toISOString();
 
+    // Serialize v2 fields to JSON
+    const coProposersJson = input.coProposers ? JSON.stringify(input.coProposers) : null;
+    const contentJson = input.content ? JSON.stringify(input.content) : null;
+    const budgetJson = input.budget ? JSON.stringify(input.budget) : null;
+    const relatedLinksJson = input.relatedLinks ? JSON.stringify(input.relatedLinks) : null;
+
     this.db.prepare(`
       INSERT INTO proposals (
         id, title, description, proposer, status, issue_id,
-        voting_starts, voting_ends, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
+        voting_starts, voting_ends, created_at, updated_at,
+        proposal_type, co_proposers, execution_date, content, budget, related_links
+      ) VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       input.title,
@@ -129,7 +224,13 @@ export class ProposalService {
       votingStarts,
       votingEnds,
       now,
-      now
+      now,
+      input.proposalType || 'general',
+      coProposersJson,
+      input.executionDate || null,
+      contentJson,
+      budgetJson,
+      relatedLinksJson
     );
 
     const proposal = this.getById(id)!;
@@ -145,7 +246,19 @@ export class ProposalService {
   }
 
   getById(id: string): Proposal | null {
-    return this.db.prepare('SELECT * FROM proposals WHERE id = ?').get(id) as Proposal | null;
+    const row = this.db.prepare('SELECT * FROM proposals WHERE id = ?').get(id) as any;
+    return row ? this.parseProposalRow(row) : null;
+  }
+
+  // Parse JSON fields from database row
+  private parseProposalRow(row: any): Proposal {
+    return {
+      ...row,
+      co_proposers: row.co_proposers ? JSON.parse(row.co_proposers) : undefined,
+      content: row.content ? JSON.parse(row.content) : undefined,
+      budget: row.budget ? JSON.parse(row.budget) : undefined,
+      related_links: row.related_links ? JSON.parse(row.related_links) : undefined,
+    };
   }
 
   getAll(options: {
@@ -169,11 +282,12 @@ export class ProposalService {
     query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
     params.push(options.limit || 50, options.offset || 0);
 
-    return this.db.prepare(query).all(...params) as Proposal[];
+    const rows = this.db.prepare(query).all(...params) as any[];
+    return rows.map(row => this.parseProposalRow(row));
   }
 
   getActive(): Proposal[] {
-    return this.db.prepare(`
+    const rows = this.db.prepare(`
       SELECT * FROM proposals
       WHERE status IN ('discussion', 'voting', 'pending_review')
       ORDER BY
@@ -183,7 +297,8 @@ export class ProposalService {
           ELSE 3
         END,
         created_at DESC
-    `).all() as Proposal[];
+    `).all() as any[];
+    return rows.map(row => this.parseProposalRow(row));
   }
 
   // === Status Workflow ===
@@ -378,6 +493,16 @@ export class ProposalService {
       priority: issue.priority,
       issueId,
     });
+  }
+
+  // === History ===
+
+  getHistory(proposalId: string): any[] {
+    return this.db.prepare(`
+      SELECT * FROM proposal_history
+      WHERE proposal_id = ?
+      ORDER BY created_at ASC
+    `).all(proposalId);
   }
 
   private logActivity(type: string, severity: string, message: string, details: any): void {

@@ -76,7 +76,22 @@ proposalsRouter.get('/:id', async (req, res) => {
 // POST /api/proposals - Create proposal
 proposalsRouter.post('/', (req, res) => {
   const governance: GovernanceService = req.app.locals.governance;
-  const { title, description, proposer, category, priority, issueId, votingDurationHours } = req.body;
+  const {
+    title,
+    description,
+    proposer,
+    category,
+    priority,
+    issueId,
+    votingDurationHours,
+    // v2 extended fields
+    proposalType,
+    coProposers,
+    executionDate,
+    content,
+    budget,
+    relatedLinks,
+  } = req.body;
 
   if (!title || !description || !proposer) {
     res.status(400).json({ error: 'title, description, and proposer are required' });
@@ -92,6 +107,13 @@ proposalsRouter.post('/', (req, res) => {
       priority,
       issueId,
       votingDurationHours,
+      // v2 extended fields
+      proposalType,
+      coProposers,
+      executionDate,
+      content,
+      budget,
+      relatedLinks,
     });
 
     res.status(201).json({ proposal });
@@ -318,6 +340,20 @@ proposalsRouter.get('/:id/endorsements', (req, res) => {
   } catch (error) {
     console.error('Failed to get endorsements:', error);
     res.status(500).json({ error: 'Failed to get endorsements' });
+  }
+});
+
+// GET /api/proposals/:id/history - Get proposal history
+proposalsRouter.get('/:id/history', (req, res) => {
+  const governance: GovernanceService = req.app.locals.governance;
+  const { id } = req.params;
+
+  try {
+    const history = governance.proposals.getHistory(id);
+    res.json({ history });
+  } catch (error) {
+    console.error('Failed to get proposal history:', error);
+    res.status(500).json({ error: 'Failed to get proposal history' });
   }
 });
 

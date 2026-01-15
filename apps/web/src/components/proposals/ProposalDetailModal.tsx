@@ -30,13 +30,30 @@ import {
   Shield,
   Loader2,
   Bot,
+  GitBranch,
+  ArrowRight,
+  Banknote,
+  Link2,
+  BookOpen,
+  Flag,
+  UserCheck,
+  ClipboardList,
+  Tag,
 } from 'lucide-react';
 import { TokenVoting } from './TokenVoting';
+import { CopyableHash } from '@/components/ui/CopyableHash';
 import {
   fetchDecisionPacket,
   fetchProposalVoteHistory,
   fetchIssue,
+  fetchProposalHistory,
+  generateDecisionPacket,
+  type ProposalType,
+  type ProposalContent,
+  type ProposalBudget,
+  type ProposalLink,
 } from '@/lib/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Proposal {
   id: string;
@@ -51,6 +68,14 @@ interface Proposal {
   endDate: string;
   created_at: string;
   author: string;
+  // Extended fields (v2)
+  proposalType?: ProposalType;
+  coProposers?: string[];
+  version?: number;
+  executionDate?: string;
+  content?: ProposalContent;
+  budget?: ProposalBudget;
+  relatedLinks?: ProposalLink[];
 }
 
 interface ProposalDetailModalProps {
@@ -58,7 +83,7 @@ interface ProposalDetailModalProps {
   onClose: () => void;
 }
 
-type TabType = 'overview' | 'decision' | 'votes' | 'issue';
+type TabType = 'overview' | 'timeline' | 'decision' | 'votes' | 'issue';
 
 const statusConfig = {
   draft: {
@@ -117,6 +142,7 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const StatusIcon = statusConfig[proposal.status].icon;
+  const queryClient = useQueryClient();
 
   const totalVotes = proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain;
   const forPercent = totalVotes > 0 ? (proposal.votesFor / totalVotes) * 100 : 0;
@@ -150,6 +176,21 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
     enabled: activeTab === 'issue' && !!proposal.issueId,
   });
 
+  // Fetch proposal history/timeline
+  const { data: proposalHistory, isLoading: loadingHistory } = useQuery({
+    queryKey: ['proposal-history', proposal.id],
+    queryFn: () => fetchProposalHistory(proposal.id),
+    enabled: activeTab === 'timeline',
+  });
+
+  // Mutation for generating Decision Packet
+  const generateMutation = useMutation({
+    mutationFn: () => generateDecisionPacket(proposal.id, 'user'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['decision-packet', proposal.id] });
+    },
+  });
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -158,6 +199,7 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
 
   const tabs = [
     { id: 'overview' as TabType, label: tDetail('tabs.overview'), icon: FileText },
+    { id: 'timeline' as TabType, label: tDetail('tabs.timeline'), icon: GitBranch },
     { id: 'decision' as TabType, label: tDetail('tabs.decision'), icon: Brain },
     { id: 'votes' as TabType, label: tDetail('tabs.votes'), icon: History },
     ...(proposal.issueId ? [{ id: 'issue' as TabType, label: tDetail('tabs.issue'), icon: ExternalLink }] : []),
@@ -181,7 +223,7 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-mono text-agora-muted">{proposal.id.slice(0, 8)}...</span>
+                <CopyableHash hash={proposal.id} truncateLength={8} className="text-agora-muted" />
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].color}`}
                 >
@@ -233,16 +275,323 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-4">
-              {/* Summary */}
+              {/* Header Info */}
               <div className="rounded-lg border border-agora-border bg-agora-card p-4">
-                <div className="flex items-center gap-2 mb-3 text-sm text-agora-muted">
-                  <FileText className="h-4 w-4" />
-                  <span>{tDetail('summary')}</span>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('header.title')}</h3>
+                  </div>
+                  {proposal.proposalType && (
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                      {tDetail(`types.${proposal.proposalType}`)}
+                    </span>
+                  )}
                 </div>
-                <p className="text-slate-900 whitespace-pre-wrap leading-relaxed">
-                  {proposal.summary}
-                </p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-agora-muted" />
+                    <span className="text-agora-muted">{tDetail('header.id')}:</span>
+                    <CopyableHash hash={proposal.id} truncateLength={8} className="text-slate-900" />
+                    {proposal.version && <span className="text-agora-muted">v{proposal.version}</span>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-agora-muted" />
+                    <span className="text-agora-muted">{tDetail('header.proposer')}:</span>
+                    <span className="text-slate-900">{formatAddress(proposal.author)}</span>
+                  </div>
+                  {proposal.coProposers && proposal.coProposers.length > 0 && (
+                    <div className="flex items-center gap-2 col-span-2">
+                      <Users className="h-4 w-4 text-agora-muted" />
+                      <span className="text-agora-muted">{tDetail('header.coProposers')}:</span>
+                      <span className="text-slate-900">{proposal.coProposers.map(formatAddress).join(', ')}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-agora-muted" />
+                    <span className="text-agora-muted">{tDetail('header.created')}:</span>
+                    <span className="text-slate-900">{format(new Date(proposal.created_at), 'PPP')}</span>
+                  </div>
+                  {proposal.executionDate && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-agora-muted" />
+                      <span className="text-agora-muted">{tDetail('header.executionDate')}:</span>
+                      <span className="text-slate-900">{format(new Date(proposal.executionDate), 'PPP')}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Abstract / TL;DR */}
+              {proposal.content?.abstract && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BookOpen className="h-5 w-5 text-green-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.abstract')}</h3>
+                  </div>
+                  <p className="text-slate-900 leading-relaxed">{proposal.content.abstract.summary}</p>
+                  {proposal.content.abstract.decisionPoints && proposal.content.abstract.decisionPoints.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-green-500/20">
+                      <p className="text-xs text-agora-muted mb-2">{tDetail('content.decisionPoints')}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {proposal.content.abstract.decisionPoints.map((point, i) => (
+                          <span key={i} className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs">
+                            {point}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Background & Problem */}
+              {proposal.content?.background && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Flag className="h-5 w-5 text-orange-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.background')}</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-agora-muted mb-1">{tDetail('content.currentSituation')}</p>
+                      <p className="text-sm text-slate-900">{proposal.content.background.currentSituation}</p>
+                    </div>
+                    {proposal.content.background.limitations && (
+                      <div>
+                        <p className="text-xs text-agora-muted mb-1">{tDetail('content.limitations')}</p>
+                        <p className="text-sm text-slate-900">{proposal.content.background.limitations}</p>
+                      </div>
+                    )}
+                    {proposal.content.background.risks && (
+                      <div className="rounded bg-red-500/10 p-2">
+                        <p className="text-xs text-red-400 mb-1">{tDetail('content.risks')}</p>
+                        <p className="text-sm text-red-300">{proposal.content.background.risks}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Objectives & KPIs */}
+              {proposal.content?.objectives && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target className="h-5 w-5 text-purple-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.objectives')}</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-agora-muted mb-2">{tDetail('content.goals')}</p>
+                      <ul className="space-y-1">
+                        {proposal.content.objectives.goals.map((goal, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-slate-900">
+                            <CheckCircle className="h-4 w-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                            {goal}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {proposal.content.objectives.kpis && proposal.content.objectives.kpis.length > 0 && (
+                      <div>
+                        <p className="text-xs text-agora-muted mb-2">{tDetail('content.kpis')}</p>
+                        <div className="grid gap-2">
+                          {proposal.content.objectives.kpis.map((kpi, i) => (
+                            <div key={i} className="flex items-center justify-between rounded bg-agora-darker p-2">
+                              <span className="text-sm text-slate-900">{kpi.metric}</span>
+                              <div className="flex items-center gap-2">
+                                {kpi.current && (
+                                  <span className="text-xs text-agora-muted">{kpi.current} →</span>
+                                )}
+                                <span className="text-sm font-medium text-purple-400">{kpi.target}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Proposal Details / Execution Plan */}
+              {proposal.content?.details && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ClipboardList className="h-5 w-5 text-cyan-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.details')}</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-agora-muted mb-1">{tDetail('content.executionPlan')}</p>
+                      <p className="text-sm text-slate-900 whitespace-pre-wrap">{proposal.content.details.executionPlan}</p>
+                    </div>
+                    {proposal.content.details.scope && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-agora-muted mb-2">{tDetail('content.inScope')}</p>
+                          <ul className="space-y-1">
+                            {proposal.content.details.scope.inScope.map((item, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-slate-900">
+                                <CheckCircle className="h-3 w-3 text-green-400 flex-shrink-0 mt-0.5" />
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {proposal.content.details.scope.outOfScope && (
+                          <div>
+                            <p className="text-xs text-agora-muted mb-2">{tDetail('content.outOfScope')}</p>
+                            <ul className="space-y-1">
+                              {proposal.content.details.scope.outOfScope.map((item, i) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-slate-900">
+                                  <XCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {proposal.content.details.alternatives && proposal.content.details.alternatives.length > 0 && (
+                      <div>
+                        <p className="text-xs text-agora-muted mb-2">{tDetail('content.alternatives')}</p>
+                        <div className="space-y-2">
+                          {proposal.content.details.alternatives.map((alt, i) => (
+                            <div key={i} className={`rounded border p-3 ${alt.recommended ? 'border-agora-primary bg-agora-primary/5' : 'border-agora-border bg-agora-darker'}`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-medium text-agora-muted">{alt.option}</span>
+                                <span className="font-medium text-slate-900">{alt.title}</span>
+                                {alt.recommended && (
+                                  <span className="px-2 py-0.5 rounded text-xs bg-agora-primary/20 text-agora-primary ml-auto">
+                                    {tDetail('recommended')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-agora-muted">{alt.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Budget */}
+              {proposal.budget && (
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Banknote className="h-5 w-5 text-yellow-400" />
+                      <h3 className="font-semibold text-slate-900">{tDetail('content.budget')}</h3>
+                    </div>
+                    {proposal.budget.total && (
+                      <span className="text-lg font-bold text-yellow-400">
+                        {proposal.budget.total.toLocaleString()} {proposal.budget.currency || 'MOC'}
+                      </span>
+                    )}
+                  </div>
+                  {proposal.budget.items && proposal.budget.items.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {proposal.budget.items.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <span className="text-slate-900">{item.category}</span>
+                          <span className="text-agora-muted">{item.amount.toLocaleString()} {proposal.budget?.currency || 'MOC'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {proposal.budget.paymentMethod && (
+                    <div className="text-xs text-agora-muted">
+                      {tDetail('content.paymentMethod')}: {tDetail(`content.payment.${proposal.budget.paymentMethod}`)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Governance & RACI */}
+              {proposal.content?.governance && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <UserCheck className="h-5 w-5 text-indigo-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.governance')}</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {proposal.content.governance.decisionMaker && (
+                      <div>
+                        <p className="text-xs text-agora-muted">{tDetail('content.decisionMaker')}</p>
+                        <p className="text-slate-900">{proposal.content.governance.decisionMaker}</p>
+                      </div>
+                    )}
+                    {proposal.content.governance.executor && (
+                      <div>
+                        <p className="text-xs text-agora-muted">{tDetail('content.executor')}</p>
+                        <p className="text-slate-900">{proposal.content.governance.executor}</p>
+                      </div>
+                    )}
+                    {proposal.content.governance.accountable && (
+                      <div>
+                        <p className="text-xs text-agora-muted">{tDetail('content.accountable')}</p>
+                        <p className="text-slate-900">{proposal.content.governance.accountable}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Related Links */}
+              {proposal.relatedLinks && proposal.relatedLinks.length > 0 && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Link2 className="h-5 w-5 text-blue-400" />
+                    <h3 className="font-semibold text-slate-900">{tDetail('content.relatedLinks')}</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {proposal.relatedLinks.map((link, i) => (
+                      <a
+                        key={i}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>{link.title}</span>
+                        <span className="text-xs text-agora-muted">({link.type})</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Legacy Summary (fallback if no structured content) */}
+              {!proposal.content && (
+                <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                  <div className="flex items-center gap-2 mb-3 text-sm text-agora-muted">
+                    <FileText className="h-4 w-4" />
+                    <span>{tDetail('proposalContent')}</span>
+                  </div>
+                  <div className="text-slate-900 leading-relaxed prose prose-sm max-w-none">
+                    {proposal.summary.split('\n').map((paragraph, idx) => {
+                      if (paragraph.startsWith('## ')) {
+                        return <h3 key={idx} className="text-lg font-semibold text-slate-900 mt-4 mb-2">{paragraph.slice(3)}</h3>;
+                      }
+                      if (paragraph.startsWith('### ')) {
+                        return <h4 key={idx} className="text-base font-semibold text-slate-900 mt-3 mb-1">{paragraph.slice(4)}</h4>;
+                      }
+                      if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+                        return <li key={idx} className="text-slate-900 ml-4">{paragraph.slice(2)}</li>;
+                      }
+                      if (paragraph.trim() === '') {
+                        return <br key={idx} />;
+                      }
+                      return <p key={idx} className="text-slate-900 mb-2">{paragraph}</p>;
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Voting Results */}
               <div className="rounded-lg border border-agora-border bg-agora-card p-4">
@@ -378,6 +727,300 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
                         : tDetail('proposalPassed')}
                   </p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Timeline Tab */}
+          {activeTab === 'timeline' && (
+            <div className="space-y-4">
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-agora-muted" />
+                </div>
+              ) : (
+                <>
+                  {/* Current Status Summary */}
+                  <div className={`rounded-lg border p-4 ${statusConfig[proposal.status].border} ${statusConfig[proposal.status].bg}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <StatusIcon className={`h-5 w-5 ${statusConfig[proposal.status].color}`} />
+                        <h3 className="font-semibold text-slate-900">{tDetail('timeline.currentStatusTitle')}</h3>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].color}`}>
+                        {t(`status.${proposal.status}`)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-agora-muted mb-3">{tDetail(`timeline.statusDesc.${proposal.status}`)}</p>
+
+                    {/* Vote Statistics if active or completed */}
+                    {(proposal.status === 'active' || proposal.status === 'passed' || proposal.status === 'rejected') && (
+                      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-agora-border">
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-agora-success">{formatNumber(proposal.votesFor)}</p>
+                          <p className="text-xs text-agora-muted">{t('for')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-agora-error">{formatNumber(proposal.votesAgainst)}</p>
+                          <p className="text-xs text-agora-muted">{t('against')}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-gray-400">{formatNumber(proposal.votesAbstain)}</p>
+                          <p className="text-xs text-agora-muted">{t('abstain')}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Next Steps */}
+                    {proposal.status === 'draft' && (
+                      <div className="mt-3 pt-3 border-t border-agora-border">
+                        <p className="text-xs text-agora-muted flex items-center gap-1">
+                          <ArrowRight className="h-3 w-3" />
+                          {tDetail('timeline.nextStep.draft')}
+                        </p>
+                      </div>
+                    )}
+                    {proposal.status === 'active' && (
+                      <div className="mt-3 pt-3 border-t border-agora-border">
+                        <p className="text-xs text-agora-muted flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {tDetail('timeline.votingEndsAt')}: {format(new Date(proposal.endDate), 'PPpp')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Governance Process Flow */}
+                  <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <GitBranch className="h-5 w-5 text-blue-400" />
+                      <h3 className="font-semibold text-slate-900">{tDetail('timeline.processFlow')}</h3>
+                    </div>
+                    <p className="text-sm text-agora-muted mb-4">{tDetail('timeline.processFlowDesc')}</p>
+
+                    {/* Process Steps */}
+                    <div className="flex items-center justify-between gap-1 mb-4 overflow-x-auto pb-2">
+                      {['draft', 'discussion', 'voting', 'passed', 'executed'].map((step, idx) => {
+                        const isCompleted = ['passed', 'rejected', 'executed'].includes(proposal.status)
+                          ? idx <= ['draft', 'discussion', 'voting', 'passed', 'executed'].indexOf(
+                              proposal.status === 'rejected' ? 'voting' : proposal.status
+                            )
+                          : proposal.status === 'active'
+                            ? idx <= 2
+                            : idx === 0;
+                        const isCurrent = (proposal.status === 'active' && step === 'voting') ||
+                                         (proposal.status === 'draft' && step === 'draft') ||
+                                         (proposal.status === step);
+
+                        return (
+                          <div key={step} className="flex items-center">
+                            <div className={`flex flex-col items-center min-w-[60px] ${isCurrent ? 'scale-110' : ''}`}>
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                                isCompleted
+                                  ? 'bg-agora-success text-slate-900'
+                                  : isCurrent
+                                    ? 'bg-agora-primary text-slate-900 ring-2 ring-agora-primary/50'
+                                    : 'bg-agora-darker text-agora-muted'
+                              }`}>
+                                {isCompleted ? <CheckCircle className="h-4 w-4" /> : idx + 1}
+                              </div>
+                              <span className={`text-xs mt-1 ${isCurrent ? 'font-medium text-slate-900' : 'text-agora-muted'}`}>
+                                {tDetail(`timeline.steps.${step}`)}
+                              </span>
+                            </div>
+                            {idx < 4 && (
+                              <div className={`w-6 h-0.5 mx-1 ${isCompleted ? 'bg-agora-success' : 'bg-agora-darker'}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Timeline Events */}
+                  <div className="rounded-lg border border-agora-border bg-agora-card p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <History className="h-5 w-5 text-purple-400" />
+                      <h3 className="font-semibold text-slate-900">{tDetail('timeline.title')}</h3>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="relative pl-6 border-l-2 border-agora-border space-y-6">
+                      {/* Creation Event (always shown) */}
+                      <div className="relative">
+                        <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-blue-500 border-2 border-agora-dark" />
+                        <div className="ml-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-slate-900">{tDetail('timeline.created')}</span>
+                            <span className="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">
+                              draft
+                            </span>
+                          </div>
+                          <p className="text-sm text-agora-muted">
+                            {format(new Date(proposal.created_at), 'PPpp')}
+                          </p>
+                          <p className="text-xs text-agora-muted mt-1">
+                            {tDetail('timeline.by')} {proposal.author}
+                          </p>
+                          <p className="text-xs text-slate-900 mt-2 bg-agora-darker rounded p-2">
+                            {tDetail('timeline.createdDesc')}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* History Events */}
+                      {proposalHistory && proposalHistory.map((event) => {
+                        const statusColors: Record<string, string> = {
+                          draft: 'bg-gray-500/20 text-gray-400',
+                          pending_review: 'bg-yellow-500/20 text-yellow-400',
+                          discussion: 'bg-blue-500/20 text-blue-400',
+                          voting: 'bg-purple-500/20 text-purple-400',
+                          passed: 'bg-green-500/20 text-green-400',
+                          rejected: 'bg-red-500/20 text-red-400',
+                          executed: 'bg-cyan-500/20 text-cyan-400',
+                          cancelled: 'bg-gray-500/20 text-gray-400',
+                        };
+                        const dotColors: Record<string, string> = {
+                          passed: 'bg-green-500',
+                          rejected: 'bg-red-500',
+                          executed: 'bg-cyan-500',
+                          voting: 'bg-purple-500',
+                          discussion: 'bg-blue-500',
+                          pending_review: 'bg-yellow-500',
+                          cancelled: 'bg-gray-500',
+                        };
+                        const statusDescriptions: Record<string, string> = {
+                          pending_review: tDetail('timeline.eventDesc.pending_review'),
+                          discussion: tDetail('timeline.eventDesc.discussion'),
+                          voting: tDetail('timeline.eventDesc.voting'),
+                          passed: tDetail('timeline.eventDesc.passed'),
+                          rejected: tDetail('timeline.eventDesc.rejected'),
+                          executed: tDetail('timeline.eventDesc.executed'),
+                          cancelled: tDetail('timeline.eventDesc.cancelled'),
+                        };
+
+                        return (
+                          <div key={event.id} className="relative">
+                            <div className={`absolute -left-[25px] w-4 h-4 rounded-full ${dotColors[event.toStatus] || 'bg-gray-500'} border-2 border-agora-dark`} />
+                            <div className="ml-4">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-0.5 rounded text-xs ${statusColors[event.fromStatus] || 'bg-gray-500/20 text-gray-400'}`}>
+                                  {tDetail(`timeline.steps.${event.fromStatus}`) || event.fromStatus}
+                                </span>
+                                <ArrowRight className="h-3 w-3 text-agora-muted" />
+                                <span className={`px-2 py-0.5 rounded text-xs ${statusColors[event.toStatus] || 'bg-gray-500/20 text-gray-400'}`}>
+                                  {tDetail(`timeline.steps.${event.toStatus}`) || event.toStatus}
+                                </span>
+                              </div>
+                              <p className="text-sm text-agora-muted">
+                                {format(new Date(event.createdAt), 'PPpp')}
+                              </p>
+                              {event.reason && (
+                                <p className="text-xs text-agora-muted mt-1 italic">
+                                  "{event.reason}"
+                                </p>
+                              )}
+                              {event.changedBy && (
+                                <p className="text-xs text-agora-muted mt-1">
+                                  {tDetail('timeline.by')} {event.changedBy}
+                                </p>
+                              )}
+                              {statusDescriptions[event.toStatus] && (
+                                <p className="text-xs text-slate-900 mt-2 bg-agora-darker rounded p-2">
+                                  {statusDescriptions[event.toStatus]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Current Status Indicator (if no history) */}
+                      {(!proposalHistory || proposalHistory.length === 0) && proposal.status !== 'draft' && (
+                        <div className="relative">
+                          <div className={`absolute -left-[25px] w-4 h-4 rounded-full ${statusConfig[proposal.status].color.replace('text-', 'bg-')} border-2 border-agora-dark`} />
+                          <div className="ml-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-slate-900">{tDetail('timeline.currentStatus')}</span>
+                              <span className={`px-2 py-0.5 rounded text-xs ${statusConfig[proposal.status].bg} ${statusConfig[proposal.status].color}`}>
+                                {t(`status.${proposal.status}`)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-agora-muted">
+                              {tDetail('timeline.noHistory')}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Related Issue Info - Enhanced */}
+                  {proposal.issueId && (
+                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertTriangle className="h-5 w-5 text-blue-400" />
+                        <h3 className="font-semibold text-slate-900">{tDetail('timeline.originIssue')}</h3>
+                      </div>
+                      <p className="text-sm text-agora-muted mb-3">
+                        {tDetail('timeline.originIssueDesc')}
+                      </p>
+                      <div className="bg-agora-darker rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-agora-muted">Issue ID</span>
+                          <CopyableHash hash={proposal.issueId!} truncateLength={12} className="text-slate-900" />
+                        </div>
+                        <button
+                          onClick={() => setActiveTab('issue')}
+                          className="w-full flex items-center justify-center gap-2 rounded bg-blue-500/20 px-3 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/30 transition-colors"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          {tDetail('timeline.viewIssueDetails')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Decision Making Info */}
+                  <div className="rounded-lg border border-purple-500/30 bg-purple-500/5 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="h-5 w-5 text-purple-400" />
+                      <h3 className="font-semibold text-slate-900">{tDetail('timeline.aiAnalysisStatus')}</h3>
+                    </div>
+                    {decisionPacket ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-agora-success flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          {tDetail('timeline.aiAnalysisAvailable')}
+                        </p>
+                        <p className="text-xs text-agora-muted">
+                          {tDetail('timeline.generatedAt')}: {format(new Date(decisionPacket.generatedAt), 'PPpp')}
+                        </p>
+                        <button
+                          onClick={() => setActiveTab('decision')}
+                          className="w-full flex items-center justify-center gap-2 rounded bg-purple-500/20 px-3 py-2 text-sm font-medium text-purple-400 hover:bg-purple-500/30 transition-colors mt-2"
+                        >
+                          <Brain className="h-4 w-4" />
+                          {tDetail('timeline.viewAiAnalysis')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-agora-muted flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          {tDetail('timeline.aiAnalysisNotYet')}
+                        </p>
+                        <button
+                          onClick={() => setActiveTab('decision')}
+                          className="w-full flex items-center justify-center gap-2 rounded bg-purple-500/20 px-3 py-2 text-sm font-medium text-purple-400 hover:bg-purple-500/30 transition-colors mt-2"
+                        >
+                          <Brain className="h-4 w-4" />
+                          {tDetail('timeline.generateAiAnalysis')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -563,7 +1206,27 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
                 <div className="flex flex-col items-center justify-center py-12 text-agora-muted">
                   <Brain className="h-12 w-12 mb-4 opacity-50" />
                   <p className="text-lg font-medium">{tDetail('noDecisionPacket')}</p>
-                  <p className="text-sm mt-1">{tDetail('noDecisionPacketDesc')}</p>
+                  <p className="text-sm mt-1 mb-4">{tDetail('noDecisionPacketDesc')}</p>
+                  <button
+                    onClick={() => generateMutation.mutate()}
+                    disabled={generateMutation.isPending}
+                    className="flex items-center gap-2 rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-400 transition-colors hover:bg-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {generateMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {tDetail('generatingAnalysis')}
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4" />
+                        {tDetail('generateAnalysis')}
+                      </>
+                    )}
+                  </button>
+                  {generateMutation.isError && (
+                    <p className="text-sm text-red-400 mt-2">{tDetail('generateError')}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -716,11 +1379,13 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-agora-border p-4">
           <div className="flex items-center gap-2 text-sm text-agora-muted">
-            <span>{proposal.id.slice(0, 8)}...</span>
+            <CopyableHash hash={proposal.id} truncateLength={8} />
             {proposal.issueId && (
               <>
                 <span>•</span>
-                <span>Issue #{proposal.issueId.slice(0, 8)}...</span>
+                <span className="flex items-center gap-1">
+                  Issue #<CopyableHash hash={proposal.issueId} truncateLength={8} />
+                </span>
               </>
             )}
           </div>

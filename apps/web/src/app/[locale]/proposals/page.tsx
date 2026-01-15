@@ -17,7 +17,15 @@ import {
 import { ProposalCard } from '@/components/proposals/ProposalCard';
 import { ProposalDetailModal } from '@/components/proposals/ProposalDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
-import { fetchProposals, type Proposal as APIProposal, type ProposalStatus } from '@/lib/api';
+import {
+  fetchProposals,
+  type Proposal as APIProposal,
+  type ProposalStatus,
+  type ProposalType,
+  type ProposalContent,
+  type ProposalBudget,
+  type ProposalLink,
+} from '@/lib/api';
 
 // UI-specific proposal interface
 interface Proposal {
@@ -33,6 +41,14 @@ interface Proposal {
   endDate: string;
   created_at: string;
   author: string;
+  // Extended fields (v2)
+  proposalType?: ProposalType;
+  coProposers?: string[];
+  version?: number;
+  executionDate?: string;
+  content?: ProposalContent;
+  budget?: ProposalBudget;
+  relatedLinks?: ProposalLink[];
 }
 
 const STATUSES = ['all', 'active', 'passed', 'rejected', 'executed', 'draft'] as const;
@@ -66,9 +82,10 @@ function transformProposal(apiProposal: APIProposal): Proposal {
   if (apiProposal.tally) {
     try {
       const tally = JSON.parse(apiProposal.tally);
-      votesFor = tally.for || 0;
-      votesAgainst = tally.against || 0;
-      votesAbstain = tally.abstain || 0;
+      // Tally structure: { for: { weight, count }, against: { weight, count }, abstain: { weight, count } }
+      votesFor = tally.for?.weight ?? tally.for ?? 0;
+      votesAgainst = tally.against?.weight ?? tally.against ?? 0;
+      votesAbstain = tally.abstain?.weight ?? tally.abstain ?? 0;
     } catch {
       // Ignore parse errors
     }
@@ -87,6 +104,14 @@ function transformProposal(apiProposal: APIProposal): Proposal {
     endDate: apiProposal.voting_ends || apiProposal.created_at,
     created_at: apiProposal.created_at,
     author: apiProposal.proposer,
+    // Extended fields (v2)
+    proposalType: apiProposal.proposal_type,
+    coProposers: apiProposal.co_proposers,
+    version: apiProposal.version,
+    executionDate: apiProposal.execution_date,
+    content: apiProposal.content,
+    budget: apiProposal.budget,
+    relatedLinks: apiProposal.related_links,
   };
 }
 

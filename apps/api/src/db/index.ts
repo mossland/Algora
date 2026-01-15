@@ -303,6 +303,14 @@ function createSchema(db: Database.Database): void {
       tally TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      -- Extended proposal fields (v2)
+      proposal_type TEXT DEFAULT 'general',
+      co_proposers TEXT,
+      version INTEGER DEFAULT 1,
+      execution_date TEXT,
+      content TEXT,
+      budget TEXT,
+      related_links TEXT,
       FOREIGN KEY (issue_id) REFERENCES issues(id)
     );
 
