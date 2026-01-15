@@ -267,8 +267,36 @@
       "proposalRejected": "이 제안은 커뮤니티에 의해 거부되었습니다.",
       "proposalExecuted": "이 제안은 성공적으로 실행되었습니다.",
       "share": "공유",
-      "castVote": "투표하기"
+      "castVote": "투표하기",
+      "tokenVoting": "토큰 투표"
     }
+  },
+  "Voting": {
+    "title": "투표",
+    "connectToVote": "MOC 토큰으로 투표하려면 지갑을 연결하세요",
+    "loading": "로딩 중...",
+    "alreadyVoted": "이미 투표하셨습니다",
+    "votingPower": "투표권",
+    "walletNotVerified": "지갑이 인증되지 않았습니다",
+    "verifyToVote": "토큰 투표에 참여하려면 지갑을 인증해주세요",
+    "votingNotInitialized": "이 제안에 대한 토큰 투표가 초기화되지 않았습니다",
+    "votingEnded": "투표가 종료되었습니다",
+    "castYourVote": "투표하기",
+    "ownVotingPower": "보유 투표권",
+    "delegatedPower": "위임받은 투표권",
+    "effectivePower": "실효 투표권",
+    "delegationNote": "투표 시 다른 사람이 위임한 투표권이 함께 적용됩니다.",
+    "reasonOptional": "사유 (선택)",
+    "reasonPlaceholder": "왜 이렇게 투표하시나요?",
+    "castVote": "투표하기",
+    "castingVote": "투표 중...",
+    "voteHistory": "투표 내역",
+    "noVoteHistory": "투표 내역이 없습니다",
+    "noVoteHistoryDesc": "제안에 대한 투표 내역이 여기에 표시됩니다",
+    "totalVotes": "총 투표",
+    "votedFor": "찬성",
+    "votedAgainst": "반대",
+    "votedAbstain": "기권"
   },
   "Issues": {
     "title": "이슈",

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, MinusCircle, Wallet, Loader2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MinusCircle, Wallet, Loader2, Users, Info } from 'lucide-react';
 
 interface TokenVotingProps {
   proposalId: string;
@@ -17,11 +17,26 @@ interface VoteRecord {
   votingPower: number;
 }
 
+interface Delegation {
+  id: string;
+  delegator: string;
+  delegate: string;
+  categories?: string[];
+  weight: number;
+  expires_at?: string;
+  is_active: boolean;
+}
+
+interface DelegationResponse {
+  delegatedTo: Delegation[];
+  delegatedFrom: Delegation[];
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
 
 export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
   const t = useTranslations('Proposals');
-  const tWallet = useTranslations('Wallet');
+  const tVoting = useTranslations('Voting');
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const [selectedChoice, setSelectedChoice] = useState<'for' | 'against' | 'abstain' | null>(null);
@@ -51,6 +66,18 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     enabled: isConnected && !!address,
   });
 
+  // Get delegation info
+  const { data: delegations } = useQuery<DelegationResponse>({
+    queryKey: ['delegations', address],
+    queryFn: async () => {
+      if (!address) return { delegatedTo: [], delegatedFrom: [] };
+      const res = await fetch(`${API_URL}/api/proposals/delegation/${address}`);
+      if (!res.ok) return { delegatedTo: [], delegatedFrom: [] };
+      return res.json();
+    },
+    enabled: isConnected && !!address,
+  });
+
   // Get voting info
   const { data: votingInfo } = useQuery({
     queryKey: ['token-voting-info', proposalId],
@@ -60,6 +87,12 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
       return res.json();
     },
   });
+
+  // Calculate effective voting power (own + received delegations)
+  const ownVotingPower = holder?.votingPower || 0;
+  const receivedDelegations = delegations?.delegatedFrom || [];
+  const delegatedVotingPower = receivedDelegations.reduce((sum, d) => sum + d.weight, 0);
+  const effectiveVotingPower = ownVotingPower + delegatedVotingPower;
 
   // Vote mutation
   const voteMutation = useMutation({
@@ -91,7 +124,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="flex items-center gap-3 text-agora-muted">
           <Wallet className="h-5 w-5" />
-          <span className="text-sm">{tWallet('connectWallet')} to vote with your MOC tokens</span>
+          <span className="text-sm">{tVoting('connectToVote')}</span>
         </div>
       </div>
     );
@@ -102,7 +135,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="flex items-center justify-center gap-2 text-agora-muted">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Loading...</span>
+          <span className="text-sm">{tVoting('loading')}</span>
         </div>
       </div>
     );
@@ -112,7 +145,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     return (
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="text-center">
-          <p className="text-sm text-agora-muted mb-2">You have already voted</p>
+          <p className="text-sm text-agora-muted mb-2">{tVoting('alreadyVoted')}</p>
           <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${
             existingVote.choice === 'for' ? 'bg-green-500/20 text-green-400' :
             existingVote.choice === 'against' ? 'bg-red-500/20 text-red-400' :
@@ -121,7 +154,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
             {existingVote.choice === 'for' && <ThumbsUp className="h-4 w-4" />}
             {existingVote.choice === 'against' && <ThumbsDown className="h-4 w-4" />}
             {existingVote.choice === 'abstain' && <MinusCircle className="h-4 w-4" />}
-            {t(existingVote.choice)} ({existingVote.votingPower.toLocaleString()} voting power)
+            {t(existingVote.choice)} ({existingVote.votingPower.toLocaleString()} {tVoting('votingPower')})
           </div>
         </div>
       </div>
@@ -132,8 +165,8 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     return (
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="text-center text-agora-muted">
-          <p className="text-sm mb-2">Your wallet is not verified</p>
-          <p className="text-xs">Please verify your wallet to participate in token voting</p>
+          <p className="text-sm mb-2">{tVoting('walletNotVerified')}</p>
+          <p className="text-xs">{tVoting('verifyToVote')}</p>
         </div>
       </div>
     );
@@ -143,7 +176,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     return (
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="text-center text-agora-muted">
-          <p className="text-sm">Token voting not initialized for this proposal</p>
+          <p className="text-sm">{tVoting('votingNotInitialized')}</p>
         </div>
       </div>
     );
@@ -155,7 +188,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     return (
       <div className="rounded-lg border border-agora-border bg-agora-card p-4">
         <div className="text-center text-agora-muted">
-          <p className="text-sm">Voting has ended</p>
+          <p className="text-sm">{tVoting('votingEnded')}</p>
         </div>
       </div>
     );
@@ -163,11 +196,36 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
 
   return (
     <div className="rounded-lg border border-agora-border bg-agora-card p-4">
-      <h4 className="mb-4 font-medium text-slate-900">Cast Your Vote</h4>
+      <h4 className="mb-4 font-medium text-slate-900">{tVoting('castYourVote')}</h4>
 
-      <div className="mb-4 text-sm text-agora-muted">
-        Your voting power: <span className="text-slate-900 font-medium">{holder.votingPower.toLocaleString()}</span>
+      {/* Voting Power Breakdown */}
+      <div className="mb-4 rounded-lg bg-agora-darker p-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-agora-muted">{tVoting('ownVotingPower')}:</span>
+          <span className="text-slate-900 font-medium">{ownVotingPower.toLocaleString()}</span>
+        </div>
+        {delegatedVotingPower > 0 && (
+          <div className="flex items-center justify-between text-sm mt-1">
+            <span className="flex items-center gap-1 text-agora-muted">
+              <Users className="h-3 w-3" />
+              {tVoting('delegatedPower')} ({receivedDelegations.length}):
+            </span>
+            <span className="text-pink-400 font-medium">+{delegatedVotingPower.toLocaleString()}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-agora-border">
+          <span className="text-agora-muted font-medium">{tVoting('effectivePower')}:</span>
+          <span className="text-agora-primary font-bold">{effectiveVotingPower.toLocaleString()}</span>
+        </div>
       </div>
+
+      {/* Delegation Info */}
+      {delegatedVotingPower > 0 && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg bg-pink-500/10 p-3 text-xs text-pink-400">
+          <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <span>{tVoting('delegationNote')}</span>
+        </div>
+      )}
 
       {/* Vote Options */}
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -210,11 +268,11 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
 
       {/* Reason (optional) */}
       <div className="mb-4">
-        <label className="block text-sm text-agora-muted mb-2">Reason (optional)</label>
+        <label className="block text-sm text-agora-muted mb-2">{tVoting('reasonOptional')}</label>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Why are you voting this way?"
+          placeholder={tVoting('reasonPlaceholder')}
           className="w-full rounded-lg border border-agora-border bg-agora-darker px-3 py-2 text-sm text-slate-900 placeholder-agora-muted focus:border-agora-primary focus:outline-none resize-none"
           rows={2}
         />
@@ -229,10 +287,10 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
         {voteMutation.isPending ? (
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Casting vote...
+            {tVoting('castingVote')}
           </span>
         ) : (
-          'Cast Vote'
+          tVoting('castVote')
         )}
       </button>
 

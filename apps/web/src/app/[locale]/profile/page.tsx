@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
 import { DelegationStats, DelegationList, DelegationModal } from '@/components/delegation';
+import { VoteHistoryList, type VoteHistoryItem } from '@/components/voting';
 import { fetchDelegations, revokeDelegation, type DelegationResponse } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const t = useTranslations('Treasury');
   const tWallet = useTranslations('Wallet');
   const tDelegation = useTranslations('Delegation');
+  const tVoting = useTranslations('Voting');
   const tGuide = useTranslations('Guide.tooltips');
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -289,35 +291,25 @@ export default function ProfilePage() {
       )}
 
       {/* Voting History */}
-      {profile?.votingHistory && profile.votingHistory.length > 0 && (
-        <div className="rounded-xl border border-agora-border bg-agora-card">
-          <div className="border-b border-agora-border p-4">
-            <h3 className="font-semibold text-slate-900">Voting History</h3>
+      {profile?.holder && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-slate-900">{tVoting('voteHistory')}</h2>
           </div>
-          <div className="divide-y divide-agora-border">
-            {profile.votingHistory.map((vote: VoteHistory) => (
-              <div key={vote.proposal_id} className="flex items-center justify-between p-4">
-                <div>
-                  <p className="font-medium text-slate-900">{vote.proposal_title || vote.proposal_id}</p>
-                  <p className="text-sm text-agora-muted">
-                    {new Date(vote.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    vote.choice === 'for' ? 'bg-green-500/20 text-green-400' :
-                    vote.choice === 'against' ? 'bg-red-500/20 text-red-400' :
-                    'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {vote.choice}
-                  </span>
-                  <span className="text-sm text-agora-muted">
-                    {vote.voting_power.toLocaleString()} VP
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <VoteHistoryList
+            votes={
+              profile?.votingHistory?.map((vote: VoteHistory): VoteHistoryItem => ({
+                id: `${vote.proposal_id}-${vote.created_at}`,
+                proposalId: vote.proposal_id,
+                proposalTitle: vote.proposal_title || `Proposal ${vote.proposal_id}`,
+                choice: vote.choice,
+                votingPower: vote.voting_power,
+                votedAt: vote.created_at,
+              })) || []
+            }
+            isLoading={loadingProfile}
+          />
         </div>
       )}
 

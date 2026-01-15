@@ -267,8 +267,36 @@
       "proposalRejected": "This proposal was rejected by the community.",
       "proposalExecuted": "This proposal has been executed successfully.",
       "share": "Share",
-      "castVote": "Cast Vote"
+      "castVote": "Cast Vote",
+      "tokenVoting": "Token Voting"
     }
+  },
+  "Voting": {
+    "title": "Voting",
+    "connectToVote": "Connect your wallet to vote with your MOC tokens",
+    "loading": "Loading...",
+    "alreadyVoted": "You have already voted",
+    "votingPower": "voting power",
+    "walletNotVerified": "Your wallet is not verified",
+    "verifyToVote": "Please verify your wallet to participate in token voting",
+    "votingNotInitialized": "Token voting not initialized for this proposal",
+    "votingEnded": "Voting has ended",
+    "castYourVote": "Cast Your Vote",
+    "ownVotingPower": "Your Voting Power",
+    "delegatedPower": "Delegated to you",
+    "effectivePower": "Effective Power",
+    "delegationNote": "Your vote will include delegated voting power from others who have trusted you to vote on their behalf.",
+    "reasonOptional": "Reason (optional)",
+    "reasonPlaceholder": "Why are you voting this way?",
+    "castVote": "Cast Vote",
+    "castingVote": "Casting vote...",
+    "voteHistory": "Vote History",
+    "noVoteHistory": "No voting history yet",
+    "noVoteHistoryDesc": "Your votes on proposals will appear here",
+    "totalVotes": "Total Votes",
+    "votedFor": "For",
+    "votedAgainst": "Against",
+    "votedAbstain": "Abstain"
   },
   "Issues": {
     "title": "Issues",

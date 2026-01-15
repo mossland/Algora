@@ -20,7 +20,9 @@ import {
   MinusCircle,
   ExternalLink,
   Share2,
+  Wallet,
 } from 'lucide-react';
+import { TokenVoting } from './TokenVoting';
 
 interface Proposal {
   id: string;
@@ -274,6 +276,17 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
               </div>
             </div>
 
+            {/* Token Voting Section */}
+            {isActive && !hasEnded && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-3 text-sm text-agora-muted">
+                  <Wallet className="h-4 w-4" />
+                  <span>{t('detail.tokenVoting')}</span>
+                </div>
+                <TokenVoting proposalId={proposal.id} />
+              </div>
+            )}
+
             {/* Outcome Summary (for completed proposals) */}
             {(proposal.status === 'passed' || proposal.status === 'rejected' || proposal.status === 'executed') && (
               <div className={`mt-4 rounded-lg border p-4 ${
@@ -315,13 +328,6 @@ export function ProposalDetailModal({ proposal, onClose }: ProposalDetailModalPr
                 <Share2 className="h-4 w-4" />
                 {t('detail.share')}
               </button>
-
-              {isActive && !hasEnded && (
-                <button className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-primary/80">
-                  <Vote className="h-4 w-4" />
-                  {t('detail.castVote')}
-                </button>
-              )}
             </div>
           </div>
       </div>
