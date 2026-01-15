@@ -143,6 +143,7 @@
       "AGENT_DISMISSED": "에이전트 해제됨",
       "AGORA_SESSION_START": "세션 시작됨",
       "AGORA_SESSION_AUTO_CREATED": "자동 세션 생성됨",
+      "AGORA_ROUND_COMPLETE": "라운드 완료됨",
       "DECISION_PACKET": "의사결정 패킷",
       "ISSUE_DETECTED": "이슈 감지됨",
       "VOTE_CAST": "투표 완료",

@@ -143,6 +143,7 @@
       "AGENT_DISMISSED": "Agent Dismissed",
       "AGORA_SESSION_START": "Session Started",
       "AGORA_SESSION_AUTO_CREATED": "Auto Session Created",
+      "AGORA_ROUND_COMPLETE": "Round Complete",
       "DECISION_PACKET": "Decision Packet",
       "ISSUE_DETECTED": "Issue Detected",
       "VOTE_CAST": "Vote Cast",
