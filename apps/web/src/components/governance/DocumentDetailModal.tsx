@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow, format } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 import {
   X,
   FileText,
@@ -159,7 +160,7 @@ export function DocumentDetailModal({ document, isOpen, onClose }: DocumentDetai
                 <span className="text-xs font-medium">{t('createdAt')}</span>
               </div>
               <p className="text-sm text-slate-900">
-                {format(new Date(document.createdAt), 'PPP')}
+                {safeFormatDate(document.createdAt, (d) => format(d, 'PPP'))}
               </p>
             </div>
           </div>
@@ -175,7 +176,7 @@ export function DocumentDetailModal({ document, isOpen, onClose }: DocumentDetai
                 <div>
                   <p className="text-sm font-medium text-slate-900">{t('created')}</p>
                   <p className="text-xs text-agora-muted">
-                    {formatDistanceToNow(new Date(document.createdAt), { addSuffix: true })}
+                    {safeFormatDate(document.createdAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                   </p>
                 </div>
               </div>
@@ -187,7 +188,7 @@ export function DocumentDetailModal({ document, isOpen, onClose }: DocumentDetai
                 <div>
                   <p className="text-sm font-medium text-slate-900">{t('lastUpdated')}</p>
                   <p className="text-xs text-agora-muted">
-                    {formatDistanceToNow(new Date(document.updatedAt), { addSuffix: true })}
+                    {safeFormatDate(document.updatedAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                   </p>
                 </div>
               </div>

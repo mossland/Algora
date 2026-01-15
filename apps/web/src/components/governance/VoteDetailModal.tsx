@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow, format } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 import {
   X,
   Vote,
@@ -217,14 +218,14 @@ export function VoteDetailModal({ vote, isOpen, onClose }: VoteDetailModalProps)
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-agora-muted" />
               <span className="text-agora-muted">Created:</span>
-              <span className="text-slate-900">{format(new Date(vote.createdAt), 'PPP')}</span>
+              <span className="text-slate-900">{safeFormatDate(vote.createdAt, (d) => format(d, 'PPP'))}</span>
             </div>
             {vote.status === 'voting' && (
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-agora-warning" />
                 <span className="text-agora-muted">Ends:</span>
                 <span className="text-agora-warning font-medium">
-                  {formatDistanceToNow(new Date(vote.expiresAt), { addSuffix: true })}
+                  {safeFormatDate(vote.expiresAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
                 </span>
               </div>
             )}

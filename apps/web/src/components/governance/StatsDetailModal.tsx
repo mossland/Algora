@@ -66,9 +66,14 @@ const typeConfig: Record<StatsType, {
 };
 
 function UptimeContent({ stats, health }: { stats: GovernanceOSStats; health?: GovernanceOSHealth }) {
-  const uptimeHours = Math.floor(stats.uptime / 3600);
-  const uptimeMinutes = Math.floor((stats.uptime % 3600) / 60);
+  const uptime = typeof stats.uptime === 'number' && !isNaN(stats.uptime) ? stats.uptime : 0;
+  const uptimeHours = Math.floor(uptime / 3600);
+  const uptimeMinutes = Math.floor((uptime % 3600) / 60);
   const uptimePercent = 99.9; // Simulated
+
+  // Safely format the start date
+  const startDate = new Date(Date.now() - uptime * 1000);
+  const formattedStartDate = !isNaN(startDate.getTime()) ? format(startDate, 'PPp') : '--';
 
   return (
     <div className="space-y-6">
@@ -81,7 +86,7 @@ function UptimeContent({ stats, health }: { stats: GovernanceOSStats; health?: G
           </div>
         </div>
         <p className="text-lg font-medium text-slate-900">Current Session</p>
-        <p className="text-sm text-agora-muted">Started {format(new Date(Date.now() - stats.uptime * 1000), 'PPp')}</p>
+        <p className="text-sm text-agora-muted">Started {formattedStartDate}</p>
       </div>
 
       {/* Uptime Percentage */}

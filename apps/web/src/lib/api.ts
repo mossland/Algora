@@ -370,17 +370,17 @@ interface BackendHealth {
 // API Functions
 export async function fetchGovernanceOSStats(): Promise<GovernanceOSStats> {
   const response = await fetchAPI<{ stats: BackendStats }>('/api/governance-os/stats');
-  const stats = response.stats;
+  const stats = response.stats || {};
 
-  // Transform backend response to frontend format
+  // Transform backend response to frontend format with safe defaults
   return {
-    uptime: stats.uptimeHours * 3600, // Convert hours to seconds
-    pipelinesRunning: Math.max(0, stats.totalPipelines - stats.successfulPipelines - stats.failedPipelines),
-    pipelinesCompleted: stats.successfulPipelines,
-    documentsPublished: stats.documentsProduced,
-    votingSessions: stats.votingSessions,
-    lockedActions: stats.lockedActions,
-    llmCostsToday: stats.llmCostTodayUsd,
+    uptime: (stats.uptimeHours ?? 0) * 3600, // Convert hours to seconds
+    pipelinesRunning: Math.max(0, (stats.totalPipelines ?? 0) - (stats.successfulPipelines ?? 0) - (stats.failedPipelines ?? 0)),
+    pipelinesCompleted: stats.successfulPipelines ?? 0,
+    documentsPublished: stats.documentsProduced ?? 0,
+    votingSessions: stats.votingSessions ?? 0,
+    lockedActions: stats.lockedActions ?? 0,
+    llmCostsToday: stats.llmCostTodayUsd ?? 0,
     lastHeartbeat: new Date().toISOString(),
   };
 }
@@ -388,10 +388,10 @@ export async function fetchGovernanceOSStats(): Promise<GovernanceOSStats> {
 export async function fetchGovernanceOSHealth(): Promise<GovernanceOSHealth> {
   const response = await fetchAPI<BackendHealth>('/api/governance-os/health');
 
-  // Transform backend response to frontend format
+  // Transform backend response to frontend format with safe defaults
   return {
-    status: response.status,
-    components: Object.entries(response.components).map(([name, isUp]) => ({
+    status: response?.status ?? 'healthy',
+    components: Object.entries(response?.components ?? {}).map(([name, isUp]) => ({
       name,
       status: isUp ? 'up' : 'down',
       lastCheck: new Date().toISOString(),

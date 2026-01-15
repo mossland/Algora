@@ -96,3 +96,30 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
 export function generateId(): string {
   return Math.random().toString(36).substring(2, 15);
 }
+
+/**
+ * Check if a date is valid
+ */
+export function isValidDate(date: Date | string | number | null | undefined): boolean {
+  if (!date) return false;
+  const d = date instanceof Date ? date : new Date(date);
+  return !isNaN(d.getTime());
+}
+
+/**
+ * Safely format a date with a fallback
+ * Returns the fallback if the date is invalid
+ */
+export function safeFormatDate(
+  date: Date | string | number | null | undefined,
+  formatFn: (date: Date) => string,
+  fallback: string = '--'
+): string {
+  if (!isValidDate(date)) return fallback;
+  try {
+    const d = date instanceof Date ? date : new Date(date as string | number);
+    return formatFn(d);
+  } catch {
+    return fallback;
+  }
+}

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { formatDistanceToNow, format } from 'date-fns';
+import { safeFormatDate } from '@/lib/utils';
 import {
   X,
   Lock,
@@ -189,10 +190,10 @@ export function ApprovalDetailModal({ action, isOpen, onClose, onApprove }: Appr
                 <span className="text-xs font-medium">{t('createdAt')}</span>
               </div>
               <p className="text-sm text-slate-900">
-                {format(new Date(action.createdAt), 'PPP')}
+                {safeFormatDate(action.createdAt, (d) => format(d, 'PPP'))}
               </p>
               <p className="text-xs text-agora-muted mt-0.5">
-                {formatDistanceToNow(new Date(action.createdAt), { addSuffix: true })}
+                {safeFormatDate(action.createdAt, (d) => formatDistanceToNow(d, { addSuffix: true }))}
               </p>
             </div>
 
