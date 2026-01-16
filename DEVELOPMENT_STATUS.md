@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-15
-**Current Version**: 0.12.5
+**Last Updated**: 2026-01-16
+**Current Version**: 0.12.6
 **Production URL**: https://algora.moss.land
 
 ---
@@ -598,6 +598,41 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [ ] Vote confirmation with voting power display
 - [ ] Delegated vote auto-application
 - [ ] Vote history on profile page
+
+---
+
+### Phase 10.5: Performance Optimization (COMPLETED)
+
+#### Mobile Responsiveness Fixes (COMPLETED)
+- [x] Issue/Proposal/Treasury/Disclosure/Engine Room pages mobile UI
+- [x] Modal layouts with proper scroll structure
+- [x] Grid responsive breakpoints (grid-cols-1 sm:grid-cols-2)
+- [x] Text truncation and overflow handling
+- [x] Live page header overflow fix
+- [x] Proposal modal proposer address and budget overflow fix
+- [x] Treasury tabs horizontal scroll
+- [x] Engine Room refresh button visual feedback
+
+#### Initial Load Performance (RSC Migration) (COMPLETED)
+- [x] **Dashboard RSC Conversion**
+  - [x] `lib/server-api.ts` - Server-side fetch utilities with timeout
+  - [x] `DashboardClient.tsx` - Client component for interactive features
+  - [x] `page.tsx` converted to async Server Component
+  - [x] `ActivityFeed` and `AgentLobbyPreview` accept `initialData` prop
+  - [x] Data fetched on server, pre-rendered into HTML
+  - [x] React Query handles real-time updates after hydration
+
+#### TTFB Bottleneck Resolution (COMPLETED)
+- [x] **Root Cause Analysis**: RSC was using external URL causing circular nginx requests
+- [x] **Internal API Routing**: Server-side fetch uses `localhost:3201` directly
+- [x] `API_INTERNAL_URL` environment variable in PM2 config
+- [x] 3-second timeout with AbortController to prevent blocking
+- [x] **Dynamic Icon Removal**: Deleted `icon.tsx` (ImageResponse), replaced with static `favicon.svg`
+- [x] **Middleware Optimization**: Explicit exclusion of all static file paths
+- [x] **Server-Timing Headers**: Added to API for performance diagnostics
+- [x] **Slow Request Logging**: Console warning for requests > 500ms
+- [x] `deploy/nginx.conf.example` - Example nginx config with proxy caching
+- [x] `deploy/warmup.sh` - Cold start mitigation script
 
 ---
 

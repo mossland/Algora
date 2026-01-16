@@ -11,8 +11,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 - Full integration testing
-- Performance optimization
 - Security audit
+
+---
+
+## [0.12.6] - 2026-01-16
+
+### Added
+- **React Server Components Migration** (`apps/web/src/`):
+  - `lib/server-api.ts` - Server-side fetch utilities with 3s timeout
+  - `components/dashboard/DashboardClient.tsx` - Client component for interactive features
+  - Dashboard page converted to async Server Component with pre-rendered data
+  - `ActivityFeed` and `AgentLobbyPreview` accept `initialData` prop for hydration
+
+- **Performance Diagnostics** (`apps/api/src/index.ts`):
+  - Server-Timing headers for performance measurement
+  - Slow request logging (> 500ms) to console
+  - Timing information viewable in Chrome DevTools Network tab
+
+- **Deployment Utilities** (`deploy/`):
+  - `nginx.conf.example` - Example nginx config with proxy caching
+  - `warmup.sh` - Cold start mitigation script
+
+### Changed
+- **Internal API Routing**: Server-side fetch uses `localhost:3201` instead of external URL to avoid circular nginx requests
+- **API_INTERNAL_URL** environment variable added to `ecosystem.config.cjs` for PM2 deployment
+- **Static Favicon**: Replaced dynamic `icon.tsx` (ImageResponse) with static `favicon.svg` for faster TTFB
+- **Middleware Optimization**: Updated matcher to explicitly exclude all static file extensions
+
+### Fixed
+- **Mobile Responsiveness Fixes**:
+  - Live page header overflow on narrow screens
+  - Proposal modal proposer address and budget overflow
+  - Treasury tabs horizontal scroll for mobile
+  - Engine Room refresh button visual feedback ("Refreshed" text display)
+  - Proposal modal Event History text overflow
+  - Proposal modal Governance Process icon clipping
+  - Treasury Balance Distribution text/spacing overflow
+
+- **TTFB Bottleneck** (7-11 second delay resolved):
+  - Root cause: RSC using external URL caused circular nginx requests
+  - Fixed with internal localhost routing for server-side fetches
+  - AbortController timeout (3s) prevents blocking on slow responses
+
+- **Translation Fixes** (`apps/web/src/i18n/messages/`):
+  - Added `engine.refreshed` key: "Refreshed" (EN) / "완료" (KO)
 
 ---
 
