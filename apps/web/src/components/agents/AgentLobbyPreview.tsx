@@ -9,6 +9,7 @@ import { ChevronRight } from 'lucide-react';
 import { fetchAgents, type Agent } from '@/lib/api';
 
 interface AgentLobbyPreviewProps {
+  initialData?: Agent[];
   onAgentClick?: (agent: Agent) => void;
 }
 
@@ -20,7 +21,7 @@ const statusColors: Record<string, string> = {
   null: 'bg-gray-500',
 };
 
-export function AgentLobbyPreview({ onAgentClick }: AgentLobbyPreviewProps) {
+export function AgentLobbyPreview({ initialData, onAgentClick }: AgentLobbyPreviewProps) {
   const t = useTranslations('Agents');
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
@@ -28,10 +29,13 @@ export function AgentLobbyPreview({ onAgentClick }: AgentLobbyPreviewProps) {
   const { data: agents, isLoading } = useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
+    initialData: initialData,
     refetchInterval: 10000,
+    staleTime: initialData ? 10000 : 0,
   });
 
-  if (isLoading) {
+  // Skip loading skeleton if we have initial data from server
+  if (isLoading && !initialData) {
     return (
       <div className="space-y-3">
         {[...Array(5)].map((_, i) => (

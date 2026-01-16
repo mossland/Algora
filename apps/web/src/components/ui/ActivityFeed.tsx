@@ -44,6 +44,7 @@ function formatTimeCompact(date: Date): string {
 }
 
 interface ActivityFeedProps {
+  initialData?: Activity[];
   onActivityClick?: (activity: Activity) => void;
 }
 
@@ -80,7 +81,7 @@ const severityColors: Record<string, string> = {
   error: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
-export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
+export function ActivityFeed({ initialData, onActivityClick }: ActivityFeedProps) {
   const t = useTranslations('Activity.types');
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const prevActivitiesRef = useRef<string[]>([]);
@@ -88,8 +89,9 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
   const { data: activities, isLoading } = useQuery({
     queryKey: ['activities'],
     queryFn: () => fetchActivities(25),
+    initialData: initialData,
     refetchInterval: 10000,
-    staleTime: 30000, // 30 seconds - show cached data immediately
+    staleTime: initialData ? 10000 : 30000, // Use shorter stale time if we have initial data
     gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache
   });
 
@@ -110,7 +112,8 @@ export function ActivityFeed({ onActivityClick }: ActivityFeedProps) {
     }
   }, [activities]);
 
-  if (isLoading) {
+  // Skip loading skeleton if we have initial data from server
+  if (isLoading && !initialData) {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-center py-4">
