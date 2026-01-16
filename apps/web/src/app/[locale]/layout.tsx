@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   keywords: ['governance', 'ai', 'agents', 'mossland', 'moc', 'blockchain'],
   manifest: '/manifest.json',
   themeColor: '#16f6ab',
+  // Use static favicon (no dynamic generation)
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

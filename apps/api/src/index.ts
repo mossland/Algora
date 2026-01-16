@@ -67,6 +67,31 @@ app.use(compression({
 // HTTP Caching Headers - reduces redundant requests by 40%
 app.use(cacheMiddleware);
 
+// Server-Timing header for performance diagnostics
+// View in Chrome DevTools Network tab -> Timing section
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    const end = process.hrtime.bigint();
+    const durationMs = Number(end - start) / 1_000_000;
+    // Log slow requests (> 500ms)
+    if (durationMs > 500) {
+      console.warn(`[SLOW] ${req.method} ${req.originalUrl} took ${durationMs.toFixed(0)}ms`);
+    }
+  });
+  // Add Server-Timing header
+  const timing: string[] = [];
+  const originalEnd = res.end.bind(res);
+  res.end = function(...args: Parameters<typeof originalEnd>) {
+    const end = process.hrtime.bigint();
+    const durationMs = Number(end - start) / 1_000_000;
+    timing.push(`total;dur=${durationMs.toFixed(1)};desc="Total"`);
+    res.setHeader('Server-Timing', timing.join(', '));
+    return originalEnd(...args);
+  } as typeof res.end;
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
