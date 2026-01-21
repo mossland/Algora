@@ -13,6 +13,7 @@ import { HelpTooltip } from '@/components/guide/HelpTooltip';
 import { MobileNav } from './MobileNav';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GlobalSearch } from '@/components/search';
+import { AlertDropdown } from '@/components/alerts';
 
 export function Header() {
   const t = useTranslations('Header');
@@ -168,6 +169,9 @@ export function Header() {
           <div className="hidden md:block">
             <HelpMenu onStartTour={() => setShowTour(true)} />
           </div>
+
+          {/* Alert Notifications */}
+          <AlertDropdown />
 
           {/* Theme Toggle */}
           <button

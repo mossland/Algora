@@ -4,6 +4,7 @@ import { ActivityService } from '../activity';
 import type { GovernanceOSBridge } from '../services/governance-os-bridge';
 import type { ReportGeneratorService } from '../services/report-generator';
 import { DataRetentionService } from '../services/data-retention';
+import { BudgetAlertService } from '../services/budget-alerts';
 
 export type Tier = 0 | 1 | 2;
 
@@ -25,6 +26,7 @@ export class SchedulerService {
   private governanceOSBridge: GovernanceOSBridge | null = null;
   private reportGenerator: ReportGeneratorService | null = null;
   private dataRetention: DataRetentionService;
+  private budgetAlerts: BudgetAlertService;
   private config: SchedulerConfig;
   private intervals: Map<string, NodeJS.Timeout> = new Map();
   private isRunning: boolean = false;
@@ -57,6 +59,9 @@ export class SchedulerService {
       signalRetentionDays: 90,
       budgetUsageRetentionDays: 365,
     });
+
+    // Initialize budget alert service
+    this.budgetAlerts = new BudgetAlertService(db, io, activityService);
   }
 
   /**
@@ -98,6 +103,9 @@ export class SchedulerService {
 
     // Schedule daily data cleanup
     this.scheduleDataCleanup();
+
+    // Schedule budget alerts
+    this.scheduleBudgetAlerts();
 
     this.activityService.log('SYSTEM_STATUS', 'info', 'Scheduler started', {
       details: { config: this.config },
@@ -284,6 +292,50 @@ export class SchedulerService {
 
     this.intervals.set('dataCleanup', interval);
     console.info(`[Scheduler] Data cleanup scheduled (daily at ${this.config.dataCleanupHour}:00)`);
+  }
+
+  private scheduleBudgetAlerts(): void {
+    // Check budget thresholds every 5 minutes
+    const interval = setInterval(async () => {
+      if (!this.isRunning) return;
+
+      try {
+        await this.budgetAlerts.checkBudgetThresholds();
+      } catch (error) {
+        console.error('[Scheduler] Budget alert check failed:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    this.intervals.set('budgetAlerts', interval);
+    console.info('[Scheduler] Budget alerts scheduled (every 5 minutes)');
+
+    // Also run immediately on startup
+    this.budgetAlerts.checkBudgetThresholds().catch(error => {
+      console.error('[Scheduler] Initial budget alert check failed:', error);
+    });
+
+    // Schedule daily cache clear at midnight
+    const scheduleMidnightClear = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const msUntilMidnight = midnight.getTime() - now.getTime();
+
+      setTimeout(() => {
+        if (!this.isRunning) return;
+        this.budgetAlerts.clearDailyCache();
+        scheduleMidnightClear(); // Schedule next day
+      }, msUntilMidnight);
+    };
+
+    scheduleMidnightClear();
+  }
+
+  /**
+   * Get the budget alert service for external access
+   */
+  getBudgetAlertService(): BudgetAlertService {
+    return this.budgetAlerts;
   }
 
   private async runTier0Tasks(): Promise<void> {

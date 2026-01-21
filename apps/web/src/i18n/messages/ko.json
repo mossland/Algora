@@ -1145,5 +1145,19 @@
     "pipelineStage": "신호에서 실행까지 9단계 거버넌스 파이프라인의 현재 단계입니다.",
     "documentState": "문서 생명주기: 초안 → 검토 → 승인 → 발행.",
     "tierUsage": "LLM 티어 사용량 - Tier 0(무료), Tier 1(로컬 Ollama), Tier 2(외부 Claude/GPT)."
+  },
+  "Alerts": {
+    "title": "알림",
+    "notifications": "알림",
+    "markAllRead": "모두 읽음",
+    "noAlerts": "알림 없음",
+    "dismiss": "닫기",
+    "budgetWarning": "예산 경고",
+    "budgetCritical": "예산 위험",
+    "budgetExhausted": "예산 소진",
+    "justNow": "방금",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "showingCount": "{count}개 알림 표시 중"
   }
 }

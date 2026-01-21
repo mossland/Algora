@@ -1145,5 +1145,19 @@
     "pipelineStage": "Current stage in the 9-stage governance pipeline from signal to execution.",
     "documentState": "Document lifecycle: draft → review → approved → published.",
     "tierUsage": "LLM tier usage - Tier 0 (free), Tier 1 (local Ollama), Tier 2 (external Claude/GPT)."
+  },
+  "Alerts": {
+    "title": "Notifications",
+    "notifications": "Notifications",
+    "markAllRead": "Mark all read",
+    "noAlerts": "No notifications",
+    "dismiss": "Dismiss",
+    "budgetWarning": "Budget Warning",
+    "budgetCritical": "Budget Critical",
+    "budgetExhausted": "Budget Exhausted",
+    "justNow": "Just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "showingCount": "Showing {count} alerts"
   }
 }
