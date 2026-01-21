@@ -26,6 +26,7 @@ import { DisclosureService } from './services/disclosure';
 import { ReportGeneratorService } from './services/report-generator';
 import { PassiveConsensusService } from './services/passive-consensus';
 import { RAGService } from './services/rag-service';
+import { QualityGateService } from './services/quality-gate-service';
 
 const PORT = process.env.PORT || 3201;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -358,6 +359,11 @@ async function bootstrap() {
     const ragService = new RAGService(db, io);
     app.locals.ragService = ragService;
     console.info('[RAG] Service initialized - semantic search for governance documents');
+
+    // Initialize Quality Gate service
+    const qualityGateService = new QualityGateService(db, io);
+    app.locals.qualityGateService = qualityGateService;
+    console.info('[QualityGate] Service initialized - LLM output validation active');
 
     // Log LLM availability
     console.info(`[LLM] Tier 1 (Ollama): ${llmService.isTier1Available() ? 'Available' : 'Not Available'}`);
