@@ -15,6 +15,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.7] - 2026-01-21
+
+### Added
+- **LLM Cost Tracking** (`apps/api/src/index.ts`):
+  - `setupLLMCostTracking()` function listening to `llmService.on('generation')` events
+  - Records all LLM calls to `budget_usage` table with provider, tier, tokens, and estimated cost
+  - Upsert pattern aggregates by provider/tier/date/hour for efficient querying
+  - Console logging for each LLM call with cost estimate
+
+- **Data Retention Service** (`apps/api/src/services/data-retention.ts`):
+  - `DataRetentionService` class for automated data cleanup
+  - Standard 30-day retention policy:
+    - `activity_log`: 30 days (HEARTBEAT: 7 days)
+    - `agent_chatter`: 90 days
+    - `signals`: 90 days
+    - `agora_messages`, `issues`, `proposals`, `votes`: **Permanent** (governance records)
+    - `budget_usage`: 365 days
+  - `runCleanup()` method for batch deletion with timing reports
+  - `getDataSizes()` method for monitoring table row counts
+
+- **Scheduler Data Cleanup Integration** (`apps/api/src/scheduler/index.ts`):
+  - `dataCleanupHour` config option (default: 03:00)
+  - `scheduleDataCleanup()` for daily automatic cleanup
+  - `triggerDataCleanup()` for manual cleanup execution
+  - `getRetentionConfig()` to expose retention settings
+  - `dataSizes` added to scheduler status for monitoring
+
+- **Extended Monitoring API** (`apps/api/src/routes/stats.ts`):
+  - `GET /api/stats/llm-usage` - Detailed LLM usage statistics:
+    - Usage by tier and provider for configurable period
+    - Today's summary with Tier 1 ratio calculation
+    - Total cost tracking
+  - `GET /api/stats/data-growth` - Data growth trends:
+    - Current row counts per table
+    - Daily averages for key tables
+    - Growth trend visualization data
+    - Estimated database size
+  - `GET /api/stats/system-health` - System health metrics:
+    - Health score (0-100) based on errors, timeouts, budget
+    - Error and warning counts (today vs yesterday)
+    - LLM timeout tracking
+    - Budget status with percentage used
+    - Scheduler and data retention status
+
+### Changed
+- **Ollama Timeout** (`apps/api/src/services/llm.ts`):
+  - Increased from 60 seconds to 120 seconds for large models like `qwen2.5:32b`
+  - Reduces unnecessary Tier 2 fallback due to timeouts
+
+### Fixed
+- **Budget Usage Table Empty**: Previously `budget_usage` table was empty despite LLM calls
+  - Root cause: `generation` event was emitted but no listener was recording it
+  - Fixed by adding event listener in `index.ts` to capture and record all LLM usage
+
+---
+
 ## [0.12.6] - 2026-01-16
 
 ### Added

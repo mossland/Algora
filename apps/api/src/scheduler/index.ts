@@ -3,6 +3,7 @@ import type Database from 'better-sqlite3';
 import { ActivityService } from '../activity';
 import type { GovernanceOSBridge } from '../services/governance-os-bridge';
 import type { ReportGeneratorService } from '../services/report-generator';
+import { DataRetentionService } from '../services/data-retention';
 
 export type Tier = 0 | 1 | 2;
 
@@ -14,6 +15,7 @@ export interface SchedulerConfig {
   weeklyReportHour: number; // Hour to run (0-23)
   monthlyReportDay: number; // Day of month (1-28)
   monthlyReportHour: number; // Hour to run (0-23)
+  dataCleanupHour: number; // Hour to run daily data cleanup (0-23)
 }
 
 export class SchedulerService {
@@ -22,6 +24,7 @@ export class SchedulerService {
   private activityService: ActivityService;
   private governanceOSBridge: GovernanceOSBridge | null = null;
   private reportGenerator: ReportGeneratorService | null = null;
+  private dataRetention: DataRetentionService;
   private config: SchedulerConfig;
   private intervals: Map<string, NodeJS.Timeout> = new Map();
   private isRunning: boolean = false;
@@ -43,7 +46,17 @@ export class SchedulerService {
       weeklyReportHour: config?.weeklyReportHour ?? 0, // 00:00 UTC
       monthlyReportDay: config?.monthlyReportDay ?? 1, // 1st of month
       monthlyReportHour: config?.monthlyReportHour ?? 0, // 00:00 UTC
+      dataCleanupHour: config?.dataCleanupHour ?? 3, // 03:00 daily
     };
+
+    // Initialize data retention service with standard 30-day policy
+    this.dataRetention = new DataRetentionService(db, {
+      activityLogRetentionDays: 30,
+      heartbeatRetentionDays: 7,
+      chatterRetentionDays: 90,
+      signalRetentionDays: 90,
+      budgetUsageRetentionDays: 365,
+    });
   }
 
   /**
@@ -82,6 +95,9 @@ export class SchedulerService {
 
     // Schedule report generation
     this.scheduleReportGeneration();
+
+    // Schedule daily data cleanup
+    this.scheduleDataCleanup();
 
     this.activityService.log('SYSTEM_STATUS', 'info', 'Scheduler started', {
       details: { config: this.config },
@@ -224,6 +240,50 @@ export class SchedulerService {
 
     this.intervals.set('reportGeneration', interval);
     console.info(`[Scheduler] Report generation scheduled (weekly: day ${this.config.weeklyReportDay} hour ${this.config.weeklyReportHour}, monthly: day ${this.config.monthlyReportDay} hour ${this.config.monthlyReportHour})`);
+  }
+
+  private scheduleDataCleanup(): void {
+    // Check every minute for data cleanup time
+    const interval = setInterval(async () => {
+      if (!this.isRunning) return;
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      // Run data cleanup at configured hour (default 03:00)
+      if (currentHour === this.config.dataCleanupHour && currentMinute === 0) {
+        console.info('[Scheduler] Running scheduled data cleanup');
+        try {
+          const report = await this.dataRetention.runCleanup();
+
+          this.activityService.log('SYSTEM_STATUS', 'info', `Data cleanup completed: ${report.totalDeleted} rows deleted`, {
+            details: {
+              totalDeleted: report.totalDeleted,
+              results: report.results,
+              errors: report.errors,
+            },
+            metadata: { type: 'data-retention' },
+          });
+
+          // Emit event for monitoring
+          this.io.emit('system:dataCleanup', {
+            totalDeleted: report.totalDeleted,
+            results: report.results,
+            timestamp: new Date().toISOString(),
+          });
+
+        } catch (error) {
+          console.error('[Scheduler] Data cleanup failed:', error);
+          this.activityService.log('SYSTEM_STATUS', 'error', 'Data cleanup failed', {
+            details: { error: String(error) },
+          });
+        }
+      }
+    }, 60000); // Check every minute
+
+    this.intervals.set('dataCleanup', interval);
+    console.info(`[Scheduler] Data cleanup scheduled (daily at ${this.config.dataCleanupHour}:00)`);
   }
 
   private async runTier0Tasks(): Promise<void> {
@@ -527,11 +587,41 @@ export class SchedulerService {
     isRunning: boolean;
     config: SchedulerConfig;
     activeIntervals: string[];
+    dataSizes?: Record<string, number>;
   } {
     return {
       isRunning: this.isRunning,
       config: this.config,
       activeIntervals: Array.from(this.intervals.keys()),
+      dataSizes: this.dataRetention.getDataSizes(),
     };
+  }
+
+  /**
+   * Manually trigger data cleanup
+   */
+  async triggerDataCleanup(): Promise<{ totalDeleted: number; results: { table: string; deletedRows: number }[] }> {
+    if (!this.isRunning) {
+      throw new Error('Scheduler is not running');
+    }
+
+    const report = await this.dataRetention.runCleanup();
+
+    this.activityService.log('SYSTEM_STATUS', 'info', `Manual data cleanup: ${report.totalDeleted} rows deleted`, {
+      details: { results: report.results },
+      metadata: { type: 'data-retention', manual: true },
+    });
+
+    return {
+      totalDeleted: report.totalDeleted,
+      results: report.results.map(r => ({ table: r.table, deletedRows: r.deletedRows })),
+    };
+  }
+
+  /**
+   * Get data retention configuration
+   */
+  getRetentionConfig(): ReturnType<DataRetentionService['getConfig']> {
+    return this.dataRetention.getConfig();
   }
 }

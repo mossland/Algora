@@ -2,8 +2,8 @@
 
 이 파일은 세션 간 개발 연속성을 위해 현재 개발 진행 상황을 추적합니다.
 
-**최종 업데이트**: 2026-01-15
-**현재 버전**: 0.12.5
+**최종 업데이트**: 2026-01-21
+**현재 버전**: 0.12.7
 **프로덕션 URL**: https://algora.moss.land
 
 ---
@@ -598,6 +598,47 @@
 - [ ] 투표권 표시와 함께 투표 확인
 - [ ] 위임된 투표 자동 적용
 - [ ] 프로필 페이지에 투표 이력
+
+---
+
+### Phase 10.6: 운영 데이터 분석 및 개선 (완료)
+
+13일간의 프로덕션 데이터 기준 (2026-01-09 ~ 2026-01-21):
+
+#### 데이터 분석 결과
+- **activity_log**: 129,974 레코드 (~10,000/일)
+- **agent_chatter**: 32,900 레코드 (~2,500/일)
+- **agora_messages**: 21,983 레코드 (~1,700/일)
+- **signals**: 14,935 레코드 (~1,150/일)
+- **데이터베이스 크기**: 141MB (정리 없이 연간 ~4GB 예상)
+
+#### LLM 비용 추적 (P0) - 완료
+- [x] `apps/api/src/index.ts`에 `generation` 이벤트 리스너 추가
+- [x] 모든 LLM 호출을 `budget_usage` 테이블에 기록
+- [x] provider, tier, 토큰, 예상 비용 추적
+- [x] provider/tier/date/hour 기준 집계를 위한 Upsert 패턴
+
+#### Ollama 타임아웃 최적화 (P0) - 완료
+- [x] qwen2.5:32b 같은 대형 모델을 위해 타임아웃을 60초에서 120초로 증가
+- [x] 하이브리드 모델 전략 검증:
+  - Chatter는 `complexity: 'fast'` 사용 → `llama3.2:3b`
+  - Agora는 `complexity: 'balanced'` 사용 → `qwen2.5:32b`
+
+#### 데이터 보존 서비스 (P1) - 완료
+- [x] 새 서비스: `apps/api/src/services/data-retention.ts`
+- [x] 표준 30일 보존 정책:
+  - `activity_log`: 30일 (HEARTBEAT: 7일)
+  - `agent_chatter`: 90일
+  - `signals`: 90일
+  - `agora_messages`, `issues`, `proposals`, `votes`: **영구** (거버넌스 기록)
+  - `budget_usage`: 365일
+- [x] 스케줄러 통합 (매일 03:00)
+- [x] `triggerDataCleanup()`으로 수동 정리 트리거
+
+#### 모니터링 API 확장 (P2) - 완료
+- [x] `GET /api/stats/llm-usage` - tier/provider별 LLM 사용량, Tier 1 비율, 비용
+- [x] `GET /api/stats/data-growth` - 행 수, 일일 평균, 성장 추세
+- [x] `GET /api/stats/system-health` - 헬스 점수, 오류 수, 예산 상태
 
 ---
 

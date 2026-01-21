@@ -16,6 +16,7 @@ import { SchedulerService } from './scheduler';
 import { ChatterService } from './services/chatter';
 import { llmService } from './services/llm';
 import { SignalCollectorService } from './services/collectors';
+import { v4 as uuidv4 } from 'uuid';
 import { IssueDetectionService } from './services/issue-detection';
 import { GovernanceService } from './services/governance';
 import { ProofOfOutcomeService } from './services/proof-of-outcome';
@@ -97,6 +98,61 @@ app.use(express.urlencoded({ extended: true }));
 
 // Server start time for uptime calculation
 const serverStartTime = Date.now();
+
+// LLM Cost Tracking - records all LLM generation events to budget_usage table
+function setupLLMCostTracking(db: ReturnType<typeof initDatabase>): void {
+  // Get pricing config from database
+  const getConfig = db.prepare('SELECT * FROM budget_config WHERE provider = ?');
+
+  llmService.on('generation', (event: { tier: number; model: string; tokensUsed?: number }) => {
+    const { tier, model, tokensUsed } = event;
+
+    // Determine provider from tier and model
+    let provider: string;
+    if (tier === 1) {
+      provider = 'ollama';
+    } else if (model.includes('claude')) {
+      provider = 'anthropic';
+    } else if (model.includes('gpt')) {
+      provider = 'openai';
+    } else if (model.includes('gemini')) {
+      provider = 'google';
+    } else {
+      provider = 'unknown';
+    }
+
+    const date = new Date().toISOString().split('T')[0];
+    const hour = new Date().getHours();
+    const outputTokens = tokensUsed || 0;
+
+    // Get pricing for cost estimation
+    let estimatedCost = 0;
+    if (tier === 2) {
+      const config = getConfig.get(provider) as { output_token_price: number } | undefined;
+      if (config) {
+        estimatedCost = outputTokens * config.output_token_price;
+      }
+    }
+
+    // Upsert to budget_usage
+    try {
+      db.prepare(`
+        INSERT INTO budget_usage (id, provider, tier, date, hour, output_tokens, estimated_cost_usd, call_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        ON CONFLICT(provider, tier, date, hour) DO UPDATE SET
+          output_tokens = output_tokens + excluded.output_tokens,
+          estimated_cost_usd = estimated_cost_usd + excluded.estimated_cost_usd,
+          call_count = call_count + 1
+      `).run(uuidv4(), provider, tier, date, hour, outputTokens, estimatedCost);
+
+      console.log(`[LLM-TRACK] Tier ${tier} ${provider} - ${outputTokens} tokens, $${estimatedCost.toFixed(6)}`);
+    } catch (error) {
+      console.error('[LLM-TRACK] Failed to record usage:', error);
+    }
+  });
+
+  console.info('[LLM-TRACK] Cost tracking initialized');
+}
 
 // Health check with real data
 app.get('/health', (req, res) => {
@@ -211,6 +267,9 @@ async function bootstrap() {
     // Make db available to routes
     app.locals.db = db;
     app.locals.io = io;
+
+    // Setup LLM cost tracking - record all generation events to budget_usage
+    setupLLMCostTracking(db);
 
     // Setup routes
     setupRoutes(app);

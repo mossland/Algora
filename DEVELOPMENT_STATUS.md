@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-16
-**Current Version**: 0.12.6
+**Last Updated**: 2026-01-21
+**Current Version**: 0.12.7
 **Production URL**: https://algora.moss.land
 
 ---
@@ -633,6 +633,47 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
 - [x] **Slow Request Logging**: Console warning for requests > 500ms
 - [x] `deploy/nginx.conf.example` - Example nginx config with proxy caching
 - [x] `deploy/warmup.sh` - Cold start mitigation script
+
+---
+
+### Phase 10.6: Operational Data Analysis & Improvements (COMPLETED)
+
+Based on 13 days of production data (2026-01-09 ~ 2026-01-21):
+
+#### Data Analysis Results
+- **activity_log**: 129,974 records (~10,000/day)
+- **agent_chatter**: 32,900 records (~2,500/day)
+- **agora_messages**: 21,983 records (~1,700/day)
+- **signals**: 14,935 records (~1,150/day)
+- **Database Size**: 141MB (estimated ~4GB/year without cleanup)
+
+#### LLM Cost Tracking (P0) - COMPLETED
+- [x] `generation` event listener in `apps/api/src/index.ts`
+- [x] Records all LLM calls to `budget_usage` table
+- [x] Tracks provider, tier, tokens, and estimated cost
+- [x] Upsert pattern aggregates by provider/tier/date/hour
+
+#### Ollama Timeout Optimization (P0) - COMPLETED
+- [x] Increased timeout from 60s to 120s for large models like qwen2.5:32b
+- [x] Hybrid model strategy verified:
+  - Chatter uses `complexity: 'fast'` → `llama3.2:3b`
+  - Agora uses `complexity: 'balanced'` → `qwen2.5:32b`
+
+#### Data Retention Service (P1) - COMPLETED
+- [x] New service: `apps/api/src/services/data-retention.ts`
+- [x] Standard 30-day retention policy:
+  - `activity_log`: 30 days (HEARTBEAT: 7 days)
+  - `agent_chatter`: 90 days
+  - `signals`: 90 days
+  - `agora_messages`, `issues`, `proposals`, `votes`: **Permanent**
+  - `budget_usage`: 365 days
+- [x] Scheduler integration (daily at 03:00)
+- [x] Manual cleanup trigger via `triggerDataCleanup()`
+
+#### Monitoring API Extension (P2) - COMPLETED
+- [x] `GET /api/stats/llm-usage` - LLM usage by tier/provider, Tier 1 ratio, costs
+- [x] `GET /api/stats/data-growth` - Row counts, daily averages, growth trends
+- [x] `GET /api/stats/system-health` - Health score, error counts, budget status
 
 ---
 

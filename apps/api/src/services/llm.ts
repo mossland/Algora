@@ -60,7 +60,7 @@ export class LLMService extends EventEmitter {
           balanced: process.env.LOCAL_LLM_MODEL_BALANCED || 'qwen2.5:32b',
           quality: process.env.LOCAL_LLM_MODEL_QUALITY || 'llama3.3:70b',
         },
-        timeout: 60000, // Increased for larger models
+        timeout: 120000, // 2 minutes for large models like qwen2.5:32b
       },
       tier2: {
         anthropic: process.env.ANTHROPIC_API_KEY
