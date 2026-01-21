@@ -1,7 +1,54 @@
 import { Router } from 'express';
+import type { Server as SocketServer } from 'socket.io';
 import type { TokenIntegrationService } from '../services/token';
 
 export const tokenRouter: Router = Router();
+
+// ===========================================
+// Token Voting WebSocket Events
+// ===========================================
+
+/**
+ * Broadcast vote cast event to all connected clients
+ */
+function broadcastVoteCast(
+  io: SocketServer,
+  data: {
+    proposalId: string;
+    voter: string;
+    choice: 'for' | 'against' | 'abstain';
+    votingPower: number;
+  }
+): void {
+  io.emit('vote:cast', {
+    ...data,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+/**
+ * Broadcast tally update event to all connected clients
+ */
+function broadcastTallyUpdated(
+  io: SocketServer,
+  data: {
+    proposalId: string;
+    tally: {
+      forVotes: number;
+      againstVotes: number;
+      abstainVotes: number;
+      totalVotes: number;
+      totalVoters: number;
+      quorum: number;
+      status: string;
+    };
+  }
+): void {
+  io.emit('vote:tally:updated', {
+    ...data,
+    timestamp: new Date().toISOString(),
+  });
+}
 
 // === Token Info ===
 
@@ -227,19 +274,51 @@ tokenRouter.get('/voting/:proposalId', (req, res) => {
 // POST /api/token/voting/:proposalId/vote - Cast a vote
 tokenRouter.post('/voting/:proposalId/vote', async (req, res) => {
   const tokenService: TokenIntegrationService = req.app.locals.tokenIntegration;
+  const io: SocketServer = req.app.locals.io;
   try {
     const { walletAddress, choice, signature, reason } = req.body;
+    const proposalId = req.params.proposalId;
 
     if (!walletAddress || !choice) {
       return res.status(400).json({ error: 'walletAddress and choice are required' });
     }
 
     const vote = await tokenService.voting.castVote(
-      req.params.proposalId,
+      proposalId,
       walletAddress,
       choice,
       { signature, reason }
     );
+
+    // Broadcast vote cast event to all connected clients
+    if (io) {
+      broadcastVoteCast(io, {
+        proposalId,
+        voter: walletAddress,
+        choice,
+        votingPower: vote.votingPower || 0,
+      });
+
+      // Also broadcast updated tally
+      try {
+        const tally = tokenService.voting.calculateTally(proposalId);
+        broadcastTallyUpdated(io, {
+          proposalId,
+          tally: {
+            forVotes: tally.forVotes || 0,
+            againstVotes: tally.againstVotes || 0,
+            abstainVotes: tally.abstainVotes || 0,
+            totalVotes: tally.totalVotes || 0,
+            totalVoters: tally.totalVoters || 0,
+            quorum: tally.quorum || 0,
+            status: tally.status || 'active',
+          },
+        });
+      } catch (tallyError) {
+        console.warn('[TokenVoting] Failed to broadcast tally update:', tallyError);
+      }
+    }
+
     res.json(vote);
   } catch (error: any) {
     res.status(400).json({ error: error.message });

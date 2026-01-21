@@ -59,11 +59,11 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
         <NextIntlClientProvider messages={messages}>
           <Providers>
-            <div className="flex h-screen flex-col bg-agora-darker">
+            <div className="flex h-screen flex-col bg-agora-darker dark:bg-agora-dark-darker">
               <ExperimentalBanner />
               <div className="flex flex-1 overflow-hidden">
                 <Sidebar />

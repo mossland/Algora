@@ -13,6 +13,7 @@ import { collectorsRouter } from './collectors';
 import { outcomesRouter } from './outcomes';
 import { tokenRouter } from './token';
 import { disclosureRouter } from './disclosure';
+import { searchRouter } from './search';
 import governanceOSRouter from './governance-os';
 
 export function setupRoutes(app: Express): void {
@@ -33,6 +34,7 @@ export function setupRoutes(app: Express): void {
   apiRouter.use('/outcomes', outcomesRouter);
   apiRouter.use('/token', tokenRouter);
   apiRouter.use('/disclosure', disclosureRouter);
+  apiRouter.use('/search', searchRouter);
   apiRouter.use('/governance-os', governanceOSRouter);
 
   // Mount API router

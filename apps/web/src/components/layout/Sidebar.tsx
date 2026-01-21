@@ -16,6 +16,7 @@ import {
   BookOpen,
   Tv,
   Workflow,
+  Gauge,
 } from 'lucide-react';
 
 const navItems = [
@@ -30,6 +31,7 @@ const navItems = [
   { key: 'proposals', href: '/proposals', icon: FileText },
   { key: 'treasury', href: '/treasury', icon: Coins },
   { key: 'disclosure', href: '/disclosure', icon: Shield },
+  { key: 'admin', href: '/admin', icon: Gauge },
   { key: 'engine', href: '/engine', icon: Settings },
 ];
 

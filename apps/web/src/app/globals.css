@@ -10,6 +10,27 @@
   --moss-primary: #16f6ab;
   --moss-secondary: #00c2c2;
   --moss-tertiary: #0080e8;
+
+  /* Theme-aware colors */
+  --agora-dark: #ffffff;
+  --agora-darker: #f8fafc;
+  --agora-card: #ffffff;
+  --agora-border: #e2e8f0;
+  --agora-text: #0f172a;
+  --agora-muted: #64748b;
+}
+
+.dark {
+  --foreground-rgb: 248, 250, 252;
+  --background-rgb: 15, 15, 20;
+
+  /* Dark theme colors */
+  --agora-dark: #0f0f14;
+  --agora-darker: #0a0a0f;
+  --agora-card: #161621;
+  --agora-border: #2a2a3a;
+  --agora-text: #f8fafc;
+  --agora-muted: #94a3b8;
 }
 
 body {
@@ -19,7 +40,7 @@ body {
   position: relative;
 }
 
-/* Background grid pattern (moss.land style) */
+/* Background grid pattern (moss.land style) - light mode */
 body::before {
   content: '';
   position: fixed;
@@ -30,6 +51,13 @@ body::before {
   background-size: 60px 60px;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Background grid pattern - dark mode */
+.dark body::before {
+  background-image:
+    linear-gradient(to right, #1e1e2a 1px, transparent 1px),
+    linear-gradient(to bottom, #1e1e2a 1px, transparent 1px);
 }
 
 /* Content should be above the grid */
@@ -64,6 +92,19 @@ body > * {
   background: #94a3b8;
 }
 
+/* Custom scrollbar (dark theme) */
+.dark ::-webkit-scrollbar-track {
+  background: #1e1e2a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3a3a4a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4a4a5a;
+}
+
 /* Agent status indicators */
 .agent-status-idle {
   @apply bg-gray-400;
@@ -85,6 +126,11 @@ body > * {
 ::selection {
   background-color: rgba(22, 246, 171, 0.3);
   color: #0f172a;
+}
+
+.dark ::selection {
+  background-color: rgba(22, 246, 171, 0.3);
+  color: #f8fafc;
 }
 
 /* Gradient text utility */

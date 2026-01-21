@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { Globe, Activity, Clock, Wallet, Menu } from 'lucide-react';
+import { Globe, Activity, Clock, Wallet, Menu, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { WalletConnect } from '@/components/wallet/WalletConnect';
@@ -11,6 +11,8 @@ import { HelpMenu } from '@/components/guide/HelpMenu';
 import { WelcomeTour } from '@/components/guide/WelcomeTour';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
 import { MobileNav } from './MobileNav';
+import { useTheme } from '@/contexts/ThemeContext';
+import { GlobalSearch } from '@/components/search';
 
 export function Header() {
   const t = useTranslations('Header');
@@ -18,6 +20,7 @@ export function Header() {
   const pathname = usePathname();
   const [showTour, setShowTour] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const currentLocale = pathname.split('/')[1] || 'en';
   const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/';
@@ -41,7 +44,7 @@ export function Header() {
 
   return (
     <>
-      <header className="flex h-14 items-center justify-between border-b border-agora-border bg-agora-dark px-4 md:px-6">
+      <header className="flex h-14 items-center justify-between border-b border-agora-border dark:border-agora-dark-border bg-agora-dark dark:bg-agora-dark-dark px-4 md:px-6">
         {/* Left section */}
         <div className="flex items-center gap-4 md:gap-6">
           {/* Mobile menu button */}
@@ -126,6 +129,11 @@ export function Header() {
 
         {/* Right section */}
         <div className="flex items-center gap-2 md:gap-4">
+          {/* Global Search */}
+          <div className="hidden sm:block">
+            <GlobalSearch />
+          </div>
+
           {/* Mobile status indicator */}
           <div className="md:hidden flex items-center gap-1.5">
             <span
@@ -161,10 +169,23 @@ export function Header() {
             <HelpMenu onStartTour={() => setShowTour(true)} />
           </div>
 
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
+
           {/* Language Toggle */}
           <Link
             href={`/${otherLocale}${pathWithoutLocale}`}
-            className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900"
+            className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white"
           >
             <Globe className="h-4 w-4" />
             <span className="hidden sm:inline">{otherLocale === 'en' ? 'EN' : '한국어'}</span>

@@ -24,13 +24,29 @@ const config: Config = {
           950: '#022c22',
         },
         agora: {
-          // Light theme (moss.land style)
+          // Light theme (moss.land style) - used without dark: prefix
           dark: '#ffffff',
           darker: '#f8fafc',
           card: '#ffffff',
           border: '#e2e8f0',
           text: '#0f172a',
           muted: '#64748b',
+          primary: '#16f6ab',
+          secondary: '#00c2c2',
+          tertiary: '#0080e8',
+          success: '#10b981',
+          accent: '#00c2c2',
+          warning: '#f59e0b',
+          error: '#ef4444',
+        },
+        // Dark theme variants
+        'agora-dark': {
+          dark: '#0f0f14',
+          darker: '#0a0a0f',
+          card: '#161621',
+          border: '#2a2a3a',
+          text: '#f8fafc',
+          muted: '#94a3b8',
           primary: '#16f6ab',
           secondary: '#00c2c2',
           tertiary: '#0080e8',

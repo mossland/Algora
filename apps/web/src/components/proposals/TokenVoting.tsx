@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ThumbsUp, ThumbsDown, MinusCircle, Wallet, Loader2, Users, Info } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MinusCircle, Wallet, Loader2, Users, Info, Radio } from 'lucide-react';
+import { useVoteEvents, type VoteCastEvent, type VoteTallyUpdatedEvent } from '@/hooks/useSocket';
 
 interface TokenVotingProps {
   proposalId: string;
@@ -86,6 +87,32 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
       if (!res.ok) return null;
       return res.json();
     },
+  });
+
+  // Real-time vote updates state
+  const [recentVote, setRecentVote] = useState<VoteCastEvent | null>(null);
+  const [showVoteNotification, setShowVoteNotification] = useState(false);
+
+  // Handle real-time vote events
+  const handleVoteCast = useCallback((data: VoteCastEvent) => {
+    setRecentVote(data);
+    setShowVoteNotification(true);
+    // Hide notification after 3 seconds
+    setTimeout(() => setShowVoteNotification(false), 3000);
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['token-vote', proposalId] });
+    queryClient.invalidateQueries({ queryKey: ['token-voting-info', proposalId] });
+  }, [proposalId, queryClient]);
+
+  const handleTallyUpdated = useCallback((data: VoteTallyUpdatedEvent) => {
+    // Invalidate voting info to get fresh tally
+    queryClient.invalidateQueries({ queryKey: ['token-voting-info', proposalId] });
+  }, [proposalId, queryClient]);
+
+  // Subscribe to real-time vote events
+  const { isConnected: isSocketConnected } = useVoteEvents(proposalId, {
+    onVoteCast: handleVoteCast,
+    onTallyUpdated: handleTallyUpdated,
   });
 
   // Calculate effective voting power (own + received delegations)
@@ -196,7 +223,36 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
 
   return (
     <div className="rounded-lg border border-agora-border bg-agora-card p-4">
-      <h4 className="mb-4 font-medium text-slate-900">{tVoting('castYourVote')}</h4>
+      {/* Real-time connection indicator */}
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-medium text-slate-900">{tVoting('castYourVote')}</h4>
+        <div className="flex items-center gap-1.5 text-xs">
+          <Radio className={`h-3 w-3 ${isSocketConnected ? 'text-green-400 animate-pulse' : 'text-agora-muted'}`} />
+          <span className={isSocketConnected ? 'text-green-400' : 'text-agora-muted'}>
+            {isSocketConnected ? 'Live' : 'Offline'}
+          </span>
+        </div>
+      </div>
+
+      {/* Real-time vote notification */}
+      {showVoteNotification && recentVote && (
+        <div className="mb-4 animate-slide-up rounded-lg bg-agora-accent/10 border border-agora-accent/30 p-3">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-agora-accent font-medium">New Vote!</span>
+            <span className="text-agora-muted">
+              {recentVote.voter.slice(0, 6)}...{recentVote.voter.slice(-4)} voted{' '}
+              <span className={
+                recentVote.choice === 'for' ? 'text-green-400' :
+                recentVote.choice === 'against' ? 'text-red-400' :
+                'text-gray-400'
+              }>
+                {recentVote.choice}
+              </span>
+              {' '}with {recentVote.votingPower.toLocaleString()} power
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Voting Power Breakdown */}
       <div className="mb-4 rounded-lg bg-agora-darker p-3">

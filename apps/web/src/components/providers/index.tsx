@@ -5,6 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { useState } from 'react';
 import { config } from '@/lib/wagmi';
 import { WalletProvider } from '@/contexts/WalletContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -24,10 +25,12 @@ export function Providers({ children }: ProvidersProps) {
   );
 
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <WalletProvider>{children}</WalletProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ThemeProvider>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <WalletProvider>{children}</WalletProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ThemeProvider>
   );
 }

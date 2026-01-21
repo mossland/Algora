@@ -66,7 +66,78 @@ export type TokenEvent =
   | 'treasury:allocation_created'
   | 'treasury:allocation_approved'
   | 'treasury:allocation_disbursed'
-  | 'treasury:transaction';
+  | 'treasury:transaction'
+  // New real-time vote events
+  | 'vote:cast'
+  | 'vote:tally:updated';
+
+// Vote event data types
+export interface VoteCastEvent {
+  proposalId: string;
+  voter: string;
+  choice: 'for' | 'against' | 'abstain';
+  votingPower: number;
+  timestamp: string;
+}
+
+export interface VoteTallyUpdatedEvent {
+  proposalId: string;
+  tally: {
+    forVotes: number;
+    againstVotes: number;
+    abstainVotes: number;
+    totalVotes: number;
+    totalVoters: number;
+    quorum: number;
+    status: string;
+  };
+  timestamp: string;
+}
+
+/**
+ * Hook for subscribing to real-time vote events for a specific proposal
+ */
+export function useVoteEvents(
+  proposalId: string,
+  callbacks: {
+    onVoteCast?: (data: VoteCastEvent) => void;
+    onTallyUpdated?: (data: VoteTallyUpdatedEvent) => void;
+  }
+) {
+  const { subscribe, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const unsubscribes: (() => void)[] = [];
+
+    if (callbacks.onVoteCast) {
+      const unsub = subscribe('vote:cast', (data) => {
+        const event = data as VoteCastEvent;
+        if (event.proposalId === proposalId) {
+          callbacks.onVoteCast?.(event);
+        }
+      });
+      unsubscribes.push(unsub);
+    }
+
+    if (callbacks.onTallyUpdated) {
+      const unsub = subscribe('vote:tally:updated', (data) => {
+        const event = data as VoteTallyUpdatedEvent;
+        if (event.proposalId === proposalId) {
+          callbacks.onTallyUpdated?.(event);
+        }
+      });
+      unsubscribes.push(unsub);
+    }
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [proposalId, callbacks, subscribe, isConnected]);
+
+  return { isConnected };
+}
 
 export function useTokenEvents(events: TokenEvent[], callback: (event: TokenEvent, data: unknown) => void) {
   const { subscribe } = useSocket();
