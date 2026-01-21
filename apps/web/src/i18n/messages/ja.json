@@ -1,0 +1,1202 @@
+{
+  "Common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "delete": "削除",
+    "edit": "編集",
+    "view": "表示",
+    "search": "検索",
+    "filter": "フィルター",
+    "status": "ステータス",
+    "actions": "アクション"
+  },
+  "Navigation": {
+    "dashboard": "ダッシュボード",
+    "guide": "ガイド",
+    "live": "ライブ",
+    "governance": "ガバナンスOS",
+    "agora": "アゴラ",
+    "agents": "エージェント",
+    "signals": "シグナル",
+    "issues": "イシュー",
+    "proposals": "提案",
+    "treasury": "財務",
+    "disclosure": "情報開示",
+    "engine": "エンジンルーム"
+  },
+  "Dashboard": {
+    "title": "ダッシュボード",
+    "subtitle": "ガバナンス活動の概要",
+    "activityFeed": "最近のアクティビティ",
+    "agentLobby": "エージェントロビー",
+    "stats": {
+      "activeAgents": "アクティブエージェント",
+      "activeSessions": "アクティブセッション",
+      "signalsToday": "今日のシグナル",
+      "openIssues": "オープンイシュー",
+      "clickForDetails": "詳細はクリック",
+      "activeAgentsDesc": "現在ガバナンス活動に参加しているAIエージェント",
+      "activeSessionsDesc": "進行中のアゴラ議論セッション",
+      "signalsTodayDesc": "今日収集された新しいシグナル",
+      "openIssuesDesc": "検出され、解決を待っているイシュー"
+    },
+    "statDetails": {
+      "title": "統計詳細",
+      "currentValue": "現在の値",
+      "trend24h": "24時間の変化",
+      "breakdown": "内訳",
+      "recentActivity": "最近のアクティビティ",
+      "close": "閉じる",
+      "noBreakdown": "内訳データがありません",
+      "noActivity": "最近のアクティビティがありません"
+    }
+  },
+  "Header": {
+    "systemStatus": "システムステータス",
+    "running": "稼働中",
+    "degraded": "低下",
+    "maintenance": "メンテナンス",
+    "budget": "予算",
+    "nextTier2": "次のTier2",
+    "queue": "キュー"
+  },
+  "Agents": {
+    "title": "AIエージェント",
+    "subtitle": "ダイナミックペルソナスペクトラム",
+    "searchPlaceholder": "エージェントを検索...",
+    "allClusters": "すべて",
+    "recentActivity": "最近のアクティビティ",
+    "groups": {
+      "visionaries": "ビジョナリー",
+      "builders": "ビルダー",
+      "investors": "投資家",
+      "guardians": "ガーディアン",
+      "operatives": "オペラティブ",
+      "moderators": "モデレーター",
+      "advisors": "アドバイザー",
+      "orchestrators": "オーケストレーター",
+      "archivists": "アーキビスト",
+      "red-team": "レッドチーム",
+      "scouts": "スカウト"
+    },
+    "status": {
+      "idle": "待機中",
+      "active": "アクティブ",
+      "speaking": "発言中",
+      "listening": "リスニング"
+    },
+    "summon": "召喚",
+    "dismiss": "解散",
+    "noResults": "エージェントが見つかりません",
+    "noSearchResults": "「{query}」に一致するエージェントはありません",
+    "noAgentsInCluster": "このクラスターにエージェントがいません",
+    "clearFilters": "フィルターをクリア"
+  },
+  "Agora": {
+    "title": "アゴラ",
+    "subtitle": "ライブ議論アリーナ",
+    "lobby": "ロビー",
+    "discussion": "議論",
+    "evidence": "証拠",
+    "summonAgent": "エージェントを召喚",
+    "sendMessage": "メッセージを入力...",
+    "noActiveSession": "アクティブなセッションがありません",
+    "startSession": "セッション開始",
+    "status": {
+      "idle": "待機中",
+      "active": "アクティブ",
+      "speaking": "発言中",
+      "listening": "リスニング"
+    },
+    "sessionStatus": {
+      "pending": "保留中",
+      "active": "アクティブ",
+      "concluded": "終了"
+    },
+    "detail": {
+      "started": "開始",
+      "duration": "期間",
+      "notStarted": "まだ開始されていません",
+      "sessionEnded": "セッション終了",
+      "inProgress": "進行中",
+      "participants": "参加者",
+      "agents": "エージェント",
+      "summary": "セッションサマリー",
+      "summaryPlaceholder": "セッション終了時にサマリーが生成されます。",
+      "messages": "メッセージ",
+      "minutes": "分",
+      "share": "共有",
+      "joinSession": "セッション参加",
+      "startSession": "セッション開始",
+      "viewTranscript": "トランスクリプト表示"
+    }
+  },
+  "Activity": {
+    "types": {
+      "HEARTBEAT": "ハートビート",
+      "COLLECTOR": "シグナル収集",
+      "AGENT_CHATTER": "エージェントチャット",
+      "AGENT_SUMMONED": "エージェント召喚",
+      "AGENT_DISMISSED": "エージェント解散",
+      "AGORA_SESSION_START": "セッション開始",
+      "AGORA_SESSION_AUTO_CREATED": "自動セッション作成",
+      "AGORA_ROUND_COMPLETE": "ラウンド完了",
+      "DECISION_PACKET": "決定パケット",
+      "ISSUE_DETECTED": "イシュー検出",
+      "VOTE_CAST": "投票",
+      "VOTING_FINALIZED": "投票確定",
+      "DELEGATION_CREATED": "委任作成",
+      "PROPOSAL_CREATED": "提案作成",
+      "VOTING_STARTED": "投票開始",
+      "DECISION_PACKET_GENERATED": "決定パケット生成",
+      "SYSTEM_STATUS": "システムステータス",
+      "PROPOSAL_OUTCOME_PROCESSED": "結果処理",
+      "OUTCOME_CREATED": "結果作成",
+      "EXECUTION_STARTED": "実行開始",
+      "EXECUTION_COMPLETED": "実行完了",
+      "OUTCOME_COMPLETED": "結果完了"
+    },
+    "detail": {
+      "activityId": "アクティビティID",
+      "severity": "重大度",
+      "timestamp": "タイムスタンプ",
+      "message": "メッセージ",
+      "details": "詳細",
+      "relatedAgent": "関連エージェント",
+      "metadata": "メタデータ",
+      "timeInfo": "時間情報",
+      "created": "作成日時",
+      "occurred": "発生日時",
+      "share": "共有",
+      "close": "閉じる"
+    }
+  },
+  "Engine": {
+    "title": "エンジンルーム",
+    "subtitle": "システム監視と設定",
+    "refresh": "更新",
+    "refreshed": "更新済み",
+    "uptime": "稼働時間",
+    "status": {
+      "ok": "全システム正常稼働",
+      "running": "全システム正常稼働",
+      "degraded": "システムパフォーマンス低下",
+      "maintenance": "システムメンテナンス中"
+    },
+    "stats": {
+      "apiCalls": "API呼び出し",
+      "llmCalls": "LLM呼び出し",
+      "dbSize": "DBサイズ",
+      "activeAgents": "アクティブエージェント",
+      "today": "今日",
+      "agents": "エージェント"
+    },
+    "budget": {
+      "title": "予算概要",
+      "daily": "日次予算",
+      "monthly": "月次予算",
+      "remaining": "残り",
+      "lowBudgetWarning": "日次予算が不足しています。Tier 2呼び出しの削減を検討してください。"
+    },
+    "tiers": {
+      "title": "ティア使用量",
+      "tier0": "Tier 0",
+      "tier0Desc": "無料操作（RSS、GitHub）",
+      "tier1": "Tier 1",
+      "tier1Desc": "ローカルLLM（Ollama）",
+      "tier2": "Tier 2",
+      "tier2Desc": "外部LLM（Claude/GPT）"
+    },
+    "scheduler": {
+      "title": "スケジューラー",
+      "nextTier2": "次のTier 2",
+      "queueLength": "キュー",
+      "pendingTasks": "保留中タスク",
+      "lastRun": "最終実行",
+      "interval": "インターバル",
+      "tier2Interval": "Tier 2インターバル"
+    },
+    "health": {
+      "title": "システムヘルス",
+      "uptime": "稼働時間",
+      "memory": "メモリ",
+      "database": "データベース",
+      "agents": "エージェント",
+      "systemInfo": "システムスタック"
+    }
+  },
+  "Proposals": {
+    "title": "提案",
+    "subtitle": "ガバナンス提案への投票",
+    "createProposal": "提案作成",
+    "searchPlaceholder": "提案を検索...",
+    "noProposals": "提案が見つかりません",
+    "noProposalsDesc": "イシューから提案が作成されるとここに表示されます",
+    "viewDetails": "詳細表示",
+    "for": "賛成",
+    "against": "反対",
+    "abstain": "棄権",
+    "quorum": "定足数",
+    "endsIn": "終了まで",
+    "ended": "終了",
+    "stats": {
+      "active": "アクティブ",
+      "passed": "可決",
+      "rejected": "否決",
+      "executed": "実行済み"
+    },
+    "status": {
+      "all": "すべて",
+      "draft": "下書き",
+      "active": "アクティブ",
+      "passed": "可決",
+      "rejected": "否決",
+      "executed": "実行済み"
+    },
+    "detail": {
+      "summary": "サマリー",
+      "votingResults": "投票結果",
+      "totalVotes": "総投票数",
+      "quorumRequired": "必要定足数",
+      "created": "作成日",
+      "votingEnds": "投票終了",
+      "votingEnded": "投票終了済み",
+      "outcome": "結果",
+      "proposalPassed": "この提案は可決され、実行を待っています。",
+      "proposalRejected": "この提案はコミュニティによって否決されました。",
+      "proposalExecuted": "この提案は正常に実行されました。",
+      "share": "共有",
+      "castVote": "投票する",
+      "tokenVoting": "トークン投票",
+      "tabs": {
+        "overview": "概要",
+        "timeline": "タイムライン",
+        "decision": "AI分析",
+        "votes": "投票",
+        "issue": "関連イシュー"
+      },
+      "timeline": {
+        "title": "イベント履歴",
+        "description": "この提案の作成から現在のステータスまでの経過を追跡します。",
+        "created": "提案作成",
+        "by": "作成者",
+        "currentStatus": "現在のステータス",
+        "currentStatusTitle": "現在のステータス",
+        "noHistory": "ステータス変更の記録がまだありません。",
+        "fromIssue": "イシューから作成",
+        "issueDescription": "この提案はシステムで検出されたイシューに対応して作成されました。",
+        "processFlow": "ガバナンスプロセス",
+        "processFlowDesc": "この提案は複数の段階を持つ標準的なガバナンスプロセスに従います。",
+        "createdDesc": "新しい提案が提出され、レビューを待っています。",
+        "statusDesc": {
+          "draft": "この提案は下書き段階です。レビュー提出前にまだ編集可能です。",
+          "active": "この提案は現在投票受付中です。トークン保有者は投票できます。",
+          "passed": "この提案はコミュニティによって承認され、実行を待っています。",
+          "rejected": "この提案は十分な支持を得られず、否決されました。",
+          "executed": "この提案は正常に実行され、変更が適用されました。"
+        },
+        "nextStep": {
+          "draft": "次のステップ：コミュニティの議論とレビューに提出"
+        },
+        "votingEndsAt": "投票終了日時",
+        "steps": {
+          "draft": "下書き",
+          "discussion": "議論",
+          "voting": "投票",
+          "passed": "可決",
+          "rejected": "否決",
+          "executed": "実行済み",
+          "pending_review": "レビュー",
+          "cancelled": "キャンセル"
+        },
+        "eventDesc": {
+          "pending_review": "提案はモデレーターによるレビュー中です。",
+          "discussion": "提案はコミュニティの議論とフィードバックを受け付けています。",
+          "voting": "投票が開始されました。トークン保有者は投票できます。",
+          "passed": "提案は定足数に達し、過半数の支持を得ました。",
+          "rejected": "提案は可決に十分な支持を得られませんでした。",
+          "executed": "承認された変更は正常に実装されました。",
+          "cancelled": "提案は提案者またはモデレーターによってキャンセルされました。"
+        },
+        "originIssue": "発生イシュー",
+        "originIssueDesc": "この提案はシステムで検出された特定のイシューに対処するために作成されました。",
+        "viewIssueDetails": "イシュー詳細を表示",
+        "aiAnalysisStatus": "AI分析",
+        "aiAnalysisAvailable": "AI分析が利用可能です",
+        "aiAnalysisNotYet": "AI分析はまだ生成されていません",
+        "generatedAt": "生成日時",
+        "viewAiAnalysis": "AI分析を表示",
+        "generateAiAnalysis": "AI分析を生成"
+      },
+      "header": {
+        "title": "基本情報",
+        "id": "ID",
+        "proposer": "提案者",
+        "coProposers": "共同提案者",
+        "created": "作成日",
+        "executionDate": "予定実行日"
+      },
+      "types": {
+        "policy": "ポリシー",
+        "budget": "予算",
+        "grant": "助成金",
+        "technical": "技術",
+        "partnership": "パートナーシップ",
+        "operations": "運営",
+        "general": "一般"
+      },
+      "content": {
+        "abstract": "サマリー（TL;DR）",
+        "decisionPoints": "主要決定ポイント",
+        "background": "背景と問題",
+        "currentSituation": "現在の状況",
+        "limitations": "制限事項",
+        "risks": "対処しない場合のリスク",
+        "objectives": "目標とKPI",
+        "goals": "目標",
+        "kpis": "主要業績指標",
+        "details": "実行計画",
+        "executionPlan": "詳細計画",
+        "inScope": "スコープ内",
+        "outOfScope": "スコープ外",
+        "alternatives": "代替案",
+        "budget": "予算とリソース",
+        "paymentMethod": "支払方法",
+        "payment": {
+          "upfront": "前払い",
+          "milestone": "マイルストーンベース",
+          "completion": "完了時"
+        },
+        "governance": "ガバナンスと責任",
+        "decisionMaker": "意思決定者",
+        "executor": "実行者",
+        "accountable": "責任者",
+        "relatedLinks": "関連ドキュメントとリンク"
+      },
+      "aiSummary": "AIサマリー",
+      "riskAssessment": "リスク評価",
+      "riskFactors": "リスク要因",
+      "mitigations": "緩和策",
+      "options": "オプション",
+      "recommended": "推奨",
+      "stakeholderImpact": "ステークホルダーへの影響",
+      "aiRecommendation": "AI推奨",
+      "confidence": "信頼度",
+      "agentPerspectives": "エージェントの見解",
+      "proposalContent": "提案内容",
+      "noDecisionPacket": "AI分析がありません",
+      "noDecisionPacketDesc": "この提案に対するAI分析はまだ生成されていません。",
+      "generateAnalysis": "AI分析を生成",
+      "generatingAnalysis": "分析を生成中...",
+      "generateError": "分析の生成に失敗しました。再試行してください。",
+      "totalVoters": "総投票者数",
+      "recentVotes": "最近の投票",
+      "noVotes": "投票がありません",
+      "noVotesDesc": "この提案にはまだ誰も投票していません。",
+      "relatedIssue": "関連イシュー",
+      "issueId": "イシューID",
+      "issueTitle": "タイトル",
+      "issueDescription": "説明",
+      "status": "ステータス",
+      "priority": "優先度",
+      "category": "カテゴリ",
+      "issueNotFound": "イシューが見つかりません"
+    }
+  },
+  "Voting": {
+    "title": "投票",
+    "connectToVote": "ウォレットを接続してMOCトークンで投票",
+    "loading": "読み込み中...",
+    "alreadyVoted": "すでに投票済みです",
+    "votingPower": "投票力",
+    "walletNotVerified": "ウォレットが認証されていません",
+    "verifyToVote": "トークン投票に参加するにはウォレットを認証してください",
+    "votingNotInitialized": "この提案のトークン投票は初期化されていません",
+    "votingEnded": "投票は終了しました",
+    "castYourVote": "投票する",
+    "ownVotingPower": "あなたの投票力",
+    "delegatedPower": "委任された投票力",
+    "effectivePower": "有効投票力",
+    "delegationNote": "あなたの投票には、あなたに投票を委任した他者からの投票力が含まれます。",
+    "reasonOptional": "理由（任意）",
+    "reasonPlaceholder": "なぜこのように投票しますか？",
+    "castVote": "投票する",
+    "castingVote": "投票中...",
+    "voteHistory": "投票履歴",
+    "noVoteHistory": "投票履歴がありません",
+    "noVoteHistoryDesc": "提案への投票履歴がここに表示されます",
+    "totalVotes": "総投票数",
+    "votedFor": "賛成",
+    "votedAgainst": "反対",
+    "votedAbstain": "棄権"
+  },
+  "Issues": {
+    "title": "イシュー",
+    "subtitle": "ガバナンスイシューの追跡と管理",
+    "createIssue": "イシュー作成",
+    "searchPlaceholder": "イシューを検索...",
+    "noIssues": "イシューが見つかりません",
+    "noIssuesDesc": "シグナルからイシューが検出されるとここに表示されます",
+    "clearFilters": "フィルターをクリア",
+    "signals": "シグナル",
+    "comments": "コメント",
+    "updated": "更新済み",
+    "viewDetails": "詳細表示",
+    "stats": {
+      "detected": "検出",
+      "confirmed": "確認済み",
+      "in_progress": "進行中",
+      "resolved": "解決済み"
+    },
+    "status": {
+      "all": "すべて",
+      "detected": "検出",
+      "confirmed": "確認済み",
+      "in_progress": "進行中",
+      "resolved": "解決済み",
+      "dismissed": "却下"
+    },
+    "priority": {
+      "label": "優先度",
+      "all": "すべて",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "重大"
+    },
+    "detail": {
+      "description": "説明",
+      "relatedSignals": "関連シグナル",
+      "comments": "議論",
+      "created": "作成日",
+      "lastUpdated": "最終更新",
+      "progress": "進捗",
+      "startDiscussion": "議論を開始",
+      "createProposal": "提案を作成",
+      "viewProposal": "提案を表示"
+    }
+  },
+  "Signals": {
+    "title": "シグナル",
+    "subtitle": "複数ソースからのリアルタイムシグナル監視",
+    "refresh": "更新",
+    "noSignals": "シグナルが見つかりません",
+    "noSignalsDesc": "さまざまなソースからシグナルが収集されるとここに表示されます",
+    "viewSource": "ソースを表示",
+    "clearFilters": "フィルターをクリア",
+    "stats": {
+      "total": "総シグナル",
+      "processed": "処理済み",
+      "pending": "保留中",
+      "highPriority": "高優先度"
+    },
+    "sources": {
+      "all": "すべてのソース",
+      "rss": "RSSフィード",
+      "github": "GitHub",
+      "blockchain": "ブロックチェーン",
+      "social": "ソーシャルメディア",
+      "api": "外部API",
+      "manual": "手動"
+    },
+    "filter": {
+      "all": "すべて",
+      "processed": "処理済み",
+      "unprocessed": "保留中"
+    },
+    "priority": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "status": {
+      "processed": "処理済み",
+      "pending": "保留中"
+    },
+    "detail": {
+      "content": "内容",
+      "timestamp": "受信日時",
+      "signalId": "シグナルID",
+      "metadata": "追加データ",
+      "source": "ソース",
+      "createIssue": "イシューを作成"
+    }
+  },
+  "Wallet": {
+    "connectWallet": "ウォレット接続",
+    "connecting": "接続中...",
+    "selectWallet": "ウォレットを選択",
+    "connectedWith": "接続済み",
+    "address": "アドレス",
+    "balance": "残高",
+    "copy": "アドレスをコピー",
+    "viewOnEtherscan": "Etherscanで表示",
+    "disconnect": "切断",
+    "mocBalance": "MOC残高",
+    "votingPower": "投票力",
+    "refresh": "残高を更新",
+    "verifyWallet": "ウォレットを認証",
+    "verified": "認証済み",
+    "notVerified": "未認証",
+    "verifying": "認証中...",
+    "signMessage": "メッセージに署名",
+    "verificationRequired": "ガバナンス投票と提案に参加するには認証が必要です。",
+    "verificationSteps": "手順",
+    "step1": "「メッセージに署名」をクリックして認証を開始",
+    "step2": "ウォレットでメッセージに署名（ガス代不要）",
+    "step3": "ガバナンス用にウォレットが認証されます",
+    "waitingForSignature": "署名待ち",
+    "checkWallet": "ウォレットを確認してメッセージに署名してください",
+    "pleaseWait": "ウォレット認証中...",
+    "verificationSuccess": "ウォレット認証完了！",
+    "verificationFailed": "認証失敗",
+    "canParticipate": "ガバナンス投票に参加できるようになりました。",
+    "done": "完了",
+    "tryAgain": "再試行",
+    "close": "閉じる"
+  },
+  "Treasury": {
+    "title": "財務",
+    "subtitle": "ガバナンス財務とトークン管理",
+    "overview": "概要",
+    "allocations": "配分",
+    "transactions": "取引",
+    "holders": "トークン保有者",
+    "refresh": "更新",
+    "connected": "接続済み",
+    "stats": {
+      "totalBalance": "総残高",
+      "mocBalance": "MOC残高",
+      "ethBalance": "ETH残高",
+      "holders": "認証済み保有者",
+      "activeVoting": "アクティブ投票",
+      "allocations": "総配分"
+    },
+    "allocation": {
+      "pending": "保留中",
+      "approved": "承認済み",
+      "disbursed": "支払済み",
+      "cancelled": "キャンセル"
+    },
+    "transaction": {
+      "deposit": "入金",
+      "withdrawal": "出金",
+      "transfer": "送金",
+      "allocation": "配分"
+    },
+    "balanceDistribution": "残高分布",
+    "allocationBreakdown": "配分ステータス",
+    "spendingLimits": {
+      "title": "支出制限",
+      "daily": "日次",
+      "weekly": "週次",
+      "monthly": "月次",
+      "used": "使用済み",
+      "noLimits": "支出制限が設定されていません"
+    },
+    "modals": {
+      "allocationDetail": "配分詳細",
+      "transactionDetail": "取引詳細",
+      "viewProposal": "提案を表示",
+      "viewOnExplorer": "エクスプローラーで表示",
+      "close": "閉じる"
+    },
+    "recipient": "受取人",
+    "amount": "金額",
+    "description": "説明",
+    "status": "ステータス",
+    "from": "送信元",
+    "to": "送信先",
+    "txHash": "トランザクションハッシュ",
+    "createdAt": "作成日",
+    "approvedAt": "承認日",
+    "disbursedAt": "支払日",
+    "confirmedAt": "確認日",
+    "copy": "コピー",
+    "viewOnEtherscan": "Etherscanで表示",
+    "votingPower": "投票力",
+    "tokenBalance": "トークン残高",
+    "verifiedAt": "認証日",
+    "noHolders": "認証済みトークン保有者がいません",
+    "noAllocations": "配分がありません",
+    "noTransactions": "取引がありません",
+    "noBalances": "残高データがありません"
+  },
+  "Guide": {
+    "title": "Algoraの仕組み",
+    "subtitle": "AI駆動のガバナンスフローを理解する",
+    "flowTitle": "ガバナンスフロー",
+    "stepsTitle": "詳細プロセス",
+    "features": {
+      "aiPowered": {
+        "title": "AI駆動",
+        "desc": "24時間365日、AIエージェントがデータを分析し、ガバナンス議論に参加"
+      },
+      "realtime": {
+        "title": "リアルタイム",
+        "desc": "複数のソースからシグナルを継続的に監視"
+      },
+      "transparent": {
+        "title": "透明性",
+        "desc": "すべての決定と議論はオンチェーンに記録"
+      }
+    },
+    "flow": {
+      "step1": "シグナル",
+      "step1Desc": "データ収集",
+      "step2": "イシュー",
+      "step2Desc": "検出",
+      "step3": "アゴラ",
+      "step3Desc": "議論",
+      "step4": "提案",
+      "step4Desc": "投票",
+      "step5": "結果",
+      "step5Desc": "実行",
+      "description": "データは各段階を通じて、初期シグナル収集から最終結果実行まで流れます"
+    },
+    "steps": {
+      "signals": {
+        "title": "シグナル収集",
+        "desc": "RSSフィード、GitHub、ブロックチェーンイベントからのリアルタイムデータ",
+        "point1": "50以上のソースからの自動収集",
+        "point2": "優先度ベースのフィルタリングと分類"
+      },
+      "issues": {
+        "title": "イシュー検出",
+        "desc": "AIがパターンと潜在的なガバナンスイシューを識別",
+        "point1": "自動パターン認識",
+        "point2": "重大度に基づく優先度スコアリング"
+      },
+      "agora": {
+        "title": "エージェント議論",
+        "desc": "多様な視点を持つAIエージェントがイシューを議論",
+        "point1": "異なる視点を持つ複数のAIペルソナ",
+        "point2": "証拠に基づく議論"
+      },
+      "proposals": {
+        "title": "コミュニティ投票",
+        "desc": "トークン保有者が提案に投票",
+        "point1": "トークン保有量に基づく加重投票",
+        "point2": "投票力の委任サポート"
+      },
+      "outcomes": {
+        "title": "実行と検証",
+        "desc": "承認された決定が実行され追跡される",
+        "point1": "可決された提案の自動実行",
+        "point2": "結果の検証とレポート"
+      }
+    },
+    "otherMenus": {
+      "title": "その他のセクション",
+      "agents": {
+        "title": "AIエージェント",
+        "desc": "AIエージェントペルソナの表示と管理"
+      },
+      "dashboard": {
+        "title": "ダッシュボード",
+        "desc": "全システムアクティビティの概要"
+      },
+      "live": {
+        "title": "ライブダッシュボード",
+        "desc": "全ガバナンス活動のリアルタイムビュー"
+      },
+      "governance": {
+        "title": "ガバナンスOS",
+        "desc": "安全な自律性を持つ自律型ガバナンス"
+      },
+      "treasury": {
+        "title": "財務",
+        "desc": "DAO資金管理とトークン保有者"
+      },
+      "profile": {
+        "title": "ウォレットとプロファイル",
+        "desc": "ウォレット接続と投票委任管理"
+      }
+    },
+    "cta": {
+      "title": "探索を始めますか？",
+      "desc": "最新のシグナルを表示して開始",
+      "button": "シグナルを表示"
+    },
+    "tour": {
+      "welcome": {
+        "title": "Algoraへようこそ",
+        "desc": "Algoraは、モスランドのガバナンスを手動の議論からAI駆動の自律型オペレーティングシステムに変革します。30以上のAIエージェントが24時間365日稼働し、人間の承認のために分析、議論、決定を準備します。",
+        "vision": "モスランドのビジョン：コミュニティ主導のガバナンスを通じて仮想世界と物理世界をつなぐ架け橋を構築。"
+      },
+      "problem": {
+        "title": "解決する課題",
+        "desc": "従来のDAOガバナンスは遅く、常に人間の注意を必要とし、重要なシグナルを見逃すことがよくあります。Algoraは、最終決定の制御を人間に保持しながら、分析と議論プロセスを自動化することでこれを解決します。",
+        "points": ["人間が眠っている間も24時間監視", "AIエージェントがすべての受信データを分析", "人間は最終アクションのみを承認"]
+      },
+      "signals": {
+        "title": "ステップ1：シグナル収集",
+        "desc": "システムはRSSフィード、GitHub、ブロックチェーンイベント、ソーシャルメディアを継続的に監視します。関連するすべての情報がキャプチャ、分類、自動的に優先順位付けされます。",
+        "scenario": "例：Twitterに新しいパートナーシップ発表が表示→Algoraが即座にキャプチャ→AIが「高優先度」としてタグ付け→通知を受信。"
+      },
+      "issues": {
+        "title": "ステップ2：イシュー検出",
+        "desc": "AIがシグナルを分析して、注意が必要なガバナンスイシューを検出します。パターン認識が、人間が見逃す可能性のあるトレンド、異常、機会を識別します。",
+        "scenario": "例：競合プロジェクトに関する複数のシグナル→AIが戦略的脅威を識別→議論のためにイシューを作成。"
+      },
+      "agora": {
+        "title": "ステップ3：AI議論",
+        "desc": "ここで魔法が起こります。異なる視点を持つ30以上のAIエージェント（ビジョナリー、ビルダー、ガーディアンなど）がイシューを議論し、推奨事項についてコンセンサスに達します。",
+        "scenario": "例：エージェントが財務提案を議論→ガーディアンがセキュリティ上の懸念を提起→投資家がROIを分析→バランスの取れた決定パケットが作成される。"
+      },
+      "proposals": {
+        "title": "ステップ4：人間のガバナンス",
+        "desc": "MOCトークン保有者が最終決定権を持ちます。AIは包括的な決定パケットを準備しますが、人間がアクションを承認するかどうかを投票します。高リスクアクションは常に人間の承認までロックされます。",
+        "scenario": "例：AIが助成金を推奨→決定パケットが長所/短所を表示→MOC保有者が投票→承認された場合にアクションがアンロック。"
+      },
+      "treasury": {
+        "title": "ステップ5：財務管理",
+        "desc": "財務ダッシュボードはDAO資金管理の視覚的インサイトを提供します。残高分布の表示、配分の追跡、取引の監視、トークン保有者情報をすべて一か所で確認できます。",
+        "scenario": "例：トークン配分を示すドーナツチャートを表示→保留中の配分を確認→取引履歴を監視→すべての認証済みトークン保有者を表示。"
+      },
+      "profile": {
+        "title": "ステップ6：ウォレットと委任",
+        "desc": "ウォレットを接続してガバナンスに参加します。投票権のためにウォレットを認証し、直接投票できない場合は信頼できるアドレスに投票力を委任します。",
+        "scenario": "例：MetaMaskを接続→ウォレットを認証→信頼できるコミュニティメンバーに投票力を委任→あなたの票は自動的に委任者によって投じられます。"
+      },
+      "safeAutonomy": {
+        "title": "安全な自律性の保証",
+        "desc": "システムは人間の承認なしに高リスクアクションを絶対に実行しません。資金移動、契約、パートナーシップは常に明示的に承認されるまでロックされます。システムは稼働し続けますが、危険なアクションはあなたを待っています。",
+        "guarantee": "あなたの資産は安全です。AIは推奨し、人間が決定します。"
+      },
+      "complete": {
+        "title": "探索準備完了！",
+        "desc": "これでAlgoraがモスランドのガバナンスをどのように支援するかを理解できました。AIは24時間365日あなたのために働きますが、すべての重要な決定の制御はあなたに残ります。",
+        "cta": "最新のシグナルを確認するか、ガバナンスOSダッシュボードを訪問して開始してください。"
+      },
+      "skip": "ツアーをスキップ",
+      "next": "次へ",
+      "prev": "戻る",
+      "finish": "探索を開始",
+      "goToPage": "ページへ移動",
+      "stepOf": "ステップ {current} / {total}"
+    },
+    "help": {
+      "startTour": "ツアーを再開",
+      "viewFlow": "システムフローを表示",
+      "pageHelp": "ページヘルプ",
+      "docs": "ドキュメント"
+    },
+    "tooltips": {
+      "dashboard": "すべてのガバナンス活動とシステムステータスの概要",
+      "signals": "RSS、GitHub、ブロックチェーンから収集されたリアルタイムデータ",
+      "issues": "シグナルからAIによって検出された重要なイシュー",
+      "agora": "AIエージェントがイシューを議論するディスカッションアリーナ",
+      "proposals": "コミュニティ投票のためのガバナンス提案",
+      "treasury": "DAO財務とトークン管理",
+      "agents": "ガバナンスに参加するAIエージェント",
+      "engine": "システム監視と設定",
+      "governance": "ドキュメントレジストリ、デュアルハウス投票、安全な自律性を備えた自律型ガバナンスOS",
+      "delegation": "信頼できるアドレスに投票力を委任します。委任された票は投票時に自動的に適用されます。"
+    }
+  },
+  "Live": {
+    "title": "ALGORA LIVE",
+    "subtitle": "24時間365日AIガバナンスシステム",
+    "version": "v0.3.0-beta",
+    "status": {
+      "online": "オンライン",
+      "offline": "オフライン",
+      "degraded": "低下"
+    },
+    "metrics": {
+      "title": "ライブメトリクス",
+      "signals": "シグナル",
+      "rate": "レート",
+      "sessions": "セッション",
+      "agents": "エージェント",
+      "issues": "イシュー",
+      "uptime": "稼働時間"
+    },
+    "signalStream": {
+      "title": "シグナルストリーム",
+      "live": "ライブ",
+      "connecting": "接続中",
+      "awaiting": "シグナル待機中..."
+    },
+    "blueprint": {
+      "title": "システムブループリント",
+      "signals": "シグナル",
+      "analysis": "分析",
+      "issues": "イシュー",
+      "agora": "アゴラ",
+      "proposals": "提案",
+      "voting": "投票",
+      "execute": "実行"
+    },
+    "activity": {
+      "title": "ライブアクティビティ",
+      "monitoring": "アクティビティ監視中..."
+    },
+    "chatter": {
+      "title": "エージェントチャット",
+      "typing": "入力中...",
+      "thinking": "エージェントが思考中..."
+    },
+    "session": {
+      "title": "アゴラセッション",
+      "noActive": "アクティブなセッションがありません",
+      "awaiting": "アゴラは次の議論を待っています...",
+      "topic": "トピック",
+      "round": "ラウンド",
+      "consensus": "コンセンサス",
+      "speaking": "発言中"
+    },
+    "footer": {
+      "platform": "24時間365日ライブエージェントガバナンスプラットフォーム",
+      "powered": "30のAIエージェントで駆動"
+    }
+  },
+  "Governance": {
+    "title": "ガバナンスOS",
+    "subtitle": "AIエージェントによる自律型ガバナンスオペレーティングシステム",
+    "refresh": "更新",
+    "health": {
+      "healthy": "正常",
+      "degraded": "低下",
+      "unhealthy": "異常"
+    },
+    "stats": {
+      "uptime": "稼働時間",
+      "pipelines": "パイプライン",
+      "completed": "完了",
+      "documents": "ドキュメント",
+      "locked": "ロック済みアクション"
+    },
+    "tabs": {
+      "overview": "概要",
+      "workflows": "ワークフロー",
+      "documents": "ドキュメント",
+      "voting": "投票",
+      "approvals": "承認"
+    },
+    "overview": {
+      "recentWorkflows": "最近のワークフロー",
+      "noWorkflows": "アクティブなワークフローがありません",
+      "activeVotes": "アクティブ投票",
+      "noVotes": "アクティブな投票がありません",
+      "pendingApprovals": "承認待ち",
+      "noLocked": "承認待ちのアクションがありません"
+    },
+    "pipeline": {
+      "title": "パイプラインステータス",
+      "description": "9段階のガバナンスワークフロー処理",
+      "complete": "完了",
+      "stages_completed": "ステージ",
+      "stages": {
+        "signal_intake": "シグナル",
+        "issue_detection": "検出",
+        "triage": "トリアージ",
+        "research": "調査",
+        "deliberation": "議論",
+        "decision_packet": "決定",
+        "voting": "投票",
+        "execution": "実行",
+        "outcome_verification": "検証"
+      },
+      "legend": {
+        "completed": "完了",
+        "current": "進行中",
+        "pending": "保留中"
+      }
+    },
+    "workflows": {
+      "type": "タイプ",
+      "active": "アクティブ",
+      "today": "今日",
+      "pending": "保留中",
+      "completedToday": "今日完了",
+      "pendingApproval": "承認待ち",
+      "purpose": "目的",
+      "pipelineStages": "パイプラインステージ",
+      "stakeholders": "ステークホルダー",
+      "outputDocuments": "出力ドキュメント",
+      "recentActivity": "最近のアクティビティ（7日間）",
+      "running": "実行中",
+      "close": "閉じる"
+    },
+    "documents": {
+      "states": {
+        "draft": "下書き",
+        "pending_review": "レビュー待ち",
+        "in_review": "レビュー中",
+        "approved": "承認済み",
+        "published": "公開済み",
+        "superseded": "置換済み",
+        "archived": "アーカイブ済み",
+        "rejected": "却下"
+      },
+      "summary": "サマリー",
+      "documentId": "ドキュメントID",
+      "version": "バージョン",
+      "createdBy": "作成者",
+      "createdAt": "作成日",
+      "timeline": "タイムライン",
+      "created": "ドキュメント作成",
+      "lastUpdated": "最終更新",
+      "contentHash": "コンテンツハッシュ（整合性検証済み）",
+      "close": "閉じる",
+      "viewIssue": "関連イシューを表示"
+    },
+    "voting": {
+      "status": {
+        "pending": "保留中",
+        "voting": "投票中",
+        "passed": "可決",
+        "rejected": "否決",
+        "reconciliation": "調整中"
+      },
+      "mossCoinHouse": "モスコインハウス",
+      "openSourceHouse": "オープンソースハウス",
+      "finalResult": {
+        "passed": "提案可決",
+        "passedDesc": "両院がこの提案を承認しました。",
+        "rejected": "提案否決",
+        "rejectedDesc": "両院がこの提案を否決しました。",
+        "reconciliation": "調整が必要",
+        "reconciliationDesc": "両院の意見が分かれています。調整プロセスが開始されました。"
+      },
+      "votingRules": "デュアルハウス投票ルール",
+      "rules": {
+        "bothMustPass": "両院の合意が必要",
+        "bothMustPassDesc": "提案は両院が承認した場合のみ可決されます。",
+        "quorumRequired": "定足数が必要",
+        "quorumRequiredDesc": "最低参加閾値を満たす必要があります。",
+        "reconciliation": "調整プロセス",
+        "reconciliationDesc": "両院の意見が分かれた場合、調整がトリガーされます。",
+        "highRisk": "高リスクアクション",
+        "highRiskDesc": "ディレクター3からの追加承認が必要です。"
+      },
+      "close": "閉じる",
+      "castVote": "投票する"
+    },
+    "safeAutonomy": {
+      "status": {
+        "locked": "ロック済み",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "executed": "実行済み"
+      },
+      "lockReason": "ロック理由",
+      "approvals": "承認",
+      "approve": "承認",
+      "actionDescription": "アクション説明",
+      "approvalProgress": "承認進捗",
+      "pendingApproval": "承認待ち",
+      "approved": "承認済み",
+      "verified": "検証済み",
+      "createdAt": "作成日",
+      "expiresAt": "有効期限",
+      "proposalId": "関連提案",
+      "votingId": "関連投票",
+      "afterApproval": "承認後はどうなりますか？",
+      "afterApproval1": "アクションがアンロックされ、実行可能になります",
+      "afterApproval2": "すべての承認者に通知されます",
+      "afterApproval3": "実行は監査証跡に記録されます",
+      "close": "閉じる",
+      "approveAction": "このアクションを承認"
+    }
+  },
+  "Witty": {
+    "loading": {
+      "germinating": "発芽中...",
+      "percolating": "浸透中...",
+      "cogitating": "熟考中...",
+      "deliberating": "審議中...",
+      "orchestrating": "調整中...",
+      "crystallizing": "結晶化中...",
+      "transmuting": "変換中...",
+      "bootstrapping": "起動中...",
+      "quantumizing": "量子化中..."
+    },
+    "signals": {
+      "reconciling": "シグナル調整中...",
+      "syncing": "現実同期中...",
+      "deciphering": "解読中...",
+      "channelling": "チャネリング中..."
+    },
+    "agents": {
+      "spawning": "エージェント生成中...",
+      "pondering": "思案中...",
+      "cerebrating": "思考中...",
+      "manifesting": "顕現中..."
+    },
+    "governance": {
+      "consensus": "コンセンサス形成中...",
+      "tallying": "集計中...",
+      "actualizing": "決定具現化中...",
+      "effecting": "変更実行中..."
+    },
+    "empty": {
+      "signals": "電波は静か...今のところ。",
+      "sessions": "アゴラは最初の議論を待っています...",
+      "agents": "ロビーは休眠中...",
+      "activity": "次の行動を待機中..."
+    },
+    "success": {
+      "accomplished": "達成！",
+      "crystallized": "結晶化！",
+      "manifested": "顕現！",
+      "harmonized": "調和！"
+    }
+  },
+  "Experimental": {
+    "badge": "実験環境",
+    "title": "研究 / テスト / 非本番",
+    "description": "このサービスは研究、テスト、PoCを目的とした実験環境です。データ損失やサービス中断が発生する可能性があります。"
+  },
+  "MockData": {
+    "badge": "モックデータ",
+    "title": "シミュレートデータ",
+    "description": "このセクションはデモンストレーション目的でシミュレート/モックデータを表示しています。本番環境では、ガバナンスシステムからのリアルタイムデータに置き換えられます。"
+  },
+  "Delegation": {
+    "title": "投票委任",
+    "subtitle": "信頼できるアドレスに投票力を委任",
+    "stats": {
+      "ownPower": "自己投票力",
+      "delegatedIn": "受けた委任",
+      "delegatedOut": "行った委任",
+      "effectivePower": "有効投票力"
+    },
+    "tabs": {
+      "given": "行った委任",
+      "received": "受けた委任"
+    },
+    "delegate": "委任",
+    "revoke": "取り消し",
+    "delegateTo": "委任先",
+    "delegatedTo": "委任先",
+    "delegatedFrom": "委任元",
+    "delegateAddress": "委任先アドレス",
+    "enterAddress": "ウォレットアドレスを入力（0x...）",
+    "invalidAddress": "無効なウォレットアドレス",
+    "cannotDelegateToSelf": "自分自身には委任できません",
+    "categories": "カテゴリ",
+    "category": {
+      "treasury": "財務",
+      "technical": "技術",
+      "governance": "ガバナンス",
+      "community": "コミュニティ"
+    },
+    "allCategories": "すべてのカテゴリ",
+    "allCategoriesHint": "すべてのカテゴリに委任するには空のままにしてください",
+    "optional": "任意",
+    "expiresAt": "有効期限",
+    "expiration": {
+      "never": "無期限",
+      "30days": "30日",
+      "90days": "90日",
+      "180days": "180日"
+    },
+    "noExpiration": "有効期限なし",
+    "expired": "期限切れ",
+    "expiresInDay": "残り{days}日",
+    "expiresInDays": "残り{days}日",
+    "confirmDelegation": "委任を確認",
+    "delegationSuccess": "委任成功！",
+    "delegationSuccessDesc": "{address}に{power} VPを委任しました",
+    "delegationFailed": "委任失敗",
+    "delegationFailedDesc": "問題が発生しました。再試行してください。",
+    "revokeDelegation": "委任を取り消す",
+    "revokeConfirm": "この委任を取り消してもよろしいですか？",
+    "noDelegationsGiven": "まだ誰にも委任していません",
+    "noDelegationsReceived": "まだ誰からも委任されていません",
+    "votingPower": "投票力",
+    "loading": "委任を読み込み中...",
+    "modal": {
+      "title": "投票力を委任",
+      "intro": "委任により、他の人があなたの代わりに投票できます。トークンはウォレットに残ります。",
+      "inputTitle": "委任詳細",
+      "continue": "続ける",
+      "back": "戻る",
+      "processing": "処理中...",
+      "done": "完了",
+      "tryAgain": "再試行",
+      "close": "閉じる"
+    }
+  },
+  "HelpTooltips": {
+    "systemStatus": "Algoraガバナンスエンジンのリアルタイムステータス。「稼働中」は全システムが正常に動作していることを意味します。",
+    "budget": "外部LLM呼び出し（Claude/GPT）の日次API予算。予算が少ない場合、システムはローカルLLMを使用します。",
+    "nextTier2": "外部LLMサービスを使用した次の高品質AI議論の予定時刻。",
+    "queue": "ガバナンスエンジンによる処理を待っている保留中タスクの数。",
+    "liveButton": "すべてのガバナンス活動をリアルタイムで表示するダッシュボードを表示。",
+    "walletConnect": "MOCウォレットを接続してガバナンス投票に参加し、委任報酬を獲得。",
+    "signalSource": "収集されたシグナルのソース - RSSフィード、GitHubイベント、ブロックチェーンデータ、または外部API。",
+    "signalPriority": "関連性、緊急性、ガバナンスへの潜在的影響に基づいてAIが割り当てた優先度。",
+    "issueStatus": "検出から解決までのイシューライフサイクルの現在のステージ。",
+    "issuePriority": "AI分析とコミュニティ入力によって決定された重大度レベル。",
+    "proposalVoting": "MOC保有量が投票力を決定するトークン加重投票。",
+    "proposalQuorum": "投票が有効になるために必要な最低参加率（通常、総供給量の10%）。",
+    "agoraSession": "AIエージェントがガバナンスイシューを議論するライブ議論セッション。",
+    "agentCluster": "エージェントは専門分野別にグループ化されています - ビジョナリー、ビルダー、投資家、ガーディアンなど。",
+    "agentStatus": "現在のエージェント状態：待機中（待機）、アクティブ（作業中）、発言中（議論中）。",
+    "dualHouse": "デュアルハウス投票システム：モスコインハウス（トークン保有者）とオープンソースハウス（貢献者）。",
+    "safeAutonomy": "明示的な人間の承認まで高リスクアクションをロックする安全メカニズム。",
+    "pipelineStage": "シグナルから実行までの9段階ガバナンスパイプラインの現在のステージ。",
+    "documentState": "ドキュメントライフサイクル：下書き→レビュー→承認済み→公開済み。",
+    "tierUsage": "LLMティア使用量 - Tier 0（無料）、Tier 1（ローカルOllama）、Tier 2（外部Claude/GPT）。"
+  },
+  "Alerts": {
+    "title": "通知",
+    "notifications": "通知",
+    "markAllRead": "すべて既読にする",
+    "noAlerts": "通知がありません",
+    "dismiss": "閉じる",
+    "budgetWarning": "予算警告",
+    "budgetCritical": "予算危機",
+    "budgetExhausted": "予算枯渇",
+    "justNow": "たった今",
+    "minutesAgo": "{count}分前",
+    "hoursAgo": "{count}時間前",
+    "showingCount": "{count}件のアラートを表示"
+  },
+  "PassiveConsensus": {
+    "title": "パッシブコンセンサス",
+    "status": {
+      "pending": "レビュー中",
+      "autoApproved": "自動承認",
+      "approved": "承認済み",
+      "vetoed": "拒否権行使",
+      "escalated": "エスカレート",
+      "unknown": "不明"
+    },
+    "risk": {
+      "low": "低",
+      "mid": "中",
+      "high": "高"
+    },
+    "riskLevel": "リスクレベル",
+    "remaining": "残り",
+    "unreviewedByHuman": "人間による未レビュー",
+    "autoApproveNote": "拒否権がなければ{hours}時間後に自動承認"
+  },
+  "Timeline": {
+    "title": "ガバナンスタイムライン",
+    "subtitle": "シグナルから実行までのフローを追跡",
+    "signals": "シグナル",
+    "issues": "イシュー",
+    "proposals": "提案",
+    "votes": "投票",
+    "issue": "イシュー",
+    "error": "タイムラインの読み込みに失敗しました",
+    "noEvents": "表示するイベントがありません",
+    "viewDetails": "詳細表示",
+    "viewAll": "すべてのイベントを表示",
+    "filters": "フィルター",
+    "showCount": "表示件数",
+    "recentFlows": "最近のガバナンスフロー",
+    "weekSummary": "今週",
+    "todaySignals": "今日のシグナル",
+    "todayIssues": "今日のイシュー"
+  }
+}

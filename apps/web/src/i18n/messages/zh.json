@@ -1,0 +1,1202 @@
+{
+  "Common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "search": "搜索",
+    "filter": "筛选",
+    "status": "状态",
+    "actions": "操作"
+  },
+  "Navigation": {
+    "dashboard": "仪表盘",
+    "guide": "指南",
+    "live": "实时",
+    "governance": "治理OS",
+    "agora": "议事厅",
+    "agents": "代理",
+    "signals": "信号",
+    "issues": "议题",
+    "proposals": "提案",
+    "treasury": "财务",
+    "disclosure": "信息披露",
+    "engine": "引擎室"
+  },
+  "Dashboard": {
+    "title": "仪表盘",
+    "subtitle": "治理活动概览",
+    "activityFeed": "最近活动",
+    "agentLobby": "代理大厅",
+    "stats": {
+      "activeAgents": "活跃代理",
+      "activeSessions": "活跃会议",
+      "signalsToday": "今日信号",
+      "openIssues": "待处理议题",
+      "clickForDetails": "点击查看详情",
+      "activeAgentsDesc": "当前参与治理活动的AI代理",
+      "activeSessionsDesc": "正在进行的议事厅讨论会议",
+      "signalsTodayDesc": "今天收集的新信号",
+      "openIssuesDesc": "已检测并等待解决的议题"
+    },
+    "statDetails": {
+      "title": "统计详情",
+      "currentValue": "当前值",
+      "trend24h": "24小时变化",
+      "breakdown": "明细",
+      "recentActivity": "最近活动",
+      "close": "关闭",
+      "noBreakdown": "暂无明细数据",
+      "noActivity": "暂无最近活动"
+    }
+  },
+  "Header": {
+    "systemStatus": "系统状态",
+    "running": "运行中",
+    "degraded": "性能下降",
+    "maintenance": "维护中",
+    "budget": "预算",
+    "nextTier2": "下次Tier2",
+    "queue": "队列"
+  },
+  "Agents": {
+    "title": "AI代理",
+    "subtitle": "动态人格光谱",
+    "searchPlaceholder": "搜索代理...",
+    "allClusters": "全部",
+    "recentActivity": "最近活动",
+    "groups": {
+      "visionaries": "远见者",
+      "builders": "建设者",
+      "investors": "投资者",
+      "guardians": "守护者",
+      "operatives": "执行者",
+      "moderators": "调解者",
+      "advisors": "顾问",
+      "orchestrators": "协调者",
+      "archivists": "档案员",
+      "red-team": "红队",
+      "scouts": "侦察员"
+    },
+    "status": {
+      "idle": "空闲",
+      "active": "活跃",
+      "speaking": "发言中",
+      "listening": "倾听中"
+    },
+    "summon": "召唤",
+    "dismiss": "解散",
+    "noResults": "未找到代理",
+    "noSearchResults": "没有匹配"{query}"的代理",
+    "noAgentsInCluster": "此集群中没有代理",
+    "clearFilters": "清除筛选"
+  },
+  "Agora": {
+    "title": "议事厅",
+    "subtitle": "实时讨论竞技场",
+    "lobby": "大厅",
+    "discussion": "讨论",
+    "evidence": "证据",
+    "summonAgent": "召唤代理",
+    "sendMessage": "输入消息...",
+    "noActiveSession": "暂无活跃会议",
+    "startSession": "开始会议",
+    "status": {
+      "idle": "空闲",
+      "active": "活跃",
+      "speaking": "发言中",
+      "listening": "倾听中"
+    },
+    "sessionStatus": {
+      "pending": "待处理",
+      "active": "活跃",
+      "concluded": "已结束"
+    },
+    "detail": {
+      "started": "开始",
+      "duration": "持续时间",
+      "notStarted": "尚未开始",
+      "sessionEnded": "会议已结束",
+      "inProgress": "进行中",
+      "participants": "参与者",
+      "agents": "代理",
+      "summary": "会议摘要",
+      "summaryPlaceholder": "会议结束时将生成摘要。",
+      "messages": "消息",
+      "minutes": "分钟",
+      "share": "分享",
+      "joinSession": "加入会议",
+      "startSession": "开始会议",
+      "viewTranscript": "查看记录"
+    }
+  },
+  "Activity": {
+    "types": {
+      "HEARTBEAT": "心跳",
+      "COLLECTOR": "信号收集",
+      "AGENT_CHATTER": "代理聊天",
+      "AGENT_SUMMONED": "代理召唤",
+      "AGENT_DISMISSED": "代理解散",
+      "AGORA_SESSION_START": "会议开始",
+      "AGORA_SESSION_AUTO_CREATED": "自动创建会议",
+      "AGORA_ROUND_COMPLETE": "回合完成",
+      "DECISION_PACKET": "决策包",
+      "ISSUE_DETECTED": "议题检测",
+      "VOTE_CAST": "投票",
+      "VOTING_FINALIZED": "投票确定",
+      "DELEGATION_CREATED": "创建委托",
+      "PROPOSAL_CREATED": "创建提案",
+      "VOTING_STARTED": "投票开始",
+      "DECISION_PACKET_GENERATED": "决策包生成",
+      "SYSTEM_STATUS": "系统状态",
+      "PROPOSAL_OUTCOME_PROCESSED": "结果处理",
+      "OUTCOME_CREATED": "结果创建",
+      "EXECUTION_STARTED": "执行开始",
+      "EXECUTION_COMPLETED": "执行完成",
+      "OUTCOME_COMPLETED": "结果完成"
+    },
+    "detail": {
+      "activityId": "活动ID",
+      "severity": "严重程度",
+      "timestamp": "时间戳",
+      "message": "消息",
+      "details": "详情",
+      "relatedAgent": "相关代理",
+      "metadata": "元数据",
+      "timeInfo": "时间信息",
+      "created": "创建时间",
+      "occurred": "发生时间",
+      "share": "分享",
+      "close": "关闭"
+    }
+  },
+  "Engine": {
+    "title": "引擎室",
+    "subtitle": "系统监控与配置",
+    "refresh": "刷新",
+    "refreshed": "已刷新",
+    "uptime": "运行时间",
+    "status": {
+      "ok": "所有系统正常运行",
+      "running": "所有系统正常运行",
+      "degraded": "系统性能下降",
+      "maintenance": "系统维护中"
+    },
+    "stats": {
+      "apiCalls": "API调用",
+      "llmCalls": "LLM调用",
+      "dbSize": "数据库大小",
+      "activeAgents": "活跃代理",
+      "today": "今日",
+      "agents": "代理"
+    },
+    "budget": {
+      "title": "预算概览",
+      "daily": "日预算",
+      "monthly": "月预算",
+      "remaining": "剩余",
+      "lowBudgetWarning": "日预算不足。请考虑减少Tier 2调用。"
+    },
+    "tiers": {
+      "title": "层级使用",
+      "tier0": "Tier 0",
+      "tier0Desc": "免费操作（RSS、GitHub）",
+      "tier1": "Tier 1",
+      "tier1Desc": "本地LLM（Ollama）",
+      "tier2": "Tier 2",
+      "tier2Desc": "外部LLM（Claude/GPT）"
+    },
+    "scheduler": {
+      "title": "调度器",
+      "nextTier2": "下次Tier 2",
+      "queueLength": "队列",
+      "pendingTasks": "待处理任务",
+      "lastRun": "上次运行",
+      "interval": "间隔",
+      "tier2Interval": "Tier 2间隔"
+    },
+    "health": {
+      "title": "系统健康",
+      "uptime": "运行时间",
+      "memory": "内存",
+      "database": "数据库",
+      "agents": "代理",
+      "systemInfo": "系统栈"
+    }
+  },
+  "Proposals": {
+    "title": "提案",
+    "subtitle": "对治理提案进行投票",
+    "createProposal": "创建提案",
+    "searchPlaceholder": "搜索提案...",
+    "noProposals": "未找到提案",
+    "noProposalsDesc": "从议题创建提案后将显示在此处",
+    "viewDetails": "查看详情",
+    "for": "赞成",
+    "against": "反对",
+    "abstain": "弃权",
+    "quorum": "法定人数",
+    "endsIn": "剩余",
+    "ended": "已结束",
+    "stats": {
+      "active": "活跃",
+      "passed": "通过",
+      "rejected": "否决",
+      "executed": "已执行"
+    },
+    "status": {
+      "all": "全部",
+      "draft": "草稿",
+      "active": "活跃",
+      "passed": "通过",
+      "rejected": "否决",
+      "executed": "已执行"
+    },
+    "detail": {
+      "summary": "摘要",
+      "votingResults": "投票结果",
+      "totalVotes": "总票数",
+      "quorumRequired": "所需法定人数",
+      "created": "创建日期",
+      "votingEnds": "投票截止",
+      "votingEnded": "投票已结束",
+      "outcome": "结果",
+      "proposalPassed": "此提案已通过，等待执行。",
+      "proposalRejected": "此提案被社区否决。",
+      "proposalExecuted": "此提案已成功执行。",
+      "share": "分享",
+      "castVote": "投票",
+      "tokenVoting": "代币投票",
+      "tabs": {
+        "overview": "概览",
+        "timeline": "时间线",
+        "decision": "AI分析",
+        "votes": "投票",
+        "issue": "相关议题"
+      },
+      "timeline": {
+        "title": "事件历史",
+        "description": "跟踪此提案从创建到当前状态的历程。",
+        "created": "提案创建",
+        "by": "创建者",
+        "currentStatus": "当前状态",
+        "currentStatusTitle": "当前状态",
+        "noHistory": "尚无状态变更记录。",
+        "fromIssue": "从议题创建",
+        "issueDescription": "此提案是为响应系统检测到的议题而创建的。",
+        "processFlow": "治理流程",
+        "processFlowDesc": "此提案遵循具有多个阶段的标准治理流程。",
+        "createdDesc": "新提案已提交，等待审核。",
+        "statusDesc": {
+          "draft": "此提案处于草稿阶段。在提交审核前仍可编辑。",
+          "active": "此提案目前正在接受投票。代币持有者可以投票。",
+          "passed": "此提案已获社区批准，等待执行。",
+          "rejected": "此提案未获得足够支持，已被否决。",
+          "executed": "此提案已成功执行，变更已应用。"
+        },
+        "nextStep": {
+          "draft": "下一步：提交社区讨论和审核"
+        },
+        "votingEndsAt": "投票截止时间",
+        "steps": {
+          "draft": "草稿",
+          "discussion": "讨论",
+          "voting": "投票",
+          "passed": "通过",
+          "rejected": "否决",
+          "executed": "已执行",
+          "pending_review": "审核",
+          "cancelled": "已取消"
+        },
+        "eventDesc": {
+          "pending_review": "提案已提交，正在由版主审核。",
+          "discussion": "提案现已开放社区讨论和反馈。",
+          "voting": "投票已开始。代币持有者现在可以投票。",
+          "passed": "提案已达到法定人数并获得多数支持。",
+          "rejected": "提案未获得足够支持。",
+          "executed": "批准的变更已成功实施。",
+          "cancelled": "提案已被提案者或版主取消。"
+        },
+        "originIssue": "原始议题",
+        "originIssueDesc": "此提案是为解决系统检测到的特定议题而创建的。",
+        "viewIssueDetails": "查看议题详情",
+        "aiAnalysisStatus": "AI分析",
+        "aiAnalysisAvailable": "AI分析可用",
+        "aiAnalysisNotYet": "AI分析尚未生成",
+        "generatedAt": "生成时间",
+        "viewAiAnalysis": "查看AI分析",
+        "generateAiAnalysis": "生成AI分析"
+      },
+      "header": {
+        "title": "基本信息",
+        "id": "ID",
+        "proposer": "提案者",
+        "coProposers": "共同提案者",
+        "created": "创建日期",
+        "executionDate": "预计执行日期"
+      },
+      "types": {
+        "policy": "政策",
+        "budget": "预算",
+        "grant": "资助",
+        "technical": "技术",
+        "partnership": "合作",
+        "operations": "运营",
+        "general": "一般"
+      },
+      "content": {
+        "abstract": "摘要（TL;DR）",
+        "decisionPoints": "关键决策点",
+        "background": "背景与问题",
+        "currentSituation": "当前情况",
+        "limitations": "局限性",
+        "risks": "不处理的风险",
+        "objectives": "目标与KPI",
+        "goals": "目标",
+        "kpis": "关键绩效指标",
+        "details": "执行计划",
+        "executionPlan": "详细计划",
+        "inScope": "范围内",
+        "outOfScope": "范围外",
+        "alternatives": "替代方案",
+        "budget": "预算与资源",
+        "paymentMethod": "支付方式",
+        "payment": {
+          "upfront": "预付",
+          "milestone": "里程碑付款",
+          "completion": "完成后付款"
+        },
+        "governance": "治理与责任",
+        "decisionMaker": "决策者",
+        "executor": "执行者",
+        "accountable": "责任人",
+        "relatedLinks": "相关文档与链接"
+      },
+      "aiSummary": "AI摘要",
+      "riskAssessment": "风险评估",
+      "riskFactors": "风险因素",
+      "mitigations": "缓解措施",
+      "options": "选项",
+      "recommended": "推荐",
+      "stakeholderImpact": "利益相关者影响",
+      "aiRecommendation": "AI推荐",
+      "confidence": "置信度",
+      "agentPerspectives": "代理观点",
+      "proposalContent": "提案内容",
+      "noDecisionPacket": "无AI分析",
+      "noDecisionPacketDesc": "此提案的AI分析尚未生成。",
+      "generateAnalysis": "生成AI分析",
+      "generatingAnalysis": "正在生成分析...",
+      "generateError": "生成分析失败。请重试。",
+      "totalVoters": "总投票人数",
+      "recentVotes": "最近投票",
+      "noVotes": "暂无投票",
+      "noVotesDesc": "还没有人对此提案投票。",
+      "relatedIssue": "相关议题",
+      "issueId": "议题ID",
+      "issueTitle": "标题",
+      "issueDescription": "描述",
+      "status": "状态",
+      "priority": "优先级",
+      "category": "类别",
+      "issueNotFound": "未找到议题"
+    }
+  },
+  "Voting": {
+    "title": "投票",
+    "connectToVote": "连接钱包使用MOC代币投票",
+    "loading": "加载中...",
+    "alreadyVoted": "您已经投票",
+    "votingPower": "投票权",
+    "walletNotVerified": "钱包未验证",
+    "verifyToVote": "请验证您的钱包以参与代币投票",
+    "votingNotInitialized": "此提案的代币投票未初始化",
+    "votingEnded": "投票已结束",
+    "castYourVote": "投票",
+    "ownVotingPower": "您的投票权",
+    "delegatedPower": "委托给您的投票权",
+    "effectivePower": "有效投票权",
+    "delegationNote": "您的投票将包括委托给您的其他人的投票权。",
+    "reasonOptional": "理由（可选）",
+    "reasonPlaceholder": "为什么这样投票？",
+    "castVote": "投票",
+    "castingVote": "投票中...",
+    "voteHistory": "投票历史",
+    "noVoteHistory": "暂无投票历史",
+    "noVoteHistoryDesc": "您对提案的投票将显示在此处",
+    "totalVotes": "总票数",
+    "votedFor": "赞成",
+    "votedAgainst": "反对",
+    "votedAbstain": "弃权"
+  },
+  "Issues": {
+    "title": "议题",
+    "subtitle": "跟踪和管理治理议题",
+    "createIssue": "创建议题",
+    "searchPlaceholder": "搜索议题...",
+    "noIssues": "未找到议题",
+    "noIssuesDesc": "从信号检测到议题后将显示在此处",
+    "clearFilters": "清除筛选",
+    "signals": "信号",
+    "comments": "评论",
+    "updated": "已更新",
+    "viewDetails": "查看详情",
+    "stats": {
+      "detected": "已检测",
+      "confirmed": "已确认",
+      "in_progress": "进行中",
+      "resolved": "已解决"
+    },
+    "status": {
+      "all": "全部",
+      "detected": "已检测",
+      "confirmed": "已确认",
+      "in_progress": "进行中",
+      "resolved": "已解决",
+      "dismissed": "已驳回"
+    },
+    "priority": {
+      "label": "优先级",
+      "all": "全部",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "紧急"
+    },
+    "detail": {
+      "description": "描述",
+      "relatedSignals": "相关信号",
+      "comments": "讨论",
+      "created": "创建日期",
+      "lastUpdated": "最后更新",
+      "progress": "进度",
+      "startDiscussion": "开始讨论",
+      "createProposal": "创建提案",
+      "viewProposal": "查看提案"
+    }
+  },
+  "Signals": {
+    "title": "信号",
+    "subtitle": "来自多个来源的实时信号监控",
+    "refresh": "刷新",
+    "noSignals": "未找到信号",
+    "noSignalsDesc": "从各种来源收集信号后将显示在此处",
+    "viewSource": "查看来源",
+    "clearFilters": "清除筛选",
+    "stats": {
+      "total": "总信号",
+      "processed": "已处理",
+      "pending": "待处理",
+      "highPriority": "高优先级"
+    },
+    "sources": {
+      "all": "所有来源",
+      "rss": "RSS订阅",
+      "github": "GitHub",
+      "blockchain": "区块链",
+      "social": "社交媒体",
+      "api": "外部API",
+      "manual": "手动"
+    },
+    "filter": {
+      "all": "全部",
+      "processed": "已处理",
+      "unprocessed": "待处理"
+    },
+    "priority": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "status": {
+      "processed": "已处理",
+      "pending": "待处理"
+    },
+    "detail": {
+      "content": "内容",
+      "timestamp": "接收时间",
+      "signalId": "信号ID",
+      "metadata": "附加数据",
+      "source": "来源",
+      "createIssue": "创建议题"
+    }
+  },
+  "Wallet": {
+    "connectWallet": "连接钱包",
+    "connecting": "连接中...",
+    "selectWallet": "选择钱包",
+    "connectedWith": "已连接",
+    "address": "地址",
+    "balance": "余额",
+    "copy": "复制地址",
+    "viewOnEtherscan": "在Etherscan上查看",
+    "disconnect": "断开连接",
+    "mocBalance": "MOC余额",
+    "votingPower": "投票权",
+    "refresh": "刷新余额",
+    "verifyWallet": "验证钱包",
+    "verified": "已验证",
+    "notVerified": "未验证",
+    "verifying": "验证中...",
+    "signMessage": "签名消息",
+    "verificationRequired": "需要验证才能参与治理投票和提案。",
+    "verificationSteps": "操作步骤",
+    "step1": "点击"签名消息"开始验证",
+    "step2": "在钱包中签名消息（无需gas费）",
+    "step3": "您的钱包将被验证用于治理",
+    "waitingForSignature": "等待签名",
+    "checkWallet": "请检查您的钱包并签名消息",
+    "pleaseWait": "正在验证您的钱包...",
+    "verificationSuccess": "钱包验证成功！",
+    "verificationFailed": "验证失败",
+    "canParticipate": "您现在可以参与治理投票。",
+    "done": "完成",
+    "tryAgain": "重试",
+    "close": "关闭"
+  },
+  "Treasury": {
+    "title": "财务",
+    "subtitle": "治理财务和代币管理",
+    "overview": "概览",
+    "allocations": "分配",
+    "transactions": "交易",
+    "holders": "代币持有者",
+    "refresh": "刷新",
+    "connected": "已连接",
+    "stats": {
+      "totalBalance": "总余额",
+      "mocBalance": "MOC余额",
+      "ethBalance": "ETH余额",
+      "holders": "已验证持有者",
+      "activeVoting": "活跃投票",
+      "allocations": "总分配"
+    },
+    "allocation": {
+      "pending": "待处理",
+      "approved": "已批准",
+      "disbursed": "已支付",
+      "cancelled": "已取消"
+    },
+    "transaction": {
+      "deposit": "存款",
+      "withdrawal": "提款",
+      "transfer": "转账",
+      "allocation": "分配"
+    },
+    "balanceDistribution": "余额分布",
+    "allocationBreakdown": "分配状态",
+    "spendingLimits": {
+      "title": "支出限额",
+      "daily": "日限额",
+      "weekly": "周限额",
+      "monthly": "月限额",
+      "used": "已使用",
+      "noLimits": "未配置支出限额"
+    },
+    "modals": {
+      "allocationDetail": "分配详情",
+      "transactionDetail": "交易详情",
+      "viewProposal": "查看提案",
+      "viewOnExplorer": "在浏览器上查看",
+      "close": "关闭"
+    },
+    "recipient": "接收方",
+    "amount": "金额",
+    "description": "描述",
+    "status": "状态",
+    "from": "发送方",
+    "to": "接收方",
+    "txHash": "交易哈希",
+    "createdAt": "创建时间",
+    "approvedAt": "批准时间",
+    "disbursedAt": "支付时间",
+    "confirmedAt": "确认时间",
+    "copy": "复制",
+    "viewOnEtherscan": "在Etherscan上查看",
+    "votingPower": "投票权",
+    "tokenBalance": "代币余额",
+    "verifiedAt": "验证时间",
+    "noHolders": "暂无已验证的代币持有者",
+    "noAllocations": "暂无分配",
+    "noTransactions": "暂无交易",
+    "noBalances": "暂无余额数据"
+  },
+  "Guide": {
+    "title": "Algora的工作原理",
+    "subtitle": "了解AI驱动的治理流程",
+    "flowTitle": "治理流程",
+    "stepsTitle": "详细过程",
+    "features": {
+      "aiPowered": {
+        "title": "AI驱动",
+        "desc": "24/7 AI代理分析数据并参与治理讨论"
+      },
+      "realtime": {
+        "title": "实时",
+        "desc": "持续监控来自多个来源的信号"
+      },
+      "transparent": {
+        "title": "透明",
+        "desc": "所有决策和讨论都记录在链上"
+      }
+    },
+    "flow": {
+      "step1": "信号",
+      "step1Desc": "数据收集",
+      "step2": "议题",
+      "step2Desc": "检测",
+      "step3": "议事厅",
+      "step3Desc": "讨论",
+      "step4": "提案",
+      "step4Desc": "投票",
+      "step5": "结果",
+      "step5Desc": "执行",
+      "description": "数据流经各个阶段，从初始信号收集到最终结果执行"
+    },
+    "steps": {
+      "signals": {
+        "title": "信号收集",
+        "desc": "来自RSS订阅、GitHub和区块链事件的实时数据",
+        "point1": "从50+来源自动收集",
+        "point2": "基于优先级的过滤和分类"
+      },
+      "issues": {
+        "title": "议题检测",
+        "desc": "AI识别模式和潜在的治理议题",
+        "point1": "自动模式识别",
+        "point2": "基于严重性的优先级评分"
+      },
+      "agora": {
+        "title": "代理讨论",
+        "desc": "具有不同视角的AI代理讨论议题",
+        "point1": "具有不同观点的多个AI角色",
+        "point2": "基于证据的论证"
+      },
+      "proposals": {
+        "title": "社区投票",
+        "desc": "代币持有者对提案进行投票",
+        "point1": "基于代币持有量的加权投票",
+        "point2": "投票权委托支持"
+      },
+      "outcomes": {
+        "title": "执行与验证",
+        "desc": "批准的决策被执行和跟踪",
+        "point1": "通过的提案自动执行",
+        "point2": "结果验证和报告"
+      }
+    },
+    "otherMenus": {
+      "title": "其他部分",
+      "agents": {
+        "title": "AI代理",
+        "desc": "查看和管理AI代理角色"
+      },
+      "dashboard": {
+        "title": "仪表盘",
+        "desc": "所有系统活动概览"
+      },
+      "live": {
+        "title": "实时仪表盘",
+        "desc": "所有治理活动的实时视图"
+      },
+      "governance": {
+        "title": "治理OS",
+        "desc": "具有安全自治的自主治理"
+      },
+      "treasury": {
+        "title": "财务",
+        "desc": "DAO资金管理和代币持有者"
+      },
+      "profile": {
+        "title": "钱包与个人资料",
+        "desc": "连接钱包和管理投票委托"
+      }
+    },
+    "cta": {
+      "title": "准备好探索了吗？",
+      "desc": "从查看最新信号开始",
+      "button": "查看信号"
+    },
+    "tour": {
+      "welcome": {
+        "title": "欢迎来到Algora",
+        "desc": "Algora将Mossland的治理从手动讨论转变为AI驱动的自主操作系统。30多个AI代理全天候工作，分析、讨论并为人类批准准备决策。",
+        "vision": "Mossland的愿景：通过社区驱动的治理构建虚拟与现实世界的桥梁。"
+      },
+      "problem": {
+        "title": "我们解决的挑战",
+        "desc": "传统的DAO治理缓慢，需要持续的人类关注，经常错过重要信号。Algora通过自动化分析和讨论过程来解决这个问题，同时保持人类对最终决策的控制。",
+        "points": ["人类睡觉时24/7监控", "AI代理分析所有传入数据", "人类只批准最终操作"]
+      },
+      "signals": {
+        "title": "步骤1：信号收集",
+        "desc": "系统持续监控RSS订阅、GitHub、区块链事件和社交媒体。每一条相关信息都被捕获、分类和自动优先排序。",
+        "scenario": "示例：Twitter上出现新的合作公告→Algora立即捕获→AI标记为"高优先级"→您收到通知。"
+      },
+      "issues": {
+        "title": "步骤2：议题检测",
+        "desc": "AI分析信号以检测需要关注的治理议题。模式识别能识别人类可能忽略的趋势、异常和机会。",
+        "scenario": "示例：关于竞争项目的多个信号→AI识别战略威胁→创建议题进行讨论。"
+      },
+      "agora": {
+        "title": "步骤3：AI讨论",
+        "desc": "这是魔法发生的地方。30多个具有不同视角的AI代理（远见者、建设者、守护者等）讨论议题并就建议达成共识。",
+        "scenario": "示例：代理讨论财务提案→守护者提出安全顾虑→投资者分析投资回报率→创建平衡的决策包。"
+      },
+      "proposals": {
+        "title": "步骤4：人类治理",
+        "desc": "MOC代币持有者拥有最终决定权。AI准备全面的决策包，但人类投票决定是否批准操作。高风险操作始终锁定直到人类批准。",
+        "scenario": "示例：AI推荐资助→决策包显示利弊→MOC持有者投票→如果批准则解锁操作。"
+      },
+      "treasury": {
+        "title": "步骤5：财务管理",
+        "desc": "财务仪表盘提供DAO资金管理的可视化洞察。在一个地方查看余额分布、跟踪分配、监控交易和查看代币持有者信息。",
+        "scenario": "示例：查看显示代币分配的饼图→检查待处理分配→监控交易历史→查看所有已验证的代币持有者。"
+      },
+      "profile": {
+        "title": "步骤6：钱包与委托",
+        "desc": "连接钱包参与治理。验证钱包以获得投票权，当您无法直接投票时，将投票权委托给信任的地址。",
+        "scenario": "示例：连接MetaMask→验证钱包→将投票权委托给信任的社区成员→您的票由委托人自动投出。"
+      },
+      "safeAutonomy": {
+        "title": "安全自治保证",
+        "desc": "系统绝不会在没有人类批准的情况下执行高风险操作。资金转移、合同和合作伙伴关系始终锁定直到明确批准。系统继续运行，但危险操作等待您。",
+        "guarantee": "您的资产是安全的。AI推荐，人类决定。"
+      },
+      "complete": {
+        "title": "准备好探索了！",
+        "desc": "您现在了解了Algora如何支持Mossland的治理。AI全天候为您工作，但所有重要决策的控制权仍在您手中。",
+        "cta": "从查看最新信号或访问治理OS仪表盘开始。"
+      },
+      "skip": "跳过导览",
+      "next": "下一步",
+      "prev": "返回",
+      "finish": "开始探索",
+      "goToPage": "转到页面",
+      "stepOf": "步骤 {current} / {total}"
+    },
+    "help": {
+      "startTour": "重新开始导览",
+      "viewFlow": "查看系统流程",
+      "pageHelp": "页面帮助",
+      "docs": "文档"
+    },
+    "tooltips": {
+      "dashboard": "所有治理活动和系统状态概览",
+      "signals": "从RSS、GitHub和区块链收集的实时数据",
+      "issues": "AI从信号中检测到的重要议题",
+      "agora": "AI代理讨论议题的讨论竞技场",
+      "proposals": "社区投票的治理提案",
+      "treasury": "DAO财务和代币管理",
+      "agents": "参与治理的AI代理",
+      "engine": "系统监控和配置",
+      "governance": "具有文档注册表、双院投票和安全自治的自主治理OS",
+      "delegation": "将投票权委托给信任的地址。委托的票在投票时自动应用。"
+    }
+  },
+  "Live": {
+    "title": "ALGORA实时",
+    "subtitle": "24/7 AI治理系统",
+    "version": "v0.3.0-beta",
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "degraded": "性能下降"
+    },
+    "metrics": {
+      "title": "实时指标",
+      "signals": "信号",
+      "rate": "速率",
+      "sessions": "会议",
+      "agents": "代理",
+      "issues": "议题",
+      "uptime": "运行时间"
+    },
+    "signalStream": {
+      "title": "信号流",
+      "live": "实时",
+      "connecting": "连接中",
+      "awaiting": "等待信号..."
+    },
+    "blueprint": {
+      "title": "系统蓝图",
+      "signals": "信号",
+      "analysis": "分析",
+      "issues": "议题",
+      "agora": "议事厅",
+      "proposals": "提案",
+      "voting": "投票",
+      "execute": "执行"
+    },
+    "activity": {
+      "title": "实时活动",
+      "monitoring": "监控活动中..."
+    },
+    "chatter": {
+      "title": "代理聊天",
+      "typing": "输入中...",
+      "thinking": "代理正在思考..."
+    },
+    "session": {
+      "title": "议事厅会议",
+      "noActive": "暂无活跃会议",
+      "awaiting": "议事厅等待下一场讨论...",
+      "topic": "主题",
+      "round": "回合",
+      "consensus": "共识",
+      "speaking": "发言中"
+    },
+    "footer": {
+      "platform": "24/7实时代理治理平台",
+      "powered": "由30个AI代理驱动"
+    }
+  },
+  "Governance": {
+    "title": "治理OS",
+    "subtitle": "AI代理驱动的自主治理操作系统",
+    "refresh": "刷新",
+    "health": {
+      "healthy": "健康",
+      "degraded": "性能下降",
+      "unhealthy": "异常"
+    },
+    "stats": {
+      "uptime": "运行时间",
+      "pipelines": "管道",
+      "completed": "已完成",
+      "documents": "文档",
+      "locked": "锁定的操作"
+    },
+    "tabs": {
+      "overview": "概览",
+      "workflows": "工作流",
+      "documents": "文档",
+      "voting": "投票",
+      "approvals": "批准"
+    },
+    "overview": {
+      "recentWorkflows": "最近的工作流",
+      "noWorkflows": "暂无活跃工作流",
+      "activeVotes": "活跃投票",
+      "noVotes": "暂无活跃投票",
+      "pendingApprovals": "待批准",
+      "noLocked": "暂无待批准的操作"
+    },
+    "pipeline": {
+      "title": "管道状态",
+      "description": "9阶段治理工作流处理",
+      "complete": "完成",
+      "stages_completed": "阶段",
+      "stages": {
+        "signal_intake": "信号",
+        "issue_detection": "检测",
+        "triage": "分类",
+        "research": "研究",
+        "deliberation": "讨论",
+        "decision_packet": "决策",
+        "voting": "投票",
+        "execution": "执行",
+        "outcome_verification": "验证"
+      },
+      "legend": {
+        "completed": "已完成",
+        "current": "进行中",
+        "pending": "待处理"
+      }
+    },
+    "workflows": {
+      "type": "类型",
+      "active": "活跃",
+      "today": "今日",
+      "pending": "待处理",
+      "completedToday": "今日完成",
+      "pendingApproval": "待批准",
+      "purpose": "目的",
+      "pipelineStages": "管道阶段",
+      "stakeholders": "利益相关者",
+      "outputDocuments": "输出文档",
+      "recentActivity": "最近活动（7天）",
+      "running": "运行中",
+      "close": "关闭"
+    },
+    "documents": {
+      "states": {
+        "draft": "草稿",
+        "pending_review": "待审核",
+        "in_review": "审核中",
+        "approved": "已批准",
+        "published": "已发布",
+        "superseded": "已替代",
+        "archived": "已归档",
+        "rejected": "已拒绝"
+      },
+      "summary": "摘要",
+      "documentId": "文档ID",
+      "version": "版本",
+      "createdBy": "创建者",
+      "createdAt": "创建时间",
+      "timeline": "时间线",
+      "created": "文档创建",
+      "lastUpdated": "最后更新",
+      "contentHash": "内容哈希（完整性已验证）",
+      "close": "关闭",
+      "viewIssue": "查看相关议题"
+    },
+    "voting": {
+      "status": {
+        "pending": "待处理",
+        "voting": "投票中",
+        "passed": "通过",
+        "rejected": "否决",
+        "reconciliation": "调解中"
+      },
+      "mossCoinHouse": "MossCoin院",
+      "openSourceHouse": "开源院",
+      "finalResult": {
+        "passed": "提案通过",
+        "passedDesc": "两院都已批准此提案。",
+        "rejected": "提案否决",
+        "rejectedDesc": "两院都已否决此提案。",
+        "reconciliation": "需要调解",
+        "reconciliationDesc": "两院意见不一致。调解程序已启动。"
+      },
+      "votingRules": "双院投票规则",
+      "rules": {
+        "bothMustPass": "两院必须同意",
+        "bothMustPassDesc": "提案只有在两院都批准时才能通过。",
+        "quorumRequired": "需要法定人数",
+        "quorumRequiredDesc": "必须达到最低参与阈值。",
+        "reconciliation": "调解程序",
+        "reconciliationDesc": "如果两院意见不一致，将触发调解。",
+        "highRisk": "高风险操作",
+        "highRiskDesc": "需要Director 3的额外批准。"
+      },
+      "close": "关闭",
+      "castVote": "投票"
+    },
+    "safeAutonomy": {
+      "status": {
+        "locked": "已锁定",
+        "approved": "已批准",
+        "rejected": "已拒绝",
+        "executed": "已执行"
+      },
+      "lockReason": "锁定原因",
+      "approvals": "批准",
+      "approve": "批准",
+      "actionDescription": "操作描述",
+      "approvalProgress": "批准进度",
+      "pendingApproval": "等待批准",
+      "approved": "已批准",
+      "verified": "已验证",
+      "createdAt": "创建时间",
+      "expiresAt": "过期时间",
+      "proposalId": "相关提案",
+      "votingId": "相关投票",
+      "afterApproval": "批准后会发生什么？",
+      "afterApproval1": "操作将被解锁并准备执行",
+      "afterApproval2": "所有批准者将收到通知",
+      "afterApproval3": "执行将记录在审计跟踪中",
+      "close": "关闭",
+      "approveAction": "批准此操作"
+    }
+  },
+  "Witty": {
+    "loading": {
+      "germinating": "萌芽中...",
+      "percolating": "渗透中...",
+      "cogitating": "深思中...",
+      "deliberating": "审议中...",
+      "orchestrating": "协调中...",
+      "crystallizing": "结晶中...",
+      "transmuting": "转化中...",
+      "bootstrapping": "启动中...",
+      "quantumizing": "量子化中..."
+    },
+    "signals": {
+      "reconciling": "调和信号中...",
+      "syncing": "现实同步中...",
+      "deciphering": "解码中...",
+      "channelling": "通道传输中..."
+    },
+    "agents": {
+      "spawning": "生成代理中...",
+      "pondering": "思考中...",
+      "cerebrating": "思索中...",
+      "manifesting": "显现中..."
+    },
+    "governance": {
+      "consensus": "共识形成中...",
+      "tallying": "计票中...",
+      "actualizing": "决策实现中...",
+      "effecting": "执行变更中..."
+    },
+    "empty": {
+      "signals": "电波很安静...暂时。",
+      "sessions": "议事厅等待第一场讨论...",
+      "agents": "大厅休眠中...",
+      "activity": "等待下一个动作..."
+    },
+    "success": {
+      "accomplished": "完成！",
+      "crystallized": "结晶！",
+      "manifested": "显现！",
+      "harmonized": "和谐！"
+    }
+  },
+  "Experimental": {
+    "badge": "实验环境",
+    "title": "研究 / 测试 / 非生产",
+    "description": "此服务是用于研究、测试和PoC目的的实验环境。可能发生数据丢失和服务中断。"
+  },
+  "MockData": {
+    "badge": "模拟数据",
+    "title": "模拟数据",
+    "description": "此部分显示用于演示目的的模拟/模拟数据。在生产环境中，将替换为来自治理系统的实时数据。"
+  },
+  "Delegation": {
+    "title": "投票委托",
+    "subtitle": "将投票权委托给信任的地址",
+    "stats": {
+      "ownPower": "自有投票权",
+      "delegatedIn": "收到的委托",
+      "delegatedOut": "发出的委托",
+      "effectivePower": "有效投票权"
+    },
+    "tabs": {
+      "given": "发出的委托",
+      "received": "收到的委托"
+    },
+    "delegate": "委托",
+    "revoke": "撤销",
+    "delegateTo": "委托给",
+    "delegatedTo": "已委托给",
+    "delegatedFrom": "委托自",
+    "delegateAddress": "委托地址",
+    "enterAddress": "输入钱包地址（0x...）",
+    "invalidAddress": "无效的钱包地址",
+    "cannotDelegateToSelf": "不能委托给自己",
+    "categories": "类别",
+    "category": {
+      "treasury": "财务",
+      "technical": "技术",
+      "governance": "治理",
+      "community": "社区"
+    },
+    "allCategories": "所有类别",
+    "allCategoriesHint": "留空以委托所有类别",
+    "optional": "可选",
+    "expiresAt": "过期时间",
+    "expiration": {
+      "never": "永不",
+      "30days": "30天",
+      "90days": "90天",
+      "180days": "180天"
+    },
+    "noExpiration": "无过期",
+    "expired": "已过期",
+    "expiresInDay": "剩余{days}天",
+    "expiresInDays": "剩余{days}天",
+    "confirmDelegation": "确认委托",
+    "delegationSuccess": "委托成功！",
+    "delegationSuccessDesc": "您已将{power} VP委托给{address}",
+    "delegationFailed": "委托失败",
+    "delegationFailedDesc": "出现问题。请重试。",
+    "revokeDelegation": "撤销委托",
+    "revokeConfirm": "确定要撤销此委托吗？",
+    "noDelegationsGiven": "您尚未委托给任何人",
+    "noDelegationsReceived": "尚无人委托给您",
+    "votingPower": "投票权",
+    "loading": "加载委托中...",
+    "modal": {
+      "title": "委托投票权",
+      "intro": "委托允许他人代表您投票。您的代币仍保留在钱包中。",
+      "inputTitle": "委托详情",
+      "continue": "继续",
+      "back": "返回",
+      "processing": "处理中...",
+      "done": "完成",
+      "tryAgain": "重试",
+      "close": "关闭"
+    }
+  },
+  "HelpTooltips": {
+    "systemStatus": "Algora治理引擎的实时状态。"运行中"表示所有系统正常运行。",
+    "budget": "外部LLM调用（Claude/GPT）的每日API预算。预算不足时，系统使用本地LLM。",
+    "nextTier2": "使用外部LLM服务进行下一次高质量AI讨论的预定时间。",
+    "queue": "等待治理引擎处理的待处理任务数量。",
+    "liveButton": "查看显示所有正在发生的治理活动的实时仪表盘。",
+    "walletConnect": "连接MOC钱包参与治理投票并获得委托奖励。",
+    "signalSource": "收集信号的来源 - RSS订阅、GitHub事件、区块链数据或外部API。",
+    "signalPriority": "基于相关性、紧迫性和对治理的潜在影响由AI分配的优先级。",
+    "issueStatus": "议题生命周期的当前阶段 - 从检测到解决。",
+    "issuePriority": "由AI分析和社区输入确定的严重程度。",
+    "proposalVoting": "基于代币持有量决定投票权的代币加权投票。",
+    "proposalQuorum": "投票有效所需的最低参与率（通常为总供应量的10%）。",
+    "agoraSession": "AI代理讨论治理议题的实时讨论会议。",
+    "agentCluster": "代理按专业领域分组 - 远见者、建设者、投资者、守护者等。",
+    "agentStatus": "当前代理状态：空闲（等待）、活跃（工作中）、发言中（讨论中）。",
+    "dualHouse": "双院投票系统：MossCoin院（代币持有者）和开源院（贡献者）。",
+    "safeAutonomy": "锁定高风险操作直到明确人类批准的安全机制。",
+    "pipelineStage": "从信号到执行的9阶段治理管道的当前阶段。",
+    "documentState": "文档生命周期：草稿→审核→已批准→已发布。",
+    "tierUsage": "LLM层级使用 - Tier 0（免费）、Tier 1（本地Ollama）、Tier 2（外部Claude/GPT）。"
+  },
+  "Alerts": {
+    "title": "通知",
+    "notifications": "通知",
+    "markAllRead": "全部标为已读",
+    "noAlerts": "暂无通知",
+    "dismiss": "关闭",
+    "budgetWarning": "预算警告",
+    "budgetCritical": "预算紧急",
+    "budgetExhausted": "预算耗尽",
+    "justNow": "刚刚",
+    "minutesAgo": "{count}分钟前",
+    "hoursAgo": "{count}小时前",
+    "showingCount": "显示{count}个提醒"
+  },
+  "PassiveConsensus": {
+    "title": "被动共识",
+    "status": {
+      "pending": "审核中",
+      "autoApproved": "自动批准",
+      "approved": "已批准",
+      "vetoed": "已否决",
+      "escalated": "已升级",
+      "unknown": "未知"
+    },
+    "risk": {
+      "low": "低",
+      "mid": "中",
+      "high": "高"
+    },
+    "riskLevel": "风险等级",
+    "remaining": "剩余",
+    "unreviewedByHuman": "未经人工审核",
+    "autoApproveNote": "如果没有否决，将在{hours}小时后自动批准"
+  },
+  "Timeline": {
+    "title": "治理时间线",
+    "subtitle": "跟踪从信号到执行的流程",
+    "signals": "信号",
+    "issues": "议题",
+    "proposals": "提案",
+    "votes": "投票",
+    "issue": "议题",
+    "error": "加载时间线失败",
+    "noEvents": "暂无事件显示",
+    "viewDetails": "查看详情",
+    "viewAll": "查看所有事件",
+    "filters": "筛选",
+    "showCount": "显示数量",
+    "recentFlows": "最近的治理流程",
+    "weekSummary": "本周",
+    "todaySignals": "今日信号",
+    "todayIssues": "今日议题"
+  }
+}
