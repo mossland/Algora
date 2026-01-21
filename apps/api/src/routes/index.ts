@@ -19,6 +19,7 @@ import { passiveConsensusRouter } from './passive-consensus';
 import { ragRouter } from './rag';
 import { qualityRouter } from './quality';
 import { timelineRouter } from './timeline';
+import { logsRouter } from './logs';
 import governanceOSRouter from './governance-os';
 
 export function setupRoutes(app: Express): void {
@@ -45,6 +46,7 @@ export function setupRoutes(app: Express): void {
   apiRouter.use('/rag', ragRouter);
   apiRouter.use('/quality', qualityRouter);
   apiRouter.use('/timeline', timelineRouter);
+  apiRouter.use('/logs', logsRouter);
   apiRouter.use('/governance-os', governanceOSRouter);
 
   // Mount API router
