@@ -37,10 +37,11 @@ function broadcastTallyUpdated(
       forVotes: number;
       againstVotes: number;
       abstainVotes: number;
-      totalVotes: number;
-      totalVoters: number;
-      quorum: number;
-      status: string;
+      totalVotingPower: number;
+      totalEligiblePower: number;
+      participationRate: number;
+      quorumReached: boolean;
+      result: string;
     };
   }
 ): void {
@@ -308,10 +309,11 @@ tokenRouter.post('/voting/:proposalId/vote', async (req, res) => {
             forVotes: tally.forVotes || 0,
             againstVotes: tally.againstVotes || 0,
             abstainVotes: tally.abstainVotes || 0,
-            totalVotes: tally.totalVotes || 0,
-            totalVoters: tally.totalVoters || 0,
-            quorum: tally.quorum || 0,
-            status: tally.status || 'active',
+            totalVotingPower: tally.totalVotingPower || 0,
+            totalEligiblePower: tally.totalEligiblePower || 0,
+            participationRate: tally.participationRate || 0,
+            quorumReached: tally.quorumReached || false,
+            result: tally.result || 'pending',
           },
         });
       } catch (tallyError) {

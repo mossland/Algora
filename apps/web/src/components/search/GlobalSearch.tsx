@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, User, FileText, AlertCircle, Radio, MessageSquare, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+// Link import removed - using router.push instead
 import { usePathname, useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';

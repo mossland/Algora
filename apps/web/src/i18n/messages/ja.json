@@ -25,7 +25,19 @@
     "proposals": "提案",
     "treasury": "財務",
     "disclosure": "情報開示",
-    "engine": "エンジンルーム"
+    "engine": "エンジンルーム",
+    "admin": "管理者",
+    "timeline": "タイムライン",
+    "profile": "プロフィール"
+  },
+  "Admin": {
+    "title": "管理者ダッシュボード",
+    "subtitle": "システム監視と管理",
+    "refresh": "更新",
+    "systemHealth": "システム状態",
+    "llmUsage": "LLM使用量",
+    "dataGrowth": "データ増加",
+    "kpiTrends": "KPIトレンド"
   },
   "Dashboard": {
     "title": "ダッシュボード",

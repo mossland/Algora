@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
+import type { Router as RouterType } from 'express';
 import { logMonitorService } from '../services/log-monitor';
 
-export const logsRouter = Router();
+export const logsRouter: RouterType = Router();
 
 /**
  * GET /api/logs/stats

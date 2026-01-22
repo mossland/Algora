@@ -15,6 +15,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.8] - 2026-01-22
+
+### Added
+- **LLM Thermal Throttling System** (`apps/api/src/services/llm.ts`):
+  - Configurable cooldown between Tier 1 (local LLM) calls to prevent server overheating
+  - `ThermalThrottleConfig` interface with minCooldownMs, maxCallsPerMinute, dynamicCooldown, maxCooldownMs
+  - Rate limiting to max 20 calls per minute (configurable)
+  - Dynamic cooldown increases under heavy load (2x cooldown when > 10 calls/min)
+  - `waitForCooldown()` method automatically enforces delays between calls
+  - `getThermalStatus()` method for monitoring thermal state
+  - `updateThermalConfig()` method for runtime configuration
+
+- **Thermal Monitoring API** (`apps/api/src/routes/stats.ts`):
+  - `GET /api/stats/thermal` - Get current thermal status:
+    - lastCallTime, cooldownMs, callsInLastMinute
+    - Configured limits and dynamic cooldown status
+  - `PATCH /api/stats/thermal/config` - Update thermal configuration at runtime
+
+- **i18n Admin Page Translations** (`apps/web/src/i18n/messages/`):
+  - Added Navigation keys: `admin`, `timeline`, `profile` to all 4 languages
+  - Added Admin section with `title`, `subtitle`, `refresh`, `systemHealth`, `llmUsage`, `dataGrowth`, `kpiTrends`
+  - Updated: en.json, ko.json, ja.json, zh.json
+
+### Changed
+- **Thermal Throttling Settings Optimized for Server Cooling**:
+  - minCooldownMs: 2000 → 5000 (5 seconds between calls)
+  - maxCallsPerMinute: 15 → 8 (reduced call rate)
+  - maxCooldownMs: 10000 → 30000 (30 seconds max cooldown)
+
+### Fixed
+- **Build Errors**:
+  - Fixed Express Router type inference error in `logs.ts`
+  - Fixed TokenVoteTally interface mismatch in `token.ts`
+  - Fixed Chinese quotation marks breaking JSON parsing in `zh.json`
+  - Fixed multiple ESLint unused variable errors across components
+  - Fixed Next.js typed routes error in profile page
+  - Fixed Lucide icon `title` prop error in PassiveConsensusIndicator
+
+---
+
 ## [0.12.7] - 2026-01-21
 
 ### Added

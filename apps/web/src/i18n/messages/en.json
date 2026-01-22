@@ -25,7 +25,19 @@
     "proposals": "Proposals",
     "treasury": "Treasury",
     "disclosure": "Disclosure",
-    "engine": "Engine Room"
+    "engine": "Engine Room",
+    "admin": "Admin",
+    "timeline": "Timeline",
+    "profile": "Profile"
+  },
+  "Admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "System monitoring and administration",
+    "refresh": "Refresh",
+    "systemHealth": "System Health",
+    "llmUsage": "LLM Usage",
+    "dataGrowth": "Data Growth",
+    "kpiTrends": "KPI Trends"
   },
   "Dashboard": {
     "title": "Dashboard",

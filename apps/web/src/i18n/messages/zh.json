@@ -25,7 +25,19 @@
     "proposals": "提案",
     "treasury": "财务",
     "disclosure": "信息披露",
-    "engine": "引擎室"
+    "engine": "引擎室",
+    "admin": "管理员",
+    "timeline": "时间线",
+    "profile": "个人资料"
+  },
+  "Admin": {
+    "title": "管理员仪表盘",
+    "subtitle": "系统监控与管理",
+    "refresh": "刷新",
+    "systemHealth": "系统健康",
+    "llmUsage": "LLM使用量",
+    "dataGrowth": "数据增长",
+    "kpiTrends": "KPI趋势"
   },
   "Dashboard": {
     "title": "仪表盘",
@@ -94,7 +106,7 @@
     "summon": "召唤",
     "dismiss": "解散",
     "noResults": "未找到代理",
-    "noSearchResults": "没有匹配"{query}"的代理",
+    "noSearchResults": "没有匹配「{query}」的代理",
     "noAgentsInCluster": "此集群中没有代理",
     "clearFilters": "清除筛选"
   },
@@ -548,8 +560,8 @@
     "signMessage": "签名消息",
     "verificationRequired": "需要验证才能参与治理投票和提案。",
     "verificationSteps": "操作步骤",
-    "step1": "点击"签名消息"开始验证",
-    "step2": "在钱包中签名消息（无需gas费）",
+    "step1": "点击「签名消息」开始验证",
+    "step2": "在钱包中签名消息(无需gas费)",
     "step3": "您的钱包将被验证用于治理",
     "waitingForSignature": "等待签名",
     "checkWallet": "请检查您的钱包并签名消息",
@@ -738,7 +750,7 @@
       "signals": {
         "title": "步骤1：信号收集",
         "desc": "系统持续监控RSS订阅、GitHub、区块链事件和社交媒体。每一条相关信息都被捕获、分类和自动优先排序。",
-        "scenario": "示例：Twitter上出现新的合作公告→Algora立即捕获→AI标记为"高优先级"→您收到通知。"
+        "scenario": "示例：Twitter上出现新的合作公告→Algora立即捕获→AI标记为「高优先级」→您收到通知。"
       },
       "issues": {
         "title": "步骤2：议题检测",
@@ -1128,7 +1140,7 @@
     }
   },
   "HelpTooltips": {
-    "systemStatus": "Algora治理引擎的实时状态。"运行中"表示所有系统正常运行。",
+    "systemStatus": "Algora治理引擎的实时状态。「运行中」表示所有系统正常运行。",
     "budget": "外部LLM调用（Claude/GPT）的每日API预算。预算不足时，系统使用本地LLM。",
     "nextTier2": "使用外部LLM服务进行下一次高质量AI讨论的预定时间。",
     "queue": "等待治理引擎处理的待处理任务数量。",

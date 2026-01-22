@@ -76,11 +76,12 @@ export class LLMService extends EventEmitter {
     super();
 
     // Thermal throttling configuration (configurable via env vars)
+    // Settings optimized for server cooling - longer cooldowns to reduce heat
     this.thermalConfig = {
-      minCooldownMs: parseInt(process.env.LLM_MIN_COOLDOWN_MS || '2000', 10),         // 2s min between calls
-      maxCallsPerMinute: parseInt(process.env.LLM_MAX_CALLS_PER_MINUTE || '15', 10),  // 15 calls/min max
+      minCooldownMs: parseInt(process.env.LLM_MIN_COOLDOWN_MS || '5000', 10),         // 5s min between calls (was 2s)
+      maxCallsPerMinute: parseInt(process.env.LLM_MAX_CALLS_PER_MINUTE || '8', 10),   // 8 calls/min max (was 15)
       dynamicCooldown: process.env.LLM_DYNAMIC_COOLDOWN !== 'false',                  // Enable by default
-      maxCooldownMs: parseInt(process.env.LLM_MAX_COOLDOWN_MS || '10000', 10),        // 10s max cooldown
+      maxCooldownMs: parseInt(process.env.LLM_MAX_COOLDOWN_MS || '30000', 10),        // 30s max cooldown (was 10s)
     };
 
     console.log(`[LLM] Thermal throttling enabled: min cooldown ${this.thermalConfig.minCooldownMs}ms, max ${this.thermalConfig.maxCallsPerMinute} calls/min`);

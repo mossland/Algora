@@ -10,9 +10,7 @@ import {
   Radio,
   AlertTriangle,
   FileText,
-  MessageSquare,
   Vote,
-  CheckCircle,
   TrendingUp,
   Calendar,
 } from 'lucide-react';

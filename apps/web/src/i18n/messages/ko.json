@@ -25,7 +25,19 @@
     "proposals": "제안",
     "treasury": "트레저리",
     "disclosure": "공시",
-    "engine": "엔진 룸"
+    "engine": "엔진 룸",
+    "admin": "관리자",
+    "timeline": "타임라인",
+    "profile": "프로필"
+  },
+  "Admin": {
+    "title": "관리자 대시보드",
+    "subtitle": "시스템 모니터링 및 관리",
+    "refresh": "새로고침",
+    "systemHealth": "시스템 상태",
+    "llmUsage": "LLM 사용량",
+    "dataGrowth": "데이터 증가",
+    "kpiTrends": "KPI 추이"
   },
   "Dashboard": {
     "title": "대시보드",

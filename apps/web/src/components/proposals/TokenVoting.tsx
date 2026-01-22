@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -104,7 +104,7 @@ export function TokenVoting({ proposalId, onVoteSuccess }: TokenVotingProps) {
     queryClient.invalidateQueries({ queryKey: ['token-voting-info', proposalId] });
   }, [proposalId, queryClient]);
 
-  const handleTallyUpdated = useCallback((data: VoteTallyUpdatedEvent) => {
+  const handleTallyUpdated = useCallback((_data: VoteTallyUpdatedEvent) => {
     // Invalidate voting info to get fresh tally
     queryClient.invalidateQueries({ queryKey: ['token-voting-info', proposalId] });
   }, [proposalId, queryClient]);

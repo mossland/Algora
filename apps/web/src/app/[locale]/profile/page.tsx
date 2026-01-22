@@ -129,7 +129,7 @@ export default function ProfilePage() {
 
   // Calculate contribution stats
   const totalVotes = profile?.votingHistory?.length || 0;
-  const proposalsSubmitted = userProposals?.length || 0;
+  const _proposalsSubmitted = userProposals?.length || 0;
   const delegationsReceived = delegations?.delegatedFrom?.length || 0;
 
   const copyAddress = async () => {
@@ -401,7 +401,7 @@ export default function ProfilePage() {
                   My Proposals
                 </h3>
                 <Link
-                  href={`/${locale}/proposals/create`}
+                  href={`/${locale}/proposals` as never}
                   className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-primary/80"
                 >
                   Create Proposal
@@ -413,7 +413,7 @@ export default function ProfilePage() {
                   {userProposals.map((proposal) => (
                     <Link
                       key={proposal.id}
-                      href={`/${locale}/proposals/${proposal.id}`}
+                      href={`/${locale}/proposals` as never}
                       className="block rounded-xl border border-agora-border dark:border-agora-dark-border bg-agora-card dark:bg-agora-dark-card p-4 hover:border-agora-primary/50 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-4">

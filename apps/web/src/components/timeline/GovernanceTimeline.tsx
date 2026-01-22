@@ -128,7 +128,6 @@ interface TimelineEventCardProps {
 }
 
 function TimelineEventCard({ event, isLast, compact = false }: TimelineEventCardProps) {
-  const t = useTranslations('Timeline');
   const config = eventConfig[event.type];
   const Icon = event.type === 'vote' && event.status
     ? getVoteIcon(event.status)

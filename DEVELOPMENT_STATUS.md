@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-21
-**Current Version**: 0.12.7
+**Last Updated**: 2026-01-22
+**Current Version**: 0.12.8
 **Production URL**: https://algora.moss.land
 
 ---
@@ -677,6 +677,70 @@ Based on 13 days of production data (2026-01-09 ~ 2026-01-21):
 
 ---
 
+### Phase 10.7: System Enhancements (COMPLETED)
+
+#### D5 - Passive Consensus (COMPLETED)
+- [x] PassiveConsensusService (`apps/api/src/services/passive-consensus.ts`)
+- [x] Auto-approval for LOW risk (24h), MID risk (48h)
+- [x] "Unreviewed" label for auto-approved items
+- [x] REST endpoints: `/api/passive-consensus/*`
+
+#### D2 - Model Router RAG (COMPLETED)
+- [x] RAGService (`apps/api/src/services/rag.ts`)
+- [x] In-memory vector store with cosine similarity
+- [x] Governance document indexing and search
+- [x] REST endpoints: `/api/rag/*`
+
+#### D3 - Quality Gate (COMPLETED)
+- [x] QualityGateService (`apps/api/src/services/quality-gate.ts`)
+- [x] 8 validators: format, length, safety, relevance, completeness, consistency, citation, confidence
+- [x] REST endpoints: `/api/quality-gate/*`
+
+#### E2 - Governance Timeline View (COMPLETED)
+- [x] TimelineEvent types and API (`apps/api/src/routes/timeline.ts`)
+- [x] GovernanceTimeline component (`apps/web/src/components/timeline/`)
+- [x] 7-stage flow visualization (Signal → Execution)
+- [x] Filtering by stage and date range
+- [x] Timeline page (`apps/web/src/app/[locale]/timeline/`)
+
+#### C3 - Log Rotation & Monitoring (COMPLETED)
+- [x] pm2-logrotate setup script (`scripts/setup-logrotate.sh`)
+- [x] LogMonitorService (`apps/api/src/services/log-monitor.ts`)
+- [x] REST endpoints: `/api/logs/*`
+
+#### E5 - Multilingual Expansion (COMPLETED)
+- [x] Japanese translations (`apps/web/src/i18n/messages/ja.json`)
+- [x] Chinese translations (`apps/web/src/i18n/messages/zh.json`)
+- [x] Updated middleware and request.ts for 4 locales (en, ko, ja, zh)
+
+#### C4 - API Caching Layer (COMPLETED)
+- [x] In-memory cache integration (`apps/api/src/lib/cache.ts`)
+- [x] Cache for `/api/stats` (15s TTL)
+- [x] Cache for `/api/stats/tier-usage` (30s TTL)
+- [x] Cache for `/api/timeline/stats` (30s TTL)
+- [x] Cache monitoring endpoints: `/api/stats/cache`, `/api/stats/cache/clear`
+
+#### B6 - Accessibility Improvements (COMPLETED)
+- [x] AccessibleModal component (focus trap, escape key, scroll lock)
+- [x] AccessibleDropdown component (keyboard navigation, type-ahead search)
+- [x] Header ARIA enhancements (role="banner", aria-live for status)
+- [x] Translations for all 4 languages
+
+#### LLM Thermal Throttling (COMPLETED)
+- [x] Cooldown between Tier 1 calls (default 5s, was 2s)
+- [x] Rate limiting (max 8 calls/minute, was 15)
+- [x] Dynamic cooldown under heavy load (max 30s, was 10s)
+- [x] Automatic Tier 2 fallback when cooldown too long
+- [x] REST endpoints: `/api/stats/thermal`, `/api/stats/thermal/config`
+- [x] Environment config: `LLM_MIN_COOLDOWN_MS`, `LLM_MAX_CALLS_PER_MINUTE`, `LLM_MAX_COOLDOWN_MS`
+
+#### i18n Admin Page Translations (COMPLETED)
+- [x] Added Navigation keys: `admin`, `timeline`, `profile` (4 languages)
+- [x] Added Admin section: `title`, `subtitle`, `refresh`, `systemHealth`, `llmUsage`, `dataGrowth`, `kpiTrends`
+- [x] Updated: en.json, ko.json, ja.json, zh.json
+
+---
+
 ## Next Steps (Priority Order)
 
 ### Phase 10 Remaining
@@ -742,12 +806,16 @@ pm2 startup
 ## Git Commit History (Recent)
 
 ```
-568ec18 feat: Add voting delegation UI with stats, list, and modal components
-0461d1c feat: Enhance Treasury Dashboard with visualization and components
-9475650 feat: Implement wallet connection UI with MOC token display and verification
-3086f08 docs: Update USER_GUIDE.md and USER_GUIDE.ko.md with v2.0 features
-2568ccd feat: Add production deployment with pm2 and nginx reverse proxy
-bafeae9 test: Add comprehensive tests for v2.0 packages and fix exports
+4b40edd feat: Add LLM thermal throttling to prevent server overheating
+574e3b9 feat: Add accessibility improvements with ARIA labels and reusable components
+81f655e feat: Integrate in-memory caching for high-traffic API endpoints
+1877e89 feat: Add Japanese and Chinese language support
+c4f3394 feat: Add log rotation and monitoring system
+4b1cb88 feat: Add Governance Timeline View showing signal-to-execution flow
+a8d31b7 feat: Add Quality Gate service for LLM output validation
+1a514e8 feat: Add RAG service for semantic search in governance documents
+8166984 feat: Add passive consensus system for opt-out approval model
+9e7e410 feat: Add KPI persistent storage and history visualization
 ```
 
 ---

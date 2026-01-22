@@ -360,7 +360,7 @@ export default function AdminPage() {
             </h2>
 
             <div className="space-y-3">
-              {llmUsage.today.summary.map((item, idx) => (
+              {llmUsage.today.summary.map((item) => (
                 <div key={`${item.provider}-${item.tier}`} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${

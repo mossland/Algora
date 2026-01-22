@@ -154,7 +154,9 @@ export function PassiveConsensusIndicator({
             : statusConfig.label}
         </span>
         {status.unreviewedByHuman && (
-          <ShieldAlert className="h-3 w-3 text-amber-500" title={t('unreviewedByHuman')} />
+          <span title={t('unreviewedByHuman')}>
+            <ShieldAlert className="h-3 w-3 text-amber-500" />
+          </span>
         )}
       </div>
     );
