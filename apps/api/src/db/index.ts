@@ -590,6 +590,66 @@ function createSchema(db: Database.Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_governance_pipeline_status ON governance_pipeline_runs(status);
     CREATE INDEX IF NOT EXISTS idx_governance_pipeline_issue ON governance_pipeline_runs(issue_id);
+
+    -- ========================================
+    -- Pipeline Health & Escalation
+    -- ========================================
+
+    CREATE TABLE IF NOT EXISTS escalated_sessions (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      issue_id TEXT,
+      escalation_type TEXT NOT NULL,
+      consensus_score REAL,
+      total_rounds INTEGER,
+      reason TEXT,
+      status TEXT DEFAULT 'pending',
+      assigned_to TEXT,
+      resolution TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      resolved_at TEXT,
+      FOREIGN KEY (session_id) REFERENCES agora_sessions(id),
+      FOREIGN KEY (issue_id) REFERENCES issues(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_escalated_sessions_status ON escalated_sessions(status);
+    CREATE INDEX IF NOT EXISTS idx_escalated_sessions_type ON escalated_sessions(escalation_type);
+    CREATE INDEX IF NOT EXISTS idx_escalated_sessions_session ON escalated_sessions(session_id);
+
+    CREATE TABLE IF NOT EXISTS collector_health (
+      id TEXT PRIMARY KEY,
+      collector_name TEXT NOT NULL UNIQUE,
+      is_running INTEGER DEFAULT 1,
+      last_success_at TEXT,
+      last_failure_at TEXT,
+      consecutive_failures INTEGER DEFAULT 0,
+      total_successes INTEGER DEFAULT 0,
+      total_failures INTEGER DEFAULT 0,
+      last_error TEXT,
+      restart_count INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_collector_health_name ON collector_health(collector_name);
+
+    CREATE TABLE IF NOT EXISTS pipeline_retry_queue (
+      id TEXT PRIMARY KEY,
+      issue_id TEXT NOT NULL,
+      workflow_type TEXT NOT NULL,
+      failure_count INTEGER DEFAULT 0,
+      last_error TEXT,
+      status TEXT DEFAULT 'pending',
+      next_retry_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      completed_at TEXT,
+      FOREIGN KEY (issue_id) REFERENCES issues(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_pipeline_retry_status ON pipeline_retry_queue(status);
+    CREATE INDEX IF NOT EXISTS idx_pipeline_retry_next ON pipeline_retry_queue(next_retry_at);
   `);
 
   console.info('Database schema initialized');

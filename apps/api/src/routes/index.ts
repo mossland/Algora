@@ -21,6 +21,7 @@ import { qualityRouter } from './quality';
 import { timelineRouter } from './timeline';
 import { logsRouter } from './logs';
 import governanceOSRouter from './governance-os';
+import { pipelineHealthRouter } from './pipeline-health';
 
 export function setupRoutes(app: Express): void {
   const apiRouter: Router = Router();
@@ -48,6 +49,7 @@ export function setupRoutes(app: Express): void {
   apiRouter.use('/timeline', timelineRouter);
   apiRouter.use('/logs', logsRouter);
   apiRouter.use('/governance-os', governanceOSRouter);
+  apiRouter.use('/pipeline', pipelineHealthRouter);
 
   // Mount API router
   app.use('/api', apiRouter);

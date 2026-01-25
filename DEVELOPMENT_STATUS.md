@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-01-25
-**Current Version**: 0.12.9
+**Current Version**: 0.12.10
 **Production URL**: https://algora.moss.land
 
 ---
@@ -741,6 +741,71 @@ Based on 13 days of production data (2026-01-09 ~ 2026-01-21):
 
 ---
 
+### Phase 10.8: Pipeline Health Monitoring (COMPLETED)
+
+Full pipeline inspection with 4 gap fixes and monitoring dashboard.
+
+#### Gap 1: Signal Collector Auto-Recovery (COMPLETED)
+- [x] `CollectorHealth` interface for tracking health state per collector
+- [x] Health check interval (30 seconds default)
+- [x] Auto-restart with exponential backoff for 3+ consecutive failures
+- [x] Stale detection (5 minute threshold triggers restart)
+- [x] Health state persisted to `collector_health` DB table
+- [x] WebSocket events: `collectors:health`, `collectors:restarted`
+
+#### Gap 2: Low-Consensus Session Escalation (COMPLETED)
+- [x] `EscalationType` and `EscalatedSession` types
+- [x] Escalation routing based on consensus score:
+  - 50-70%: `extended_discussion` (additional rounds)
+  - 30-50%: `working_group` (focused working group)
+  - <30%: `human_review` (governance committee)
+- [x] `escalateLowConsensusSession()` auto-triggers for completed sessions
+- [x] `getPendingEscalations()` and `resolveEscalation()` methods
+- [x] WebSocket event: `governance:session:escalated`
+- [x] `escalated_sessions` DB table
+
+#### Gap 3: Pipeline Failure Retry Queue (COMPLETED)
+- [x] `InMemoryQueue` for pipeline retries with 3 max attempts
+- [x] Exponential backoff between retries
+- [x] Auto-queue when `runTier2Tasks` fails
+- [x] Status marked `needs_manual_review` after exhausting retries
+- [x] `getPipelineRetryStats()` for monitoring
+- [x] `queuePipelineRetry()` for manual retry trigger
+- [x] `pipeline_retry_queue` DB table
+
+#### Gap 4: Scheduled Proposal Backfill (COMPLETED)
+- [x] `scheduleProposalBackfill()` runs at 02:00 and 14:00 UTC daily
+- [x] `triggerProposalBackfill()` for manual trigger
+- [x] WebSocket event: `governance:backfill:scheduled`
+
+#### Pipeline Health API (COMPLETED)
+- [x] New route: `apps/api/src/routes/pipeline-health.ts`
+- [x] Endpoints:
+  - `GET /api/pipeline/health` - Overall health score (0-100)
+  - `GET /api/pipeline/metrics` - 24h throughput/latency metrics
+  - `GET /api/pipeline/alerts` - Active alerts (critical/warning/info)
+  - `GET /api/pipeline/stages` - Stage-by-stage health details
+  - `GET /api/pipeline/collectors` - Collector health status
+  - `GET /api/pipeline/escalations` - Pending escalations
+  - `POST /api/pipeline/retry/:issueId` - Manual retry trigger
+  - `POST /api/pipeline/escalations/:id/resolve` - Resolve escalation
+  - `POST /api/pipeline/backfill` - Manual proposal backfill
+
+#### Pipeline Health Dashboard (COMPLETED)
+- [x] `PipelineHealthDashboard` component (`apps/web/src/components/admin/`)
+- [x] Visual pipeline flow with 6 stages
+- [x] Real-time health score display
+- [x] Stage-by-stage status cards
+- [x] Throughput metrics (signals, issues, sessions, proposals)
+- [x] Retry queue status
+- [x] Active alerts panel
+- [x] Integrated into Admin page
+
+#### Activity Types (COMPLETED)
+- [x] Added: `COLLECTOR_HEALTH`, `PIPELINE_RETRY`, `PROPOSAL_BACKFILL`, `SESSION_ESCALATED`, `HUMAN_REVIEW_REQUIRED`
+
+---
+
 ## Next Steps (Priority Order)
 
 ### Phase 10 Remaining
@@ -806,6 +871,7 @@ pm2 startup
 ## Git Commit History (Recent)
 
 ```
+xxxxxxx feat: Add pipeline health monitoring with auto-recovery and dashboard
 4b40edd feat: Add LLM thermal throttling to prevent server overheating
 574e3b9 feat: Add accessibility improvements with ARIA labels and reusable components
 81f655e feat: Integrate in-memory caching for high-traffic API endpoints

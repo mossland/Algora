@@ -1,5 +1,6 @@
 import { Server as SocketServer } from 'socket.io';
 import type Database from 'better-sqlite3';
+import { v4 as uuidv4 } from 'uuid';
 import { ActivityService } from '../activity';
 import type { GovernanceOSBridge } from '../services/governance-os-bridge';
 import type { ReportGeneratorService } from '../services/report-generator';
@@ -7,8 +8,17 @@ import { DataRetentionService } from '../services/data-retention';
 import { BudgetAlertService } from '../services/budget-alerts';
 import { KPIPersistenceService } from '../services/kpi-persistence';
 import type { PassiveConsensusService } from '../services/passive-consensus';
+import { InMemoryQueue, JobStatus } from '../lib/job-queue';
 
 export type Tier = 0 | 1 | 2;
+
+// Pipeline retry job data
+interface PipelineRetryJobData {
+  issueId: string;
+  workflowType: 'A' | 'B' | 'C' | 'D' | 'E';
+  failureCount: number;
+  lastError?: string;
+}
 
 export interface SchedulerConfig {
   tier0Interval: number;  // Default: 60000 (1 min)
@@ -34,6 +44,11 @@ export class SchedulerService {
   private config: SchedulerConfig;
   private intervals: Map<string, NodeJS.Timeout> = new Map();
   private isRunning: boolean = false;
+  private pipelineRetryQueue: InMemoryQueue<PipelineRetryJobData, { success: boolean }>;
+
+  // Pipeline retry configuration
+  private static readonly MAX_PIPELINE_RETRIES = 3;
+  private static readonly INITIAL_RETRY_DELAY_MS = 60000; // 1 minute
 
   constructor(
     db: Database.Database,
@@ -69,6 +84,177 @@ export class SchedulerService {
 
     // Initialize KPI persistence service
     this.kpiPersistence = new KPIPersistenceService(db, io);
+
+    // Initialize pipeline retry queue
+    this.pipelineRetryQueue = new InMemoryQueue<PipelineRetryJobData, { success: boolean }>(
+      'pipeline-retry',
+      { concurrency: 2, pollInterval: 5000 }
+    );
+    this.setupPipelineRetryProcessor();
+  }
+
+  /**
+   * Set up the pipeline retry queue processor
+   */
+  private setupPipelineRetryProcessor(): void {
+    this.pipelineRetryQueue.process(async (job) => {
+      if (!this.governanceOSBridge) {
+        throw new Error('GovernanceOS Bridge not available');
+      }
+
+      console.log(`[Scheduler] Processing pipeline retry for issue ${job.data.issueId.slice(0, 8)} (attempt ${job.attempts})`);
+
+      try {
+        const result = await this.governanceOSBridge.runPipelineForIssue(job.data.issueId, {
+          workflowType: job.data.workflowType,
+        });
+
+        if (result.success) {
+          // Update retry queue record in DB
+          this.db.prepare(`
+            UPDATE pipeline_retry_queue
+            SET status = 'completed', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE issue_id = ? AND status = 'pending'
+          `).run(job.data.issueId);
+
+          this.activityService.log('PIPELINE_RETRY', 'info', `Pipeline retry succeeded for issue ${job.data.issueId.slice(0, 8)}`, {
+            details: { issueId: job.data.issueId, attempt: job.attempts },
+          });
+
+          this.io.emit('pipeline:retry:success', {
+            issueId: job.data.issueId,
+            attempt: job.attempts,
+            timestamp: new Date().toISOString(),
+          });
+
+          return { success: true };
+        } else {
+          throw new Error(`Pipeline completed with non-success status: ${result.status}`);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+
+        // Update retry queue record
+        this.db.prepare(`
+          UPDATE pipeline_retry_queue
+          SET failure_count = failure_count + 1, last_error = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE issue_id = ? AND status = 'pending'
+        `).run(errorMessage, job.data.issueId);
+
+        // Check if max retries exceeded
+        if (job.attempts >= SchedulerService.MAX_PIPELINE_RETRIES) {
+          // Mark for manual review
+          this.db.prepare(`
+            UPDATE pipeline_retry_queue
+            SET status = 'needs_manual_review', updated_at = CURRENT_TIMESTAMP
+            WHERE issue_id = ? AND status = 'pending'
+          `).run(job.data.issueId);
+
+          this.db.prepare(`
+            UPDATE issues
+            SET status = 'needs_manual_review', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `).run(job.data.issueId);
+
+          this.activityService.log('PIPELINE_RETRY', 'warning',
+            `Pipeline retry exhausted for issue ${job.data.issueId.slice(0, 8)} - needs manual review`, {
+              details: { issueId: job.data.issueId, attempts: job.attempts, lastError: errorMessage },
+            });
+
+          this.io.emit('pipeline:retry:exhausted', {
+            issueId: job.data.issueId,
+            attempts: job.attempts,
+            lastError: errorMessage,
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        throw error; // Re-throw to trigger retry mechanism
+      }
+    });
+
+    // Listen for retry events
+    this.pipelineRetryQueue.on('failed', (job: { data: PipelineRetryJobData; attempts: number; failedReason?: string }) => {
+      console.error(`[Scheduler] Pipeline retry job failed: issue ${job.data.issueId.slice(0, 8)}, attempt ${job.attempts}`);
+    });
+
+    this.pipelineRetryQueue.on('retrying', (job: { data: PipelineRetryJobData; attempts: number }, backoffMs: number) => {
+      console.log(`[Scheduler] Pipeline retry scheduled: issue ${job.data.issueId.slice(0, 8)}, backoff ${backoffMs}ms`);
+    });
+  }
+
+  /**
+   * Add a failed pipeline to the retry queue
+   */
+  async queuePipelineRetry(
+    issueId: string,
+    workflowType: 'A' | 'B' | 'C' | 'D' | 'E',
+    error?: string
+  ): Promise<void> {
+    // Check if already in retry queue
+    const existing = this.db.prepare(`
+      SELECT id FROM pipeline_retry_queue
+      WHERE issue_id = ? AND status = 'pending'
+    `).get(issueId);
+
+    if (!existing) {
+      // Create DB record
+      this.db.prepare(`
+        INSERT INTO pipeline_retry_queue (id, issue_id, workflow_type, failure_count, last_error, status, next_retry_at, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).run(
+        uuidv4(),
+        issueId,
+        workflowType,
+        1,
+        error || null,
+        'pending',
+        new Date(Date.now() + SchedulerService.INITIAL_RETRY_DELAY_MS).toISOString()
+      );
+    }
+
+    // Add to in-memory queue
+    await this.pipelineRetryQueue.add('pipeline-retry', {
+      issueId,
+      workflowType,
+      failureCount: 1,
+      lastError: error,
+    }, {
+      attempts: SchedulerService.MAX_PIPELINE_RETRIES,
+      delay: SchedulerService.INITIAL_RETRY_DELAY_MS,
+      backoff: 2, // Exponential backoff
+    });
+
+    console.log(`[Scheduler] Queued pipeline retry for issue ${issueId.slice(0, 8)}`);
+  }
+
+  /**
+   * Get pipeline retry queue statistics
+   */
+  getPipelineRetryStats(): {
+    pending: number;
+    active: number;
+    completed: number;
+    failed: number;
+    needsManualReview: number;
+  } {
+    const queueStats = this.pipelineRetryQueue.getStats();
+
+    const dbStats = this.db.prepare(`
+      SELECT
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN status = 'needs_manual_review' THEN 1 ELSE 0 END) as needs_manual_review
+      FROM pipeline_retry_queue
+    `).get() as { pending: number; completed: number; needs_manual_review: number };
+
+    return {
+      pending: queueStats.waiting + queueStats.delayed,
+      active: queueStats.active,
+      completed: dbStats?.completed || 0,
+      failed: queueStats.failed,
+      needsManualReview: dbStats?.needs_manual_review || 0,
+    };
   }
 
   /**
@@ -127,6 +313,9 @@ export class SchedulerService {
 
     // Schedule passive consensus processing
     this.schedulePassiveConsensusProcessing();
+
+    // Schedule proposal backfill (Gap 4)
+    this.scheduleProposalBackfill();
 
     this.activityService.log('SYSTEM_STATUS', 'info', 'Scheduler started', {
       details: { config: this.config },
@@ -432,6 +621,80 @@ export class SchedulerService {
     return this.passiveConsensusService;
   }
 
+  /**
+   * Schedule automatic proposal backfill (Gap 4)
+   * Runs twice daily at 02:00 and 14:00 UTC
+   */
+  private scheduleProposalBackfill(): void {
+    // Check every minute for backfill times
+    const interval = setInterval(async () => {
+      if (!this.isRunning || !this.governanceOSBridge) return;
+
+      const now = new Date();
+      const currentHour = now.getUTCHours();
+      const currentMinute = now.getUTCMinutes();
+
+      // Run at 02:00 UTC and 14:00 UTC
+      if ((currentHour === 2 || currentHour === 14) && currentMinute === 0) {
+        console.info('[Scheduler] Running scheduled proposal backfill');
+        try {
+          const result = await this.governanceOSBridge.backfillMissingProposals();
+
+          this.activityService.log('PROPOSAL_BACKFILL', 'info',
+            `Proposal backfill completed: ${result.created} created, ${result.skipped} skipped`, {
+              details: {
+                processed: result.processed,
+                created: result.created,
+                skipped: result.skipped,
+                errors: result.errors.slice(0, 5), // Limit error details
+              },
+              metadata: { scheduled: true },
+            });
+
+          // Emit event
+          this.io.emit('governance:backfill:scheduled', {
+            processed: result.processed,
+            created: result.created,
+            skipped: result.skipped,
+            timestamp: new Date().toISOString(),
+          });
+
+        } catch (error) {
+          console.error('[Scheduler] Proposal backfill failed:', error);
+          this.activityService.log('PROPOSAL_BACKFILL', 'error', 'Proposal backfill failed', {
+            details: { error: String(error) },
+          });
+        }
+      }
+    }, 60000); // Check every minute
+
+    this.intervals.set('proposalBackfill', interval);
+    console.info('[Scheduler] Proposal backfill scheduled (daily at 02:00 and 14:00 UTC)');
+  }
+
+  /**
+   * Manually trigger proposal backfill
+   */
+  async triggerProposalBackfill(): Promise<{
+    processed: number;
+    created: number;
+    skipped: number;
+    errors: string[];
+  }> {
+    if (!this.governanceOSBridge) {
+      throw new Error('GovernanceOS Bridge not available');
+    }
+
+    const result = await this.governanceOSBridge.backfillMissingProposals();
+
+    this.activityService.log('PROPOSAL_BACKFILL', 'info',
+      `Manual proposal backfill: ${result.created} created, ${result.skipped} skipped`, {
+        details: { ...result, manual: true },
+      });
+
+    return result;
+  }
+
   private async runTier0Tasks(): Promise<void> {
     // Signal collection is handled by SignalCollectorService (RSS, GitHub, Blockchain, Social)
     // This method logs periodic status for monitoring purposes
@@ -569,6 +832,14 @@ export class SchedulerService {
             details: { issueId: issue.id, error: String(error) },
             metadata: { tier: 2 },
           });
+
+          // Queue for retry (Gap 3: Pipeline failure retry)
+          const workflowType = this.determineWorkflowType(issue.category);
+          await this.queuePipelineRetry(
+            issue.id,
+            workflowType,
+            error instanceof Error ? error.message : String(error)
+          );
         }
       }
 

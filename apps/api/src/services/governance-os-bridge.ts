@@ -61,6 +61,26 @@ interface BridgeEvents {
   'bridge:approval_required': { approvalId: string; riskLevel: RiskLevel };
   'bridge:action_locked': { actionId: string; reason: string };
   'bridge:action_unlocked': { actionId: string };
+  'bridge:session_escalated': { sessionId: string; escalationType: EscalationType; reason: string };
+}
+
+// Escalation types for low-consensus sessions
+export type EscalationType = 'extended_discussion' | 'working_group' | 'human_review';
+
+export interface EscalatedSession {
+  id: string;
+  sessionId: string;
+  issueId: string | null;
+  escalationType: EscalationType;
+  consensusScore: number;
+  totalRounds: number;
+  reason: string;
+  status: 'pending' | 'in_progress' | 'resolved' | 'dismissed';
+  assignedTo: string | null;
+  resolution: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  resolvedAt: Date | null;
 }
 
 type BridgeEventHandler<K extends keyof BridgeEvents> = (
@@ -170,7 +190,7 @@ export class GovernanceOSBridge extends EventEmitter {
     });
 
     // Listen for Agora session completion events
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', (_socket) => {
       // Note: The actual Agora session handling is done in AgoraService.integrateWithGovernanceOS()
       // This listener can be used for additional coordination if needed
     });
@@ -371,7 +391,288 @@ export class GovernanceOSBridge extends EventEmitter {
       if (hasStrongConsensus && hasMinimumRounds) {
         await this.createProposalFromSession(sessionData);
       }
+
+      // ESCALATE low-consensus sessions that have completed minimum rounds
+      if (!hasStrongConsensus && hasMinimumRounds) {
+        await this.escalateLowConsensusSession(sessionData);
+      }
     }
+  }
+
+  /**
+   * Escalate a session with low consensus for further action.
+   * Routes to different escalation types based on consensus score:
+   * - 50-70%: extended_discussion (add more rounds)
+   * - 30-50%: working_group (create focused working group)
+   * - <30%: human_review (escalate to human governance committee)
+   */
+  private async escalateLowConsensusSession(sessionData: {
+    sessionId: string;
+    title: string;
+    issueId?: string;
+    decisionPacketId?: string;
+    consensusScore: number;
+    recommendation: string;
+    totalRounds?: number;
+  }): Promise<void> {
+    const { v4: uuidv4 } = await import('uuid');
+
+    // Determine escalation type based on consensus score
+    let escalationType: EscalationType;
+    let reason: string;
+
+    if (sessionData.consensusScore >= 0.5) {
+      // 50-70%: Some agreement but not enough for auto-proposal
+      escalationType = 'extended_discussion';
+      reason = `Session achieved ${(sessionData.consensusScore * 100).toFixed(0)}% consensus after ${sessionData.totalRounds} rounds. Extended discussion recommended to reach stronger agreement.`;
+    } else if (sessionData.consensusScore >= 0.3) {
+      // 30-50%: Significant disagreement, needs focused attention
+      escalationType = 'working_group';
+      reason = `Session achieved only ${(sessionData.consensusScore * 100).toFixed(0)}% consensus. Working group formation recommended to resolve fundamental disagreements.`;
+    } else {
+      // <30%: Major disagreement, requires human oversight
+      escalationType = 'human_review';
+      reason = `Session achieved only ${(sessionData.consensusScore * 100).toFixed(0)}% consensus (below minimum threshold). Human governance committee review required.`;
+    }
+
+    const escalationId = uuidv4();
+    const now = new Date().toISOString();
+
+    try {
+      // Create escalation record
+      this.db.prepare(`
+        INSERT INTO escalated_sessions (
+          id, session_id, issue_id, escalation_type, consensus_score,
+          total_rounds, reason, status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        escalationId,
+        sessionData.sessionId,
+        sessionData.issueId || null,
+        escalationType,
+        sessionData.consensusScore,
+        sessionData.totalRounds || 0,
+        reason,
+        'pending',
+        now,
+        now
+      );
+
+      console.log(`[GovernanceOSBridge] Escalated session ${sessionData.sessionId.slice(0, 8)} to ${escalationType}`);
+
+      // Take appropriate action based on escalation type
+      await this.processEscalation(escalationId, escalationType, sessionData);
+
+      // Log activity
+      this.db.prepare(`
+        INSERT INTO activity_log (id, type, severity, timestamp, message, details)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(
+        uuidv4(),
+        'SESSION_ESCALATED',
+        escalationType === 'human_review' ? 'warning' : 'info',
+        now,
+        `Session escalated: ${sessionData.title}`,
+        JSON.stringify({
+          escalationId,
+          sessionId: sessionData.sessionId,
+          issueId: sessionData.issueId,
+          escalationType,
+          consensusScore: sessionData.consensusScore,
+        })
+      );
+
+      // Emit WebSocket event
+      this.io.emit('governance:session:escalated', {
+        escalationId,
+        sessionId: sessionData.sessionId,
+        issueId: sessionData.issueId,
+        escalationType,
+        consensusScore: sessionData.consensusScore,
+        reason,
+        timestamp: now,
+      });
+
+      // Emit bridge event
+      this.emitBridgeEvent('bridge:session_escalated', {
+        sessionId: sessionData.sessionId,
+        escalationType,
+        reason,
+      });
+
+    } catch (error) {
+      console.error(`[GovernanceOSBridge] Failed to escalate session ${sessionData.sessionId}:`, error);
+    }
+  }
+
+  /**
+   * Process an escalation based on its type
+   */
+  private async processEscalation(
+    escalationId: string,
+    escalationType: EscalationType,
+    sessionData: {
+      sessionId: string;
+      title: string;
+      issueId?: string;
+      recommendation: string;
+      totalRounds?: number;
+    }
+  ): Promise<void> {
+    const { v4: uuidv4 } = await import('uuid');
+
+    switch (escalationType) {
+      case 'extended_discussion': {
+        // Create a new Agora session with additional rounds
+        const newMaxRounds = (sessionData.totalRounds || 5) + 3;
+        const newSessionId = uuidv4();
+
+        this.db.prepare(`
+          INSERT INTO agora_sessions (
+            id, issue_id, title, description, status, current_round, max_rounds, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `).run(
+          newSessionId,
+          sessionData.issueId || null,
+          `[Extended] ${sessionData.title}`,
+          `Extended discussion session. Previous session achieved insufficient consensus. This session has ${newMaxRounds} rounds for deeper deliberation.`,
+          'pending',
+          1,
+          newMaxRounds
+        );
+
+        // Update escalation with assignment
+        this.db.prepare(`
+          UPDATE escalated_sessions SET assigned_to = ?, status = 'in_progress', updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).run(newSessionId, escalationId);
+
+        console.log(`[GovernanceOSBridge] Created extended discussion session ${newSessionId.slice(0, 8)}`);
+        break;
+      }
+
+      case 'working_group': {
+        // Create a working group record (using issues table with special status)
+        if (sessionData.issueId) {
+          this.db.prepare(`
+            UPDATE issues SET
+              status = 'working_group_assigned',
+              suggested_actions = ?,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `).run(
+            JSON.stringify({
+              type: 'working_group',
+              escalationId,
+              originalSessionId: sessionData.sessionId,
+              recommendation: sessionData.recommendation,
+            }),
+            sessionData.issueId
+          );
+
+          // Update escalation status
+          this.db.prepare(`
+            UPDATE escalated_sessions SET status = 'in_progress', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `).run(escalationId);
+
+          console.log(`[GovernanceOSBridge] Assigned issue ${sessionData.issueId.slice(0, 8)} to working group`);
+        }
+        break;
+      }
+
+      case 'human_review': {
+        // Create a high-priority notification for human review
+        const notificationId = uuidv4();
+
+        this.db.prepare(`
+          INSERT INTO activity_log (id, type, severity, timestamp, message, details)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, ?)
+        `).run(
+          notificationId,
+          'HUMAN_REVIEW_REQUIRED',
+          'critical',
+          `Human review required: ${sessionData.title}`,
+          JSON.stringify({
+            escalationId,
+            sessionId: sessionData.sessionId,
+            issueId: sessionData.issueId,
+            action: 'Governance committee review requested due to very low agent consensus.',
+          })
+        );
+
+        // If there's a linked issue, update its status
+        if (sessionData.issueId) {
+          this.db.prepare(`
+            UPDATE issues SET status = 'pending_human_review', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `).run(sessionData.issueId);
+        }
+
+        // Update escalation status
+        this.db.prepare(`
+          UPDATE escalated_sessions SET status = 'pending', updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).run(escalationId);
+
+        console.log(`[GovernanceOSBridge] Created human review request for session ${sessionData.sessionId.slice(0, 8)}`);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Get pending escalations
+   */
+  getPendingEscalations(): EscalatedSession[] {
+    const rows = this.db.prepare(`
+      SELECT * FROM escalated_sessions
+      WHERE status IN ('pending', 'in_progress')
+      ORDER BY created_at DESC
+    `).all() as Array<{
+      id: string;
+      session_id: string;
+      issue_id: string | null;
+      escalation_type: string;
+      consensus_score: number;
+      total_rounds: number;
+      reason: string;
+      status: string;
+      assigned_to: string | null;
+      resolution: string | null;
+      created_at: string;
+      updated_at: string;
+      resolved_at: string | null;
+    }>;
+
+    return rows.map(row => ({
+      id: row.id,
+      sessionId: row.session_id,
+      issueId: row.issue_id,
+      escalationType: row.escalation_type as EscalationType,
+      consensusScore: row.consensus_score,
+      totalRounds: row.total_rounds,
+      reason: row.reason,
+      status: row.status as 'pending' | 'in_progress' | 'resolved' | 'dismissed',
+      assignedTo: row.assigned_to,
+      resolution: row.resolution,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      resolvedAt: row.resolved_at ? new Date(row.resolved_at) : null,
+    }));
+  }
+
+  /**
+   * Resolve an escalation
+   */
+  resolveEscalation(escalationId: string, resolution: string): boolean {
+    const result = this.db.prepare(`
+      UPDATE escalated_sessions
+      SET status = 'resolved', resolution = ?, resolved_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(resolution, escalationId);
+
+    return result.changes > 0;
   }
 
   /**

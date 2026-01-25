@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export type ActivityType =
   | 'HEARTBEAT'
   | 'COLLECTOR'
+  | 'COLLECTOR_HEALTH'
   | 'NORMALIZE'
   | 'DEDUPE'
   | 'BUDGET_THROTTLE'
@@ -20,6 +21,10 @@ export type ActivityType =
   | 'DECISION_PACKET'
   | 'DISCLOSURE_PUBLISH'
   | 'PIPELINE'
+  | 'PIPELINE_RETRY'
+  | 'PROPOSAL_BACKFILL'
+  | 'SESSION_ESCALATED'
+  | 'HUMAN_REVIEW_REQUIRED'
   | 'VOTING'
   | 'APPROVAL'
   | 'DOCUMENT'

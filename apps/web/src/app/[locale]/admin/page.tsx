@@ -18,6 +18,7 @@ import {
   Trash2,
   BarChart3,
 } from 'lucide-react';
+import { PipelineHealthDashboard } from '@/components/admin/PipelineHealthDashboard';
 import { useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
@@ -254,6 +255,9 @@ export default function AdminPage() {
           Refresh
         </button>
       </div>
+
+      {/* Pipeline Health Dashboard */}
+      <PipelineHealthDashboard />
 
       {/* Health Overview */}
       {health && (
