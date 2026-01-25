@@ -1771,7 +1771,7 @@ Recommendation:`,
       }
 
       // Call bridge's handleAgoraSessionCompleted for additional processing
-      // (updates issue status, creates PP document if strong consensus)
+      // (updates issue status, creates PP document if strong consensus, auto-creates proposal)
       await this.governanceOSBridge.handleAgoraSessionCompleted({
         sessionId: session.id,
         title: session.title,
@@ -1779,6 +1779,7 @@ Recommendation:`,
         decisionPacketId: decisionPacket?.id,
         consensusScore: summary?.finalConsensus?.score || 0,
         recommendation: decisionPacket?.recommendation || summary?.recommendations?.join('; ') || '',
+        totalRounds: summary?.totalRounds || session.current_round,
       });
 
       console.log(`[Orchestrator] Bridge handleAgoraSessionCompleted called for session ${session.id.slice(0, 8)}`);

@@ -2,8 +2,8 @@
 
 This file tracks the current development progress for continuity between sessions.
 
-**Last Updated**: 2026-01-22
-**Current Version**: 0.12.8
+**Last Updated**: 2026-01-25
+**Current Version**: 0.12.9
 **Production URL**: https://algora.moss.land
 
 ---

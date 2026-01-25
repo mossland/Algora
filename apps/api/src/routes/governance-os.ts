@@ -1007,4 +1007,41 @@ router.post('/translate/batch', async (req: Request, res: Response) => {
   }
 });
 
+// ==========================================
+// Admin / Maintenance Endpoints
+// ==========================================
+
+/**
+ * POST /governance-os/admin/backfill-proposals
+ * Backfill missing proposals from completed Agora sessions.
+ *
+ * This processes sessions that completed without auto-proposal creation:
+ * - Session status is 'completed'
+ * - Session has an issue_id
+ * - Session has at least 3 rounds completed
+ * - Issue priority is 'high' or 'critical'
+ * - No existing proposal for this issue
+ */
+router.post('/admin/backfill-proposals', async (req: Request, res: Response) => {
+  try {
+    const bridge = getBridge(req);
+
+    console.log('[GovernanceOS] Starting proposal backfill...');
+    const result = await bridge.backfillMissingProposals();
+
+    return res.json({
+      success: true,
+      message: `Backfill completed: ${result.created} proposals created`,
+      ...result,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('[GovernanceOS] Backfill proposals error:', error);
+    return res.status(500).json({
+      error: 'Failed to backfill proposals',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 export default router;

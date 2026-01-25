@@ -301,6 +301,11 @@ export class GovernanceOSBridge extends EventEmitter {
   /**
    * Handle Agora session completion event.
    * Called by AgoraService when a session completes.
+   *
+   * This method will:
+   * 1. Update issue status based on consensus
+   * 2. Create PP document for strong consensus cases
+   * 3. AUTO-CREATE PROPOSAL in proposals table for high-priority issues with strong consensus
    */
   async handleAgoraSessionCompleted(sessionData: {
     sessionId: string;
@@ -309,12 +314,14 @@ export class GovernanceOSBridge extends EventEmitter {
     decisionPacketId?: string;
     consensusScore: number;
     recommendation: string;
+    totalRounds?: number;
   }): Promise<void> {
     console.log(`[GovernanceOSBridge] Handling Agora session completion: ${sessionData.sessionId.slice(0, 8)}`);
 
     // If this session was for a specific issue, update the issue status
     if (sessionData.issueId) {
       const hasStrongConsensus = sessionData.consensusScore >= 0.7;
+      const hasMinimumRounds = (sessionData.totalRounds || 0) >= 3;
 
       // Update issue status based on consensus
       const newStatus = hasStrongConsensus ? 'in_progress' : 'confirmed';
@@ -359,7 +366,306 @@ export class GovernanceOSBridge extends EventEmitter {
           console.error('[GovernanceOSBridge] Failed to create proposal document:', error);
         }
       }
+
+      // AUTO-CREATE PROPOSAL for high-priority issues with strong consensus and minimum rounds
+      if (hasStrongConsensus && hasMinimumRounds) {
+        await this.createProposalFromSession(sessionData);
+      }
     }
+  }
+
+  /**
+   * Create a proposal in the proposals table from a completed Agora session.
+   * This bridges the gap between Agora discussions and the proposal voting system.
+   */
+  private async createProposalFromSession(sessionData: {
+    sessionId: string;
+    title: string;
+    issueId?: string;
+    decisionPacketId?: string;
+    consensusScore: number;
+    recommendation: string;
+  }): Promise<void> {
+    if (!sessionData.issueId) {
+      console.log('[GovernanceOSBridge] No issueId, skipping proposal creation');
+      return;
+    }
+
+    // Get issue details
+    const issue = this.db.prepare('SELECT * FROM issues WHERE id = ?').get(sessionData.issueId) as LocalIssue | null;
+    if (!issue) {
+      console.log(`[GovernanceOSBridge] Issue ${sessionData.issueId} not found, skipping proposal creation`);
+      return;
+    }
+
+    // Only create proposals for high/critical priority issues
+    const priority = issue.priority.toLowerCase();
+    if (priority !== 'high' && priority !== 'critical') {
+      console.log(`[GovernanceOSBridge] Issue priority ${priority} is not high/critical, skipping proposal creation`);
+      return;
+    }
+
+    // Check if proposal already exists for this issue
+    const existingProposal = this.db.prepare(
+      'SELECT id FROM proposals WHERE issue_id = ?'
+    ).get(sessionData.issueId) as { id: string } | null;
+
+    if (existingProposal) {
+      console.log(`[GovernanceOSBridge] Proposal already exists for issue ${sessionData.issueId.slice(0, 8)}, skipping`);
+      return;
+    }
+
+    // Generate proposal ID
+    const { v4: uuidv4 } = await import('uuid');
+    const proposalId = uuidv4();
+    const now = new Date().toISOString();
+
+    // Calculate voting period (start in 24h, vote for 72h)
+    const votingStarts = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const votingEnds = new Date(Date.now() + (24 + 72) * 60 * 60 * 1000).toISOString();
+
+    // Clean up title (remove [Auto] prefix if present)
+    const cleanTitle = sessionData.title.replace(/^\[Auto\]\s*/i, '').trim();
+
+    // Build proposal description
+    const description = `## Background
+
+${issue.description}
+
+## Agora Discussion Summary
+
+This proposal was auto-generated based on a completed Agora discussion session.
+
+**Consensus Score**: ${(sessionData.consensusScore * 100).toFixed(0)}%
+**Session ID**: ${sessionData.sessionId.slice(0, 8)}...
+
+## Recommendation
+
+${sessionData.recommendation || 'Proceed with the discussed approach.'}
+
+## Evidence
+
+${issue.evidence ? JSON.parse(issue.evidence).slice(0, 3).map((e: { source: string; severity: string; description: string }) => `- **[${e.severity}]** ${e.source}: ${e.description?.substring(0, 100)}`).join('\n') : 'See linked issue for details.'}
+`;
+
+    // Determine proposal type based on category
+    const proposalType = this.categoryToProposalType(issue.category);
+
+    // Create the proposal
+    try {
+      this.db.prepare(`
+        INSERT INTO proposals (
+          id, title, description, proposer, status,
+          issue_id, voting_starts, voting_ends,
+          proposal_type, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        proposalId,
+        `Proposal: ${cleanTitle}`,
+        description,
+        'agora-orchestrator',
+        'draft', // Start as draft for human review
+        sessionData.issueId,
+        votingStarts,
+        votingEnds,
+        proposalType,
+        now,
+        now
+      );
+
+      console.log(`[GovernanceOSBridge] Created proposal ${proposalId.slice(0, 8)} from Agora session ${sessionData.sessionId.slice(0, 8)}`);
+
+      // Log activity
+      this.db.prepare(`
+        INSERT INTO activity_log (id, type, severity, timestamp, message, details)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(
+        uuidv4(),
+        'PROPOSAL_AUTO_CREATED',
+        'info',
+        now,
+        `Auto-created proposal: ${cleanTitle}`,
+        JSON.stringify({
+          proposalId,
+          issueId: sessionData.issueId,
+          sessionId: sessionData.sessionId,
+          consensusScore: sessionData.consensusScore,
+        })
+      );
+
+      // Emit WebSocket event
+      this.io.emit('proposal:created', {
+        proposal: {
+          id: proposalId,
+          title: `Proposal: ${cleanTitle}`,
+          status: 'draft',
+          issueId: sessionData.issueId,
+          autoGenerated: true,
+        },
+      });
+
+      // Also emit activity event
+      this.io.emit('activity:event', {
+        type: 'PROPOSAL_AUTO_CREATED',
+        severity: 'info',
+        message: `Auto-created proposal from Agora discussion: ${cleanTitle}`,
+        timestamp: now,
+      });
+
+    } catch (error) {
+      console.error(`[GovernanceOSBridge] Failed to create proposal from session:`, error);
+    }
+  }
+
+  /**
+   * Map issue category to proposal type
+   */
+  private categoryToProposalType(category: string): string {
+    const cat = category.toLowerCase();
+    if (cat.includes('security') || cat.includes('technical') || cat.includes('protocol')) {
+      return 'technical';
+    }
+    if (cat.includes('market') || cat.includes('defi') || cat.includes('treasury')) {
+      return 'budget';
+    }
+    if (cat.includes('governance') || cat.includes('policy')) {
+      return 'policy';
+    }
+    if (cat.includes('partnership') || cat.includes('ecosystem') || cat.includes('mossland')) {
+      return 'partnership';
+    }
+    if (cat.includes('grant') || cat.includes('dev')) {
+      return 'grant';
+    }
+    return 'general';
+  }
+
+  /**
+   * Backfill missing proposals from completed Agora sessions.
+   * This processes sessions that completed without auto-proposal creation.
+   *
+   * Criteria:
+   * - Session status is 'completed'
+   * - Session has an issue_id
+   * - Session has at least 3 rounds (max_rounds check since all rounds completed)
+   * - Issue priority is 'high' or 'critical'
+   * - No existing proposal for this issue
+   */
+  async backfillMissingProposals(): Promise<{
+    processed: number;
+    created: number;
+    skipped: number;
+    errors: string[];
+  }> {
+    console.log('[GovernanceOSBridge] Starting backfill of missing proposals...');
+
+    const result = {
+      processed: 0,
+      created: 0,
+      skipped: 0,
+      errors: [] as string[],
+    };
+
+    try {
+      // Find completed Agora sessions that meet criteria
+      const eligibleSessions = this.db.prepare(`
+        SELECT
+          s.id as session_id,
+          s.title,
+          s.description,
+          s.issue_id,
+          s.current_round,
+          s.max_rounds,
+          s.created_at,
+          s.updated_at,
+          i.priority,
+          i.category,
+          i.description as issue_description,
+          i.evidence
+        FROM agora_sessions s
+        JOIN issues i ON s.issue_id = i.id
+        WHERE s.status = 'completed'
+          AND s.current_round >= 3
+          AND i.priority IN ('high', 'critical')
+          AND s.issue_id NOT IN (
+            SELECT issue_id FROM proposals WHERE issue_id IS NOT NULL
+          )
+        ORDER BY s.updated_at DESC
+        LIMIT 50
+      `).all() as Array<{
+        session_id: string;
+        title: string;
+        description: string;
+        issue_id: string;
+        current_round: number;
+        max_rounds: number;
+        created_at: string;
+        updated_at: string;
+        priority: string;
+        category: string;
+        issue_description: string;
+        evidence: string;
+      }>;
+
+      console.log(`[GovernanceOSBridge] Found ${eligibleSessions.length} eligible sessions for backfill`);
+
+      for (const session of eligibleSessions) {
+        result.processed++;
+
+        try {
+          // Get decision packet for this session (if any)
+          const decisionPacket = this.db.prepare(`
+            SELECT id, recommendation, confidence
+            FROM agora_decision_packets
+            WHERE session_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+          `).get(session.session_id) as {
+            id: string;
+            recommendation: string;
+            confidence: number;
+          } | null;
+
+          // Calculate effective consensus score (use decision packet confidence if available)
+          const consensusScore = decisionPacket?.confidence || 0.75; // Default to 75% if no packet
+
+          // Create the proposal
+          await this.createProposalFromSession({
+            sessionId: session.session_id,
+            title: session.title,
+            issueId: session.issue_id,
+            decisionPacketId: decisionPacket?.id,
+            consensusScore,
+            recommendation: decisionPacket?.recommendation || 'Proceed based on Agora discussion outcomes.',
+          });
+
+          result.created++;
+          console.log(`[GovernanceOSBridge] Backfilled proposal for session ${session.session_id.slice(0, 8)}`);
+
+        } catch (error) {
+          const errorMsg = `Session ${session.session_id.slice(0, 8)}: ${String(error)}`;
+          result.errors.push(errorMsg);
+          result.skipped++;
+          console.error(`[GovernanceOSBridge] Failed to backfill session ${session.session_id.slice(0, 8)}:`, error);
+        }
+      }
+
+      console.log(`[GovernanceOSBridge] Backfill complete: ${result.created} created, ${result.skipped} skipped`);
+
+      // Emit summary event
+      this.io.emit('governance:backfill:completed', {
+        processed: result.processed,
+        created: result.created,
+        skipped: result.skipped,
+        timestamp: new Date().toISOString(),
+      });
+
+    } catch (error) {
+      console.error('[GovernanceOSBridge] Backfill failed:', error);
+      result.errors.push(`Global error: ${String(error)}`);
+    }
+
+    return result;
   }
 
   private emitBridgeEvent<K extends keyof BridgeEvents>(

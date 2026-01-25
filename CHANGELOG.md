@@ -15,6 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.9] - 2026-01-25
+
+### Added
+- **Auto-Proposal Generation from Agora Sessions** (`apps/api/src/services/governance-os-bridge.ts`):
+  - `createProposalFromSession()` - Automatically creates proposals when Agora sessions complete
+  - Conditions: consensus >= 70%, rounds >= 3, issue priority high/critical
+  - Proposals created in `draft` status for human review
+  - `categoryToProposalType()` - Maps issue categories to proposal types
+
+- **Proposal Backfill API** (`apps/api/src/routes/governance-os.ts`):
+  - `POST /api/governance-os/admin/backfill-proposals` - Backfill missing proposals from completed sessions
+  - Processes sessions that completed without auto-proposal creation
+  - Successfully backfilled 50 proposals from past sessions
+
+- **Enhanced Agora-Governance Integration** (`apps/api/src/services/agora.ts`):
+  - Added `totalRounds` parameter to `handleAgoraSessionCompleted()` call
+  - Improved session completion flow with proposal generation
+
+### Fixed
+- **Missing Proposal Generation**: Issue → Agora → Proposal pipeline was broken
+  - Agora sessions completed but proposals were not auto-generated
+  - 6+ days of completed sessions had no corresponding proposals
+  - Root cause: `handleAgoraSessionCompleted()` created PP documents but not proposal records
+
+---
+
 ## [0.12.8] - 2026-01-22
 
 ### Added
