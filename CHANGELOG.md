@@ -15,6 +15,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.10] - 2026-01-25
+
+### Changed
+- **Code Quality Improvements** (ESLint compliance):
+  - Prefixed unused variables with underscore (`_summary`, `_reason`, `_orchestrator`, `_session`)
+  - Added proper braces to switch case blocks in `github.ts` collector
+  - Fixed regex escaping in `cleanResponse()` method
+  - Removed unused imports in `governance-os/types.ts`
+  - Removed unused imports in test files
+  - Cleaned up unused variable warnings across multiple services
+
+### Fixed
+- ESLint warnings across 23 files:
+  - `apps/api/src/routes/agora.ts`
+  - `apps/api/src/routes/timeline.ts`
+  - `apps/api/src/services/agora.ts`
+  - `apps/api/src/services/chatter.ts`
+  - `apps/api/src/services/collectors/blockchain.ts`
+  - `apps/api/src/services/collectors/github.ts`
+  - `apps/api/src/services/kpi-persistence.ts`
+  - `apps/api/src/services/llm.ts`
+  - `apps/api/src/services/log-monitor.ts`
+  - `apps/api/src/services/passive-consensus.ts`
+  - `apps/api/src/services/proof-of-outcome/analytics.ts`
+  - `apps/api/src/services/summoning.ts`
+  - `packages/document-registry/src/__tests__/document-registry.test.ts`
+  - `packages/document-registry/src/versioning.ts`
+  - `packages/governance-os/src/__tests__/e2e-pipeline.test.ts`
+  - `packages/governance-os/src/governance-os.ts`
+  - `packages/governance-os/src/kpi.ts`
+  - `packages/governance-os/src/pipeline.ts`
+  - `packages/governance-os/src/types.ts`
+  - `packages/model-router/src/providers/ollama.ts`
+  - `packages/orchestrator/src/__tests__/workflow-b.test.ts`
+  - `packages/orchestrator/src/__tests__/workflow-e.test.ts`
+  - `packages/orchestrator/src/workflows/workflow-e.ts`
+
+---
+
 ## [0.12.9] - 2026-01-25
 
 ### Added

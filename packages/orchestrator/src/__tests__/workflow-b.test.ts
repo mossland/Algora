@@ -8,7 +8,6 @@ import {
   createWorkflowBHandler,
   DEFAULT_WORKFLOW_B_CONFIG,
   type DebateTopic,
-  type DebateThread,
   type ConsensusAssessment,
 } from '../workflows/workflow-b.js';
 import type { WorkflowContext } from '../types.js';

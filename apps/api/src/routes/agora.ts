@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
-import { getAgoraService, getSummoningService } from '../services/socket';
+import { getAgoraService } from '../services/socket';
 
 export const agoraRouter: Router = Router();
 
@@ -396,6 +396,7 @@ agoraRouter.post('/sessions/:id/automated/stop', (req, res) => {
 
 // GET /api/agora/llm-queue - Get LLM queue status
 agoraRouter.get('/llm-queue', (req, res) => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { AgoraService } = require('../services/agora');
   const queueSize = AgoraService.getLLMQueueSize();
   res.json({

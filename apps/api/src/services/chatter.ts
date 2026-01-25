@@ -182,7 +182,7 @@ CRITICAL LANGUAGE REQUIREMENT:
 - All responses must be in clear, professional English`;
   }
 
-  private buildChatterPrompt(agent: Agent): string {
+  private buildChatterPrompt(_agent: Agent): string {
     const topics = [
       'recent market movements',
       'governance proposals',

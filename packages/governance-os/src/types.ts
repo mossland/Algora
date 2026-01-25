@@ -2,11 +2,11 @@
 // Governance OS Types - Unified Integration Layer
 // ===========================================
 
-import type { RiskLevel, LockedAction } from '@algora/safe-autonomy';
-import type { WorkflowState, Issue, SpecialistCode } from '@algora/orchestrator';
-import type { DocumentType, DocumentState, Document, DocumentVersion } from '@algora/document-registry';
-import type { DifficultyLevel, Task, ModelSelection } from '@algora/model-router';
-import type { HouseType, DualHouseVoting, ReconciliationMemo, HighRiskApproval } from '@algora/dual-house';
+import type { RiskLevel } from '@algora/safe-autonomy';
+import type { WorkflowState, SpecialistCode } from '@algora/orchestrator';
+import type { DocumentType, Document } from '@algora/document-registry';
+import type { DifficultyLevel } from '@algora/model-router';
+import type { DualHouseVoting, HighRiskApproval } from '@algora/dual-house';
 
 // ============================================
 // Governance OS Configuration

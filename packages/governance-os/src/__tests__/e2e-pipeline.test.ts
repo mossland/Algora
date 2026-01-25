@@ -7,7 +7,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   GovernanceOS,
   createGovernanceOS,
-  type PipelineResult,
 } from '../index.js';
 
 describe('E2E Governance Pipeline', () => {
@@ -316,7 +315,7 @@ describe('E2E Governance Pipeline', () => {
     it('should emit and receive events', async () => {
       const events: string[] = [];
 
-      governanceOS.on('pipeline:completed', (data) => {
+      governanceOS.on('pipeline:completed', (_data) => {
         events.push('pipeline:completed');
       });
 
@@ -334,10 +333,10 @@ describe('E2E Governance Pipeline', () => {
 
   describe('Safe Autonomy Integration', () => {
     it('should lock high-risk actions', async () => {
-      let lockEmitted = false;
+      let _lockEmitted = false;
 
       governanceOS.on('execution:locked', () => {
-        lockEmitted = true;
+        _lockEmitted = true;
       });
 
       // HIGH risk pipeline should trigger locks
@@ -380,7 +379,7 @@ describe('Pipeline Stage Verification', () => {
 
   it('should progress through all 9 stages', async () => {
     const pipeline = governanceOS.getPipeline();
-    const stages = [
+    const _stages = [
       'signal_intake',
       'issue_detection',
       'triage',

@@ -8,7 +8,7 @@
 
 import type Database from 'better-sqlite3';
 import type { Server as SocketServer } from 'socket.io';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as _uuidv4 } from 'uuid';
 import {
   PassiveConsensusManager,
   type ConsensusStorage,

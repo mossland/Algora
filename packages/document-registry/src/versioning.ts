@@ -348,9 +348,8 @@ export class VersionManager {
 
     // Note: In a real implementation, we would delete these from storage
     // For the in-memory implementation, we'd need to add a delete method
-    console.log(
-      `Would remove ${toRemove.length} old versions for ${documentId}`
-    );
+    // Would remove ${toRemove.length} old versions for ${documentId}
+    void toRemove;
   }
 
   /**

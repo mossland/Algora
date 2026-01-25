@@ -638,7 +638,7 @@ export class BlockchainCollectorService {
     return newSignals;
   }
 
-  private async processGovernanceData(source: BlockchainSource, data: any): Promise<number> {
+  private async processGovernanceData(_source: BlockchainSource, _data: any): Promise<number> {
     // Generic governance data processing
     // This can be extended based on specific governance APIs
     return 0;

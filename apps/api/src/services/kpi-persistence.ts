@@ -337,7 +337,7 @@ export class KPIPersistenceService {
       const changePercent = previousValue !== 0 ? (change / previousValue) * 100 : 0;
 
       // Determine if trend is good or bad based on metric type
-      const isImproving = metric.higherIsBetter ? change > 0 : change < 0;
+      const _isImproving = metric.higherIsBetter ? change > 0 : change < 0;
       const isOnTarget = metric.higherIsBetter
         ? currentValue >= metric.target
         : currentValue <= metric.target;

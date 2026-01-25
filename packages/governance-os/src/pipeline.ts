@@ -6,7 +6,6 @@ import type {
   PipelineContext,
   PipelineResult,
   PipelineStage,
-  GovernanceOSConfig,
 } from './types.js';
 
 import type { RiskLevel } from '@algora/safe-autonomy';

@@ -689,7 +689,7 @@ export class AgoraService {
       console.log(`[Orchestrator] Max messages (${messageCount}) reached for session ${sessionId.slice(0, 8)}. Forcing round advancement.`);
 
       // Generate summary and extract action items before advancing
-      const summary = await this.generateRoundSummary(sessionId);
+      const _summary = await this.generateRoundSummary(sessionId);
       await this.extractActionItems(sessionId);
 
       await this.orchestratorAdvanceRound(sessionId, 'max_messages_reached');
@@ -885,7 +885,7 @@ Respond with ONLY "ADVANCE" or "CONTINUE" (no other text).`;
   }
 
   // Generate orchestrator's announcement message
-  private async generateOrchestratorAnnouncement(session: AgoraSession, reason: string): Promise<string> {
+  private async generateOrchestratorAnnouncement(session: AgoraSession, _reason: string): Promise<string> {
     const templates = [
       `Excellent progress in Round ${session.current_round}. I've observed diverse perspectives on "${session.title}". Let's advance to Round ${session.current_round + 1} to deepen our analysis.`,
       `Round ${session.current_round} has covered substantial ground. Moving forward to Round ${session.current_round + 1} to explore additional dimensions of this topic.`,
@@ -1045,7 +1045,7 @@ Respond with only the needed areas (comma-separated):`,
 
           if (summonedAgents.length > 0) {
             // Announce summoning
-            const orchestrator = this.db.prepare('SELECT * FROM agents WHERE id = ?')
+            const _orchestrator = this.db.prepare('SELECT * FROM agents WHERE id = ?')
               .get(ORCHESTRATOR_CONFIG.orchestratorAgentId) as Agent | undefined;
 
             await this.addMessage(sessionId, {
@@ -1488,7 +1488,7 @@ JSON only:`,
 
     // Generate recommendation using LLM
     let recommendation = '';
-    let confidence = summary.finalConsensus.score;
+    const confidence = summary.finalConsensus.score;
 
     if (llmService.isTier1Available() || this.hasExternalLLM()) {
       try {
@@ -1942,14 +1942,14 @@ Continue the discussion with your perspective. Build on or respectfully challeng
 
   private cleanResponse(content: string): string {
     return content
-      .replace(/^[\"']|[\"']$/g, '')
+      .replace(/^["']|["']$/g, '')
       .replace(/^(Agent|AI|Assistant|Bot):\s*/i, '')
       .replace(/\n/g, ' ')
       .trim()
       .substring(0, 500);
   }
 
-  private getTemplateResponse(agent: Agent, session: AgoraSession): string {
+  private getTemplateResponse(agent: Agent, _session: AgoraSession): string {
     const templates: Record<string, string[]> = {
       visionaries: [
         'We should consider the long-term implications of this decision.',

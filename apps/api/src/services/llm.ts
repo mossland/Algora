@@ -532,7 +532,7 @@ export class LLMService extends EventEmitter {
       ts => now - ts < 60000
     );
 
-    const { allowed, waitMs } = this.canCallTier1();
+    const { allowed, waitMs: _waitMs } = this.canCallTier1();
 
     return {
       callsLastMinute: this.tier1CallTimestamps.length,

@@ -8,9 +8,6 @@ import {
   createWorkflowEHandler,
   DEFAULT_WORKFLOW_E_CONFIG,
   type WorkingGroupProposal,
-  type WorkingGroupCharter,
-  type WorkingGroup,
-  type WGProposalEvaluation,
 } from '../workflows/workflow-e.js';
 import type { WorkflowContext } from '../types.js';
 import type { LLMProvider } from '../specialist-manager.js';

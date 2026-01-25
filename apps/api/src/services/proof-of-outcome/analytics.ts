@@ -103,20 +103,20 @@ export class AnalyticsService {
   }
 
   getProposalTimeSeries(interval: 'day' | 'week' | 'month' = 'week', limit: number = 12): TimeSeriesData[] {
-    let dateFormat: string;
+    let _dateFormat: string;
     let dateGroup: string;
 
     switch (interval) {
       case 'day':
-        dateFormat = '%Y-%m-%d';
+        _dateFormat = '%Y-%m-%d';
         dateGroup = 'date(created_at)';
         break;
       case 'week':
-        dateFormat = '%Y-W%W';
+        _dateFormat = '%Y-W%W';
         dateGroup = "strftime('%Y-W%W', created_at)";
         break;
       case 'month':
-        dateFormat = '%Y-%m';
+        _dateFormat = '%Y-%m';
         dateGroup = "strftime('%Y-%m', created_at)";
         break;
     }

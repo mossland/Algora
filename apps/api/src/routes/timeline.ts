@@ -21,7 +21,7 @@ interface TimelineEvent {
   linkedId?: string; // ID of the parent entity (e.g., issue_id for proposal)
 }
 
-interface TimelineResponse {
+interface _TimelineResponse {
   events: TimelineEvent[];
   count: number;
   issueId?: string;

@@ -491,38 +491,43 @@ export class GitHubCollectorService {
     let severity = 'low';
 
     switch (event.type) {
-      case 'PushEvent':
+      case 'PushEvent': {
         const commits = event.payload.commits?.length || 0;
         description = `${actor} pushed ${commits} commit(s) to ${event.payload.ref}`;
         severity = commits > 5 ? 'medium' : 'low';
         break;
+      }
 
-      case 'PullRequestEvent':
+      case 'PullRequestEvent': {
         const prAction = event.payload.action;
         const prTitle = event.payload.pull_request?.title || 'Unknown';
         description = `${actor} ${prAction} PR: ${prTitle}`;
         severity = prAction === 'opened' ? 'medium' : 'low';
         break;
+      }
 
-      case 'IssuesEvent':
+      case 'IssuesEvent': {
         const issueAction = event.payload.action;
         const issueTitle = event.payload.issue?.title || 'Unknown';
         description = `${actor} ${issueAction} issue: ${issueTitle}`;
         severity = issueAction === 'opened' ? 'medium' : 'low';
         break;
+      }
 
-      case 'ReleaseEvent':
+      case 'ReleaseEvent': {
         const releaseName = event.payload.release?.name || event.payload.release?.tag_name || 'Unknown';
         description = `${actor} released: ${releaseName}`;
         severity = 'high';
         break;
+      }
 
-      case 'CreateEvent':
+      case 'CreateEvent': {
         const refType = event.payload.ref_type;
         const ref = event.payload.ref || '';
         description = `${actor} created ${refType}: ${ref}`;
         severity = refType === 'tag' ? 'medium' : 'low';
         break;
+      }
 
       default:
         description = `${actor} performed ${event.type}`;

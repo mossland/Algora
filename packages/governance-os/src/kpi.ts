@@ -279,7 +279,7 @@ export class KPICollector extends EventEmitter {
    */
   getSystemHealthMetrics(): SystemHealthMetrics {
     const now = new Date();
-    const uptimeMs = now.getTime() - this.startTime.getTime();
+    const _uptimeMs = now.getTime() - this.startTime.getTime();
     const uptimePercent = 100; // Assume 100% if running
 
     // Calculate heartbeat gap
@@ -371,7 +371,7 @@ export class KPICollector extends EventEmitter {
     }
   }
 
-  private calculateSeverity(value: number, target: number, direction: 'above' | 'below'): 'warning' | 'critical' {
+  private calculateSeverity(value: number, target: number, _direction: 'above' | 'below'): 'warning' | 'critical' {
     const deviation = Math.abs(value - target) / target;
 
     // Critical if deviation > 50%

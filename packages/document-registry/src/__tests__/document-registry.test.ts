@@ -5,8 +5,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   DocumentManager,
-  InMemoryDocumentStorage,
-  VersionManager,
   ProvenanceManager,
   AuditManager,
   InMemoryAuditStorage,

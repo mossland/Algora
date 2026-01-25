@@ -732,7 +732,7 @@ Be concise and factual.`;
           ? 'Voluntary dissolution with complete handover'
           : 'Handover plan incomplete';
         break;
-      case 'inactivity':
+      case 'inactivity': {
         const daysSinceActivity = Math.floor(
           (Date.now() - wg.lastActivityAt.getTime()) / (24 * 60 * 60 * 1000)
         );
@@ -741,6 +741,7 @@ Be concise and factual.`;
           ? `Inactive for ${daysSinceActivity} days`
           : 'Activity threshold not met';
         break;
+      }
       case 'governance_decision':
         approved = false;
         reason = 'Requires governance vote';

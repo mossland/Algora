@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as readline from 'readline';
+import * as _readline from 'readline';
 
 interface LogEntry {
   timestamp: string;
@@ -125,7 +125,7 @@ export class LogMonitorService {
     }
 
     const entries: LogEntry[] = [];
-    const lines: string[] = [];
+    const _lines: string[] = [];
 
     // Read file in reverse to get last N lines efficiently
     const content = fs.readFileSync(filePath, 'utf-8');

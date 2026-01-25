@@ -123,7 +123,7 @@ export class SummoningService {
 
   // Get agents suitable for a specific expertise area
   getAgentsByExpertise(expertise: string[]): Agent[] {
-    const placeholders = expertise.map(() => '?').join(',');
+    const _placeholders = expertise.map(() => '?').join(',');
     return this.db.prepare(`
       SELECT a.* FROM agents a
       WHERE a.is_active = 1

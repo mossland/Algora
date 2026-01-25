@@ -32,7 +32,7 @@ import { Orchestrator, createOrchestrator, createRealLLMProvider, createMockLLMP
 import type { DocumentType } from '@algora/document-registry';
 import { createDocumentRegistry } from '@algora/document-registry';
 
-import type { Task, DifficultyLevel } from '@algora/model-router';
+import type { Task } from '@algora/model-router';
 import { createModelRoutingSystem } from '@algora/model-router';
 
 import type { DualHouseVoting } from '@algora/dual-house';
