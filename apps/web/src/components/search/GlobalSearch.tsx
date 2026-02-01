@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, User, FileText, AlertCircle, Radio, MessageSquare, Loader2 } from 'lucide-react';
-// Link import removed - using router.push instead
+import { Search, User, FileText, AlertCircle, Radio, MessageSquare, Loader2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3201';
 
@@ -41,6 +50,14 @@ const typeColors = {
   session: 'text-pink-500',
 };
 
+const typeBadgeVariants = {
+  agent: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
+  proposal: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  issue: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+  signal: 'bg-green-500/10 text-green-500 border-green-500/20',
+  session: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
+};
+
 const typeLabels = {
   agent: 'Agent',
   proposal: 'Proposal',
@@ -58,8 +75,6 @@ export function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Debounce query
   useEffect(() => {
@@ -80,40 +95,17 @@ export function GlobalSearch() {
     enabled: debouncedQuery.length >= 2,
   });
 
-  // Keyboard shortcuts
+  // Keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K to open search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsOpen(true);
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
-
-      // Escape to close
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        setQuery('');
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  // Click outside to close
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
 
   const handleResultClick = useCallback((url: string) => {
     setIsOpen(false);
@@ -121,15 +113,19 @@ export function GlobalSearch() {
     router.push(`/${locale}${url}`);
   }, [router, locale]);
 
+  // Group results by type
+  const groupedResults = data?.results?.reduce((acc, result) => {
+    if (!acc[result.type]) acc[result.type] = [];
+    acc[result.type].push(result);
+    return acc;
+  }, {} as Record<string, SearchResult[]>) || {};
+
   return (
-    <div ref={containerRef} className="relative">
+    <>
       {/* Search trigger button */}
       <button
-        onClick={() => {
-          setIsOpen(true);
-          setTimeout(() => inputRef.current?.focus(), 50);
-        }}
-        className="flex items-center gap-2 rounded-lg border border-agora-border dark:border-agora-dark-border bg-agora-darker dark:bg-agora-dark-card px-3 py-1.5 text-sm text-agora-muted hover:bg-agora-card dark:hover:bg-agora-dark-border transition-colors"
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-2 rounded-lg border border-agora-border dark:border-agora-dark-border bg-agora-darker dark:bg-agora-dark-card px-2 sm:px-3 py-1.5 text-sm text-agora-muted hover:bg-agora-card dark:hover:bg-agora-dark-border transition-colors min-h-[36px]"
       >
         <Search className="h-4 w-4" />
         <span className="hidden md:inline">{t('placeholder') || 'Search...'}</span>
@@ -138,126 +134,74 @@ export function GlobalSearch() {
         </kbd>
       </button>
 
-      {/* Search modal overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-[10vh]">
-          <div className="w-full max-w-xl mx-4 rounded-xl border border-agora-border dark:border-agora-dark-border bg-agora-dark dark:bg-agora-dark-card shadow-2xl">
-            {/* Search input */}
-            <div className="flex items-center gap-3 border-b border-agora-border dark:border-agora-dark-border p-4">
-              <Search className="h-5 w-5 text-agora-muted" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('placeholder') || 'Search agents, proposals, issues...'}
-                className="flex-1 bg-transparent text-slate-900 dark:text-white placeholder-agora-muted outline-none"
-                autoFocus
-              />
-              {query && (
-                <button
-                  onClick={() => setQuery('')}
-                  className="p-1 rounded hover:bg-agora-border dark:hover:bg-agora-dark-border"
-                >
-                  <X className="h-4 w-4 text-agora-muted" />
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  setQuery('');
-                }}
-                className="text-xs text-agora-muted hover:text-slate-900 dark:hover:text-white"
-              >
-                ESC
-              </button>
+      {/* Command palette dialog */}
+      <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+        <CommandInput
+          placeholder={t('placeholder') || 'Search agents, proposals, issues...'}
+          value={query}
+          onValueChange={setQuery}
+        />
+        <CommandList className="max-h-[60vh]">
+          {isLoading && (
+            <div className="flex items-center justify-center py-8 text-agora-muted">
+              <Loader2 className="h-5 w-5 animate-spin" />
             </div>
+          )}
 
-            {/* Results */}
-            <div className="max-h-[60vh] overflow-y-auto p-2">
-              {isLoading && (
-                <div className="flex items-center justify-center py-8 text-agora-muted">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                </div>
-              )}
+          {!isLoading && query.length >= 2 && (!data?.results || data.results.length === 0) && (
+            <CommandEmpty>{t('noResults') || 'No results found'}</CommandEmpty>
+          )}
 
-              {!isLoading && query.length >= 2 && data?.results?.length === 0 && (
-                <div className="py-8 text-center text-agora-muted">
-                  <p>{t('noResults') || 'No results found'}</p>
-                  <p className="text-sm mt-1">{t('tryDifferent') || 'Try a different search term'}</p>
-                </div>
-              )}
-
-              {!isLoading && data?.results && data.results.length > 0 && (
-                <div className="space-y-1">
-                  {data.results.map((result) => {
-                    const Icon = typeIcons[result.type];
-                    return (
-                      <button
-                        key={`${result.type}-${result.id}`}
-                        onClick={() => handleResultClick(result.url)}
-                        className="w-full flex items-start gap-3 rounded-lg p-3 text-left hover:bg-agora-darker dark:hover:bg-agora-dark-border transition-colors"
-                      >
-                        <div className={`flex-shrink-0 ${typeColors[result.type]}`}>
-                          <Icon className="h-5 w-5" />
+          {!isLoading && Object.entries(groupedResults).map(([type, results], index) => {
+            const Icon = typeIcons[type as keyof typeof typeIcons];
+            return (
+              <div key={type}>
+                {index > 0 && <CommandSeparator />}
+                <CommandGroup heading={typeLabels[type as keyof typeof typeLabels]}>
+                  {results.map((result) => (
+                    <CommandItem
+                      key={`${result.type}-${result.id}`}
+                      value={`${result.type}-${result.title}`}
+                      onSelect={() => handleResultClick(result.url)}
+                      className="flex items-start gap-3 py-3"
+                    >
+                      <div className={`flex-shrink-0 mt-0.5 ${typeColors[result.type]}`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium truncate">{result.title}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${typeBadgeVariants[result.type]}`}>
+                            {typeLabels[result.type]}
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-900 dark:text-white truncate">
-                              {result.title}
-                            </span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${typeColors[result.type]} bg-current/10`}>
-                              {typeLabels[result.type]}
-                            </span>
-                          </div>
-                          {result.description && (
-                            <p className="text-sm text-agora-muted truncate mt-0.5">
-                              {result.description}
-                            </p>
-                          )}
-                          {result.status && (
-                            <span className="text-xs text-agora-muted mt-1 inline-block">
-                              {result.status}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {query.length < 2 && (
-                <div className="py-8 text-center text-agora-muted">
-                  <p>{t('typeToSearch') || 'Type at least 2 characters to search'}</p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
-                    <span className="px-2 py-1 rounded bg-purple-500/10 text-purple-500">Agents</span>
-                    <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-500">Proposals</span>
-                    <span className="px-2 py-1 rounded bg-orange-500/10 text-orange-500">Issues</span>
-                    <span className="px-2 py-1 rounded bg-green-500/10 text-green-500">Signals</span>
-                    <span className="px-2 py-1 rounded bg-pink-500/10 text-pink-500">Sessions</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between border-t border-agora-border dark:border-agora-dark-border px-4 py-2 text-xs text-agora-muted">
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded bg-agora-darker dark:bg-agora-dark-darker border border-agora-border dark:border-agora-dark-border">↵</kbd>
-                  {t('toSelect') || 'to select'}
-                </span>
-                <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 rounded bg-agora-darker dark:bg-agora-dark-darker border border-agora-border dark:border-agora-dark-border">esc</kbd>
-                  {t('toClose') || 'to close'}
-                </span>
+                        {result.description && (
+                          <p className="text-sm text-muted-foreground truncate mt-0.5">
+                            {result.description}
+                          </p>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               </div>
-              <span>{data?.count || 0} {t('results') || 'results'}</span>
+            );
+          })}
+
+          {query.length < 2 && !isLoading && (
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm">{t('typeToSearch') || 'Type at least 2 characters to search'}</p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
+                <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">Agents</Badge>
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">Proposals</Badge>
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/20">Issues</Badge>
+                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Signals</Badge>
+                <Badge variant="outline" className="bg-pink-500/10 text-pink-500 border-pink-500/20">Sessions</Badge>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          )}
+        </CommandList>
+      </CommandDialog>
+    </>
   );
 }

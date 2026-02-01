@@ -10,6 +10,7 @@ import {
   Plus,
   Loader2,
   Languages,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { useTranslationToggle } from '@/hooks/useTranslation';
 
@@ -21,8 +22,10 @@ import { NewSessionModal } from '@/components/agora/NewSessionModal';
 import { SessionDetailModal } from '@/components/agora/SessionDetailModal';
 import { AgentDetailModal } from '@/components/agora/AgentDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 
-// Helper to parse summoned_agents JSON string
 function parseParticipants(summoned_agents: string | null): string[] {
   if (!summoned_agents) return [];
   try {
@@ -44,6 +47,8 @@ export default function AgoraPage() {
   const [detailSession, setDetailSession] = useState<AgoraSession | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { showTranslation, toggle: toggleTranslation } = useTranslationToggle();
+  const [showSessionsSidebar, setShowSessionsSidebar] = useState(false);
+  const [showParticipantsSidebar, setShowParticipantsSidebar] = useState(false);
 
   const { data: sessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['agora-sessions'],
@@ -56,7 +61,6 @@ export default function AgoraPage() {
     queryFn: fetchAgents,
   });
 
-  // Fetch messages for active session
   const { data: sessionData } = useQuery({
     queryKey: ['agora-session', activeSessionId],
     queryFn: () => fetchSessionWithMessages(activeSessionId!),
@@ -83,7 +87,6 @@ export default function AgoraPage() {
     try {
       await sendAgoraMessage(activeSessionId, message.trim());
       setMessage('');
-      // Refresh messages
       queryClient.invalidateQueries({ queryKey: ['agora-session', activeSessionId] });
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -106,137 +109,181 @@ export default function AgoraPage() {
     }
   };
 
-  // Count messages per agent
   const getAgentMessageCount = (agentId: string) => {
     return messages.filter(m => m.agent_id === agentId).length;
   };
 
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setShowSessionsSidebar(false);
+  };
+
+  // Sessions list content (shared between sidebar and sheet)
+  const sessionsContent = (
+    <div className="space-y-4">
+      {activeSessions.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-white">
+            Active Sessions ({activeSessions.length})
+          </h3>
+          <div className="space-y-2">
+            {activeSessions.map((session: AgoraSession) => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                isActive={session.id === activeSessionId}
+                onClick={() => handleSelectSession(session.id)}
+                onDetailClick={() => setDetailSession(session)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {pendingSessions.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-agora-muted">
+            Pending ({pendingSessions.length})
+          </h3>
+          <div className="space-y-2">
+            {pendingSessions.map((session: AgoraSession) => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                isActive={session.id === activeSessionId}
+                onClick={() => handleSelectSession(session.id)}
+                onDetailClick={() => setDetailSession(session)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {concludedSessions.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-agora-muted">
+            Recent ({concludedSessions.length})
+          </h3>
+          <div className="space-y-2">
+            {concludedSessions.slice(0, 5).map((session: AgoraSession) => (
+              <SessionCard
+                key={session.id}
+                session={session}
+                isActive={session.id === activeSessionId}
+                onClick={() => handleSelectSession(session.id)}
+                onDetailClick={() => setDetailSession(session)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!sessionsLoading && !sessions?.length && (
+        <div className="rounded-lg border border-dashed border-agora-border dark:border-agora-dark-border p-4 text-center">
+          <MessageSquare className="mx-auto h-8 w-8 text-agora-muted" />
+          <p className="mt-2 text-sm text-agora-muted">{t('noActiveSession')}</p>
+          <button
+            onClick={() => { setShowNewSession(true); setShowSessionsSidebar(false); }}
+            className="mt-3 text-sm text-agora-primary hover:underline"
+          >
+            {t('startSession')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
+    <div className="flex h-[calc(100vh-8rem)] flex-col gap-3 md:gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
             <HelpTooltip content={tGuide('agora')} />
           </div>
-          <p className="text-agora-muted">{t('subtitle')}</p>
+          <p className="text-sm md:text-base text-agora-muted dark:text-agora-dark-muted">{t('subtitle')}</p>
         </div>
-        <button
-          onClick={() => setShowNewSession(true)}
-          className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 font-medium text-slate-900 transition-colors hover:bg-agora-primary/80"
-        >
-          <Plus className="h-4 w-4" />
-          {t('startSession')}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Mobile: Sessions toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setShowSessionsSidebar(true)}
+          >
+            <PanelLeftOpen className="h-4 w-4 mr-1.5" />
+            Sessions
+          </Button>
+          <button
+            onClick={() => setShowNewSession(true)}
+            className="flex items-center gap-2 rounded-lg bg-agora-primary px-3 md:px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-agora-primary/80"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('startSession')}</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex flex-1 gap-4 overflow-hidden">
-        {/* Sessions Sidebar */}
-        <div className="w-72 flex-shrink-0 space-y-4 overflow-y-auto pr-2">
-          {/* Active Sessions */}
-          {activeSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-slate-900">
-                Active Sessions ({activeSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {activeSessions.map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Pending Sessions */}
-          {pendingSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-agora-muted">
-                Pending ({pendingSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {pendingSessions.map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Sessions */}
-          {concludedSessions.length > 0 && (
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-agora-muted">
-                Recent ({concludedSessions.length})
-              </h3>
-              <div className="space-y-2">
-                {concludedSessions.slice(0, 5).map((session: AgoraSession) => (
-                  <SessionCard
-                    key={session.id}
-                    session={session}
-                    isActive={session.id === activeSessionId}
-                    onClick={() => setActiveSessionId(session.id)}
-                    onDetailClick={() => setDetailSession(session)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* No Sessions */}
-          {!sessionsLoading && !sessions?.length && (
-            <div className="rounded-lg border border-dashed border-agora-border p-4 text-center">
-              <MessageSquare className="mx-auto h-8 w-8 text-agora-muted" />
-              <p className="mt-2 text-sm text-agora-muted">{t('noActiveSession')}</p>
-              <button
-                onClick={() => setShowNewSession(true)}
-                className="mt-3 text-sm text-agora-primary hover:underline"
-              >
-                {t('startSession')}
-              </button>
-            </div>
-          )}
+        {/* Sessions Sidebar - Desktop */}
+        <div className="hidden md:block w-72 flex-shrink-0">
+          <ScrollArea className="h-full pr-2">
+            {sessionsContent}
+          </ScrollArea>
         </div>
 
+        {/* Sessions Sidebar - Mobile Sheet */}
+        <Sheet open={showSessionsSidebar} onOpenChange={setShowSessionsSidebar}>
+          <SheetContent side="left" className="w-80 p-0">
+            <SheetHeader className="px-4 py-3 border-b border-agora-border dark:border-agora-dark-border">
+              <SheetTitle>Sessions</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="h-[calc(100vh-4rem)] p-4">
+              {sessionsContent}
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
+
         {/* Chat Area */}
-        <div className="flex flex-1 flex-col rounded-lg border border-agora-border bg-agora-card">
+        <div className="flex flex-1 flex-col rounded-lg border border-agora-border dark:border-agora-dark-border bg-agora-card dark:bg-agora-dark-card min-w-0">
           {activeSession ? (
             <>
               {/* Chat Header */}
-              <div className="flex items-center justify-between border-b border-agora-border p-4">
-                <div>
-                  <h2 className="font-semibold text-slate-900">{activeSession.title}</h2>
-                  <p className="text-xs text-agora-muted">
+              <div className="flex items-center justify-between border-b border-agora-border dark:border-agora-dark-border p-3 md:p-4 gap-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold text-slate-900 dark:text-white text-sm md:text-base truncate">{activeSession.title}</h2>
+                  <p className="text-xs text-agora-muted truncate">
                     Session started {activeSession.created_at ? new Date(activeSession.created_at).toLocaleString() : 'Unknown'}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
-                  {/* Translation Toggle */}
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={toggleTranslation}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-1 text-xs rounded-lg transition-colors ${
                       showTranslation
                         ? 'bg-agora-primary/20 text-agora-primary'
-                        : 'bg-agora-card text-agora-muted hover:text-slate-900'
+                        : 'bg-agora-card dark:bg-agora-dark-card text-agora-muted hover:text-slate-900 dark:hover:text-white'
                     }`}
                     title={showTranslation ? 'Show original (English)' : 'Show Korean translation'}
                   >
                     <Languages className="h-3.5 w-3.5" />
-                    <span>{showTranslation ? '한글' : 'EN'}</span>
+                    <span className="hidden sm:inline">{showTranslation ? '한글' : 'EN'}</span>
                   </button>
-                  <div className="flex items-center gap-2 text-sm text-agora-muted">
+                  {/* Mobile: Participants toggle */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="lg:hidden"
+                    onClick={() => setShowParticipantsSidebar(true)}
+                  >
+                    <Users className="h-4 w-4" />
+                    <span className="ml-1 text-xs">{parseParticipants(activeSession.summoned_agents).length}</span>
+                  </Button>
+                  {/* Desktop: Participant count */}
+                  <div className="hidden lg:flex items-center gap-2 text-sm text-agora-muted">
                     <Users className="h-4 w-4" />
                     <span>{parseParticipants(activeSession.summoned_agents).length} participants</span>
                   </div>
@@ -244,8 +291,8 @@ export default function AgoraPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="space-y-4">
+              <ScrollArea className="flex-1">
+                <div className="p-3 md:p-4 space-y-3 md:space-y-4">
                   {messages.length > 0 ? (
                     messages.map((msg: AgoraMessage) => {
                       const isSystemMessage = msg.message_type === 'system';
@@ -259,7 +306,7 @@ export default function AgoraPage() {
                         agentColor = '#64748b';
                       } else if (isHumanMessage) {
                         agentName = msg.human_id || 'User';
-                        agentColor = '#10b981'; // Green for human messages
+                        agentColor = '#10b981';
                       } else if (msg.display_name || msg.agent_name) {
                         agentName = msg.display_name || msg.agent_name || 'Agent';
                         agentColor = msg.color || '#6366f1';
@@ -292,10 +339,10 @@ export default function AgoraPage() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-              </div>
+              </ScrollArea>
 
-              {/* Input */}
-              <div className="border-t border-agora-border p-4">
+              {/* Input - fixed bottom with iOS safe area */}
+              <div className="border-t border-agora-border dark:border-agora-dark-border p-3 md:p-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-4">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -303,12 +350,12 @@ export default function AgoraPage() {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={t('sendMessage')}
-                    className="flex-1 rounded-lg border border-agora-border bg-agora-darker px-4 py-2 text-slate-900 placeholder-agora-muted focus:border-agora-primary focus:outline-none"
+                    className="flex-1 rounded-lg border border-agora-border dark:border-agora-dark-border bg-agora-darker dark:bg-agora-dark-darker px-3 md:px-4 py-2 text-sm md:text-base text-slate-900 dark:text-white placeholder-agora-muted focus:border-agora-primary focus:outline-none"
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!message.trim() || isSending}
-                    className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80 disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg bg-agora-primary px-3 md:px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80 disabled:opacity-50 min-w-[44px] justify-center"
                   >
                     {isSending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -320,28 +367,38 @@ export default function AgoraPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <MessageSquare className="h-16 w-16 text-agora-muted/50" />
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">
+            <div className="flex flex-1 flex-col items-center justify-center text-center p-4">
+              <MessageSquare className="h-12 md:h-16 w-12 md:w-16 text-agora-muted/50" />
+              <h3 className="mt-4 text-base md:text-lg font-semibold text-slate-900 dark:text-white">
                 {t('noActiveSession')}
               </h3>
               <p className="mt-2 text-sm text-agora-muted">
-                Select a session from the sidebar or start a new one
+                Select a session or start a new one
               </p>
-              <button
-                onClick={() => setShowNewSession(true)}
-                className="mt-4 flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80"
-              >
-                <Plus className="h-4 w-4" />
-                {t('startSession')}
-              </button>
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  className="md:hidden"
+                  onClick={() => setShowSessionsSidebar(true)}
+                >
+                  <PanelLeftOpen className="h-4 w-4 mr-1.5" />
+                  Browse Sessions
+                </Button>
+                <button
+                  onClick={() => setShowNewSession(true)}
+                  className="flex items-center gap-2 rounded-lg bg-agora-primary px-4 py-2 text-slate-900 transition-colors hover:bg-agora-primary/80"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('startSession')}
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Participants Sidebar */}
+        {/* Participants Sidebar - Desktop */}
         {activeSession && (
-          <div className="w-64 flex-shrink-0">
+          <div className="hidden lg:block w-64 flex-shrink-0">
             <ParticipantList
               agents={agents || []}
               participants={parseParticipants(activeSession.summoned_agents)}
@@ -349,9 +406,27 @@ export default function AgoraPage() {
             />
           </div>
         )}
+
+        {/* Participants Sidebar - Mobile Sheet */}
+        <Sheet open={showParticipantsSidebar} onOpenChange={setShowParticipantsSidebar}>
+          <SheetContent side="right" className="w-80 p-0">
+            <SheetHeader className="px-4 py-3 border-b border-agora-border dark:border-agora-dark-border">
+              <SheetTitle>Participants</SheetTitle>
+            </SheetHeader>
+            <div className="p-4">
+              {activeSession && (
+                <ParticipantList
+                  agents={agents || []}
+                  participants={parseParticipants(activeSession.summoned_agents)}
+                  onAgentClick={(agentId) => { handleAgentClick(agentId); setShowParticipantsSidebar(false); }}
+                />
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      {/* New Session Modal */}
+      {/* Modals */}
       {showNewSession && (
         <NewSessionModal
           onClose={() => setShowNewSession(false)}
@@ -362,8 +437,6 @@ export default function AgoraPage() {
           }}
         />
       )}
-
-      {/* Session Detail Modal */}
       {detailSession && (
         <SessionDetailModal
           session={detailSession}
@@ -375,8 +448,6 @@ export default function AgoraPage() {
           }}
         />
       )}
-
-      {/* Agent Detail Modal */}
       {selectedAgent && (
         <AgentDetailModal
           agent={selectedAgent}

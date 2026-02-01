@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -17,9 +16,14 @@ import {
   BookOpen,
   Tv,
   Workflow,
-  X,
   Menu,
 } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 const navItems = [
   { key: 'dashboard', href: '/', icon: LayoutDashboard },
@@ -38,78 +42,34 @@ const navItems = [
 
 interface MobileNavProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-/**
- * MobileNav - Slide-out navigation drawer for mobile devices
- */
-export function MobileNav({ isOpen, onClose }: MobileNavProps) {
+export function MobileNav({ isOpen, onOpenChange }: MobileNavProps) {
   const t = useTranslations('Navigation');
   const pathname = usePathname();
 
   const locale = pathname.split('/')[1] || 'en';
   const currentPath = pathname.replace(/^\/[a-z]{2}/, '') || '/';
 
-  // Lock body scroll when menu is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Close on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent side="left" className="w-72 p-0">
+        <SheetHeader className="border-b border-agora-border dark:border-agora-dark-border px-4 py-3">
+          <SheetTitle asChild>
+            <Link
+              href={`/${locale}`}
+              className="flex items-center gap-3"
+              onClick={() => onOpenChange(false)}
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-agora-primary to-agora-accent">
+                <span className="text-lg font-bold text-slate-900">A</span>
+              </div>
+              <span className="text-xl font-bold text-slate-900 dark:text-white">Algora</span>
+            </Link>
+          </SheetTitle>
+        </SheetHeader>
 
-      {/* Drawer */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-agora-dark border-r border-agora-border transform transition-transform duration-300 ease-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        aria-label="Mobile navigation"
-      >
-        {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-agora-border px-4">
-          <Link href={`/${locale}`} className="flex items-center gap-3" onClick={onClose}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-agora-primary to-agora-accent">
-              <span className="text-lg font-bold text-slate-900">A</span>
-            </div>
-            <span className="text-xl font-bold text-slate-900">Algora</span>
-          </Link>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-agora-muted hover:bg-agora-card hover:text-slate-900 transition-colors"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -123,15 +83,15 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
               <Link
                 key={item.key}
                 href={`/${locale}${item.href}`}
-                onClick={onClose}
-                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
+                onClick={() => onOpenChange(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors min-h-[44px] ${
                   isActive
                     ? 'bg-agora-primary/10 text-agora-primary'
                     : isLive
-                      ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                      ? 'text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10'
                       : isNew
                         ? 'text-agora-accent hover:bg-agora-accent/10 hover:text-agora-accent'
-                        : 'text-agora-muted hover:bg-agora-card hover:text-slate-900'
+                        : 'text-agora-muted hover:bg-agora-card dark:hover:bg-agora-dark-card hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="h-5 w-5" />
@@ -152,15 +112,14 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="border-t border-agora-border p-4">
-          <div className="rounded-lg bg-agora-card p-3">
+        <div className="border-t border-agora-border dark:border-agora-dark-border p-4">
+          <div className="rounded-lg bg-agora-card dark:bg-agora-dark-card p-3">
             <p className="text-xs text-agora-muted">Powered by</p>
-            <p className="text-sm font-medium text-slate-900">MOC Governance</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-white">MOC Governance</p>
           </div>
         </div>
-      </aside>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -168,14 +127,11 @@ interface MobileMenuButtonProps {
   onClick: () => void;
 }
 
-/**
- * MobileMenuButton - Hamburger menu button for mobile header
- */
 export function MobileMenuButton({ onClick }: MobileMenuButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="md:hidden p-2 rounded-lg text-agora-muted hover:bg-agora-card hover:text-slate-900 transition-colors"
+      className="md:hidden p-2 rounded-lg text-agora-muted hover:bg-agora-card hover:text-slate-900 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
       aria-label="Open menu"
     >
       <Menu className="h-6 w-6" />

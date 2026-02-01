@@ -14,6 +14,7 @@ import { MobileNav } from './MobileNav';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GlobalSearch } from '@/components/search';
 import { AlertDropdown } from '@/components/alerts';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function Header() {
   const t = useTranslations('Header');
@@ -38,24 +39,23 @@ export function Header() {
     refetchInterval: 10000,
   });
 
-  // Normalize status: 'ok' and 'running' both mean healthy
   const rawStatus = health?.status || 'unknown';
   const isHealthy = rawStatus === 'ok' || rawStatus === 'running';
   const isDegraded = rawStatus === 'degraded';
 
   return (
-    <>
+    <TooltipProvider>
       <header
         role="banner"
         aria-label={t('mainNavigation')}
-        className="flex h-14 items-center justify-between border-b border-agora-border dark:border-agora-dark-border bg-agora-dark dark:bg-agora-dark-dark px-4 md:px-6"
+        className="flex h-14 items-center justify-between border-b border-agora-border dark:border-agora-dark-border bg-agora-dark dark:bg-agora-dark-dark px-3 md:px-6"
       >
         {/* Left section */}
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMobileNavOpen(true)}
-            className="md:hidden p-2 -ml-2 rounded-lg text-agora-muted hover:bg-agora-card hover:text-slate-900 transition-colors"
+            className="md:hidden p-2 -ml-1 rounded-lg text-agora-muted hover:bg-agora-card hover:text-slate-900 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
@@ -66,7 +66,7 @@ export function Header() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-agora-primary to-agora-accent">
               <span className="text-sm font-bold text-slate-900">A</span>
             </div>
-            <span className="text-lg font-bold text-slate-900">Algora</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">Algora</span>
           </Link>
 
           {/* System Status - Desktop only */}
@@ -110,7 +110,7 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-2">
             <Wallet className="h-4 w-4 text-agora-muted" />
             <span className="text-sm text-agora-muted">{t('budget')}:</span>
-            <span className="text-sm font-medium text-slate-900">
+            <span className="text-sm font-medium text-slate-900 dark:text-white">
               ${health?.budget?.remaining?.toFixed(2) || '0.00'}
             </span>
             <HelpTooltip content={th('budget')} position="bottom" />
@@ -131,7 +131,7 @@ export function Header() {
           {/* Queue - Desktop only */}
           <div className="hidden xl:flex items-center gap-2">
             <span className="text-sm text-agora-muted">{t('queue')}:</span>
-            <span className="text-sm font-medium text-slate-900">
+            <span className="text-sm font-medium text-slate-900 dark:text-white">
               {health?.scheduler?.queueLength || 0}
             </span>
             <HelpTooltip content={th('queue')} position="bottom" />
@@ -139,29 +139,34 @@ export function Header() {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1.5 md:gap-3">
           {/* Global Search */}
-          <div className="hidden sm:block">
-            <GlobalSearch />
-          </div>
+          <GlobalSearch />
 
           {/* Mobile status indicator */}
-          <div className="md:hidden flex items-center gap-1.5">
-            <span
-              className={`h-2 w-2 rounded-full ${
-                isHealthy
-                  ? 'bg-agora-success animate-pulse'
-                  : isDegraded
-                    ? 'bg-agora-warning'
-                    : 'bg-agora-muted'
-              }`}
-            />
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="md:hidden flex items-center gap-1.5 p-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    isHealthy
+                      ? 'bg-agora-success animate-pulse'
+                      : isDegraded
+                        ? 'bg-agora-warning'
+                        : 'bg-agora-muted'
+                  }`}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('systemStatus')}: {isHealthy ? t('running') : isDegraded ? t('degraded') : t('maintenance')}</p>
+            </TooltipContent>
+          </Tooltip>
 
           {/* LIVE Badge */}
           <Link
             href={`/${currentLocale}/live`}
-            className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-red-600 transition-all hover:bg-red-500/20 hover:scale-105"
+            className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-red-600 transition-all hover:bg-red-500/20 hover:scale-105 min-h-[36px]"
             aria-label={t('viewLiveDashboard')}
           >
             <span className="relative flex h-2 w-2" aria-hidden="true">
@@ -185,35 +190,49 @@ export function Header() {
           <AlertDropdown />
 
           {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleTheme}
+                className="flex items-center justify-center rounded-md p-2 text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white min-h-[36px] min-w-[36px]"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</p>
+            </TooltipContent>
+          </Tooltip>
 
           {/* Language Toggle */}
-          <Link
-            href={`/${otherLocale}${pathWithoutLocale}`}
-            className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white"
-            aria-label={t('switchLanguage', { language: otherLocale === 'en' ? 'English' : '한국어' })}
-          >
-            <Globe className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{otherLocale === 'en' ? 'EN' : '한국어'}</span>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href={`/${otherLocale}${pathWithoutLocale}`}
+                className="flex items-center gap-1 md:gap-2 rounded-md px-2 md:px-3 py-1.5 text-sm text-agora-muted transition-colors hover:bg-agora-card hover:text-slate-900 dark:hover:text-white min-h-[36px]"
+                aria-label={t('switchLanguage', { language: otherLocale === 'en' ? 'English' : '한국어' })}
+              >
+                <Globe className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{otherLocale === 'en' ? 'EN' : '한국어'}</span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{otherLocale === 'en' ? 'Switch to English' : '한국어로 전환'}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 
       {/* Mobile Navigation Drawer */}
-      <MobileNav isOpen={isMobileNavOpen} onClose={() => setIsMobileNavOpen(false)} />
+      <MobileNav isOpen={isMobileNavOpen} onOpenChange={setIsMobileNavOpen} />
 
       {/* Welcome Tour */}
       <WelcomeTour forceShow={showTour} onComplete={() => setShowTour(false)} />
-    </>
+    </TooltipProvider>
   );
 }

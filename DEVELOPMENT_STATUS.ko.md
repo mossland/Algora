@@ -2,8 +2,8 @@
 
 이 파일은 세션 간 개발 연속성을 위해 현재 개발 진행 상황을 추적합니다.
 
-**최종 업데이트**: 2026-01-21
-**현재 버전**: 0.12.7
+**최종 업데이트**: 2026-02-01
+**현재 버전**: 0.13.1
 **프로덕션 URL**: https://algora.moss.land
 
 ---
@@ -246,6 +246,34 @@
         - OLLAMA_INSTALL_COMMANDS 및 OLLAMA_HARDWARE_REQUIREMENTS 상수
   - [x] ModelRouter용 OllamaLLMProvider 어댑터
   - [x] 팩토리 함수: createOllamaModelRoutingSystem, createOllamaModelRoutingSystemWithDefaults
+
+### Phase 11: Shadcn UI 통합 및 모바일 반응형 (완료)
+- [x] **Shadcn UI (Radix UI) 컴포넌트 라이브러리**
+  - [x] 14개 기본 컴포넌트: Button, Card, Dialog, Sheet, DropdownMenu, Tooltip, Tabs, Badge, Command, ScrollArea, Avatar, Separator, Popover, Toast
+  - [x] CVA (class-variance-authority) 컴포넌트 변형
+  - [x] Tailwind CSS 변수 테마를 agora 브랜드 색상에 매핑
+  - [x] `tailwindcss-animate` 플러그인 통합
+  - [x] `components.json` Shadcn 설정 (New York 스타일)
+- [x] **레이아웃 마이그레이션**
+  - [x] MobileNav → Shadcn Sheet (향상된 애니메이션, 접근성)
+  - [x] Header → 모바일 상태 표시를 위한 Shadcn Tooltips
+  - [x] GlobalSearch → Shadcn CommandDialog (cmdk 기반 커맨드 팔레트)
+  - [x] AlertDropdown → Shadcn Popover + ScrollArea
+- [x] **컴포넌트 마이그레이션**
+  - [x] AccessibleModal → Shadcn Dialog 래퍼 (동일한 외부 API 유지)
+  - [x] AccessibleDropdown → Shadcn DropdownMenu 래퍼
+  - [x] HelpTooltip → 자체 TooltipProvider를 포함한 Shadcn Tooltip
+  - [x] StatsCard/AnimatedCard → 다크 모드 지원, 반응형 패딩
+- [x] **페이지 수준 반응형 개선**
+  - [x] 대시보드: 모바일 2x2 통계 그리드, Card+ScrollArea 활동 피드
+  - [x] 아고라: 모바일 Sheet 사이드바, iOS safe-area 입력 지원
+- [x] **i18n 업데이트**
+  - [x] Search 네임스페이스 추가 (EN/KO)
+  - [x] Activity.types.PIPELINE 추가 (EN/KO)
+- [x] **접근성**
+  - [x] CommandDialog용 DialogTitle (스크린 리더 지원)
+  - [x] 모바일 최소 터치 영역 44px
+  - [x] Radix 프리미티브를 통한 키보드 네비게이션
 
 ### Phase 9: 프로덕션 배포 (완료)
 - [x] **pm2 프로세스 관리**

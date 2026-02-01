@@ -172,7 +172,8 @@
       "OUTCOME_CREATED": "Outcome Created",
       "EXECUTION_STARTED": "Execution Started",
       "EXECUTION_COMPLETED": "Execution Completed",
-      "OUTCOME_COMPLETED": "Outcome Completed"
+      "OUTCOME_COMPLETED": "Outcome Completed",
+      "PIPELINE": "Pipeline"
     },
     "detail": {
       "activityId": "Activity ID",
@@ -1213,5 +1214,14 @@
     "weekSummary": "This Week",
     "todaySignals": "signals today",
     "todayIssues": "issues today"
+  },
+  "Search": {
+    "placeholder": "Search agents, proposals, issues...",
+    "noResults": "No results found",
+    "tryDifferent": "Try a different search term",
+    "typeToSearch": "Type at least 2 characters to search",
+    "toSelect": "to select",
+    "toClose": "to close",
+    "results": "results"
   }
 }

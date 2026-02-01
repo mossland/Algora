@@ -172,7 +172,8 @@
       "OUTCOME_CREATED": "결과 생성됨",
       "EXECUTION_STARTED": "실행 시작됨",
       "EXECUTION_COMPLETED": "실행 완료됨",
-      "OUTCOME_COMPLETED": "결과 완료됨"
+      "OUTCOME_COMPLETED": "결과 완료됨",
+      "PIPELINE": "파이프라인"
     },
     "detail": {
       "activityId": "활동 ID",
@@ -1213,5 +1214,14 @@
     "weekSummary": "이번 주",
     "todaySignals": "오늘 신호",
     "todayIssues": "오늘 이슈"
+  },
+  "Search": {
+    "placeholder": "에이전트, 제안, 이슈 검색...",
+    "noResults": "검색 결과가 없습니다",
+    "tryDifferent": "다른 검색어를 시도해 보세요",
+    "typeToSearch": "2글자 이상 입력하세요",
+    "toSelect": "선택",
+    "toClose": "닫기",
+    "results": "결과"
   }
 }

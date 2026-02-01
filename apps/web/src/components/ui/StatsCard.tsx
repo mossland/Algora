@@ -1,6 +1,7 @@
 'use client';
 
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StatsCardProps {
   title: string;
@@ -14,10 +15,10 @@ interface StatsCardProps {
 
 const variantStyles = {
   default: {
-    border: 'border-agora-border',
-    bg: 'bg-agora-card',
+    border: 'border-agora-border dark:border-agora-dark-border',
+    bg: 'bg-agora-card dark:bg-agora-dark-card',
     icon: 'text-agora-muted',
-    value: 'text-slate-900',
+    value: 'text-slate-900 dark:text-white',
     hover: 'hover:border-agora-primary/50 hover:shadow-lg hover:shadow-agora-primary/5',
   },
   warning: {
@@ -58,19 +59,16 @@ export function StatsCard({
   const content = (
     <>
       <div className="flex items-center justify-between">
-        <span className={`transition-transform duration-200 group-hover:scale-110 ${styles.icon}`}>
+        <span className={cn('transition-transform duration-200 group-hover:scale-110', styles.icon)}>
           {icon}
         </span>
         <div className="flex items-center gap-2">
           {trend !== undefined && (
             <div
-              className={`flex items-center gap-1 text-xs font-medium ${
-                trend > 0
-                  ? 'text-green-400'
-                  : trend < 0
-                    ? 'text-red-400'
-                    : 'text-gray-400'
-              }`}
+              className={cn(
+                'flex items-center gap-1 text-xs font-medium',
+                trend > 0 ? 'text-green-400' : trend < 0 ? 'text-red-400' : 'text-gray-400'
+              )}
             >
               {trend > 0 ? (
                 <TrendingUp className="h-3 w-3 animate-pulse" />
@@ -88,13 +86,13 @@ export function StatsCard({
           )}
         </div>
       </div>
-      <div className="mt-3">
-        <p className={`text-3xl font-bold tracking-tight ${styles.value}`}>
+      <div className="mt-2 md:mt-3">
+        <p className={cn('text-2xl md:text-3xl font-bold tracking-tight', styles.value)}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </p>
-        <p className="mt-1 text-sm text-agora-muted">{title}</p>
+        <p className="mt-1 text-xs md:text-sm text-agora-muted dark:text-agora-dark-muted truncate">{title}</p>
         {subtitle && (
-          <p className="mt-0.5 text-xs text-agora-muted/70">{subtitle}</p>
+          <p className="mt-0.5 text-xs text-agora-muted/70 dark:text-agora-dark-muted/70 truncate">{subtitle}</p>
         )}
       </div>
     </>
@@ -104,13 +102,11 @@ export function StatsCard({
     return (
       <button
         onClick={onClick}
-        className={`
-          group w-full rounded-lg border p-4 text-left
-          transition-all duration-200
-          ${styles.border} ${styles.bg} ${styles.hover}
-          hover:scale-[1.02] active:scale-[0.98]
-          cursor-pointer
-        `}
+        className={cn(
+          'group w-full rounded-lg border p-3 md:p-4 text-left transition-all duration-200',
+          styles.border, styles.bg, styles.hover,
+          'hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+        )}
       >
         {content}
       </button>
@@ -118,7 +114,7 @@ export function StatsCard({
   }
 
   return (
-    <div className={`rounded-lg border p-4 ${styles.border} ${styles.bg}`}>
+    <div className={cn('rounded-lg border p-3 md:p-4', styles.border, styles.bg)}>
       {content}
     </div>
   );

@@ -13,6 +13,8 @@ import { StatsDetailModal, type StatInfo } from '@/components/ui/StatsDetailModa
 import { AgentLobbyPreview } from '@/components/agents/AgentLobbyPreview';
 import { AgentDetailModal } from '@/components/agents/AgentDetailModal';
 import { HelpTooltip } from '@/components/guide/HelpTooltip';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DashboardClientProps {
   initialStats: Stats;
@@ -31,7 +33,6 @@ export function DashboardClient({
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [selectedStat, setSelectedStat] = useState<StatInfo | null>(null);
 
-  // Use React Query with initial data from server
   const { data: stats } = useQuery({
     queryKey: ['stats'],
     queryFn: fetchStats,
@@ -40,7 +41,6 @@ export function DashboardClient({
     staleTime: 10000,
   });
 
-  // Stats configuration for modals
   const statsConfig: StatInfo[] = [
     {
       key: 'activeAgents',
@@ -80,18 +80,18 @@ export function DashboardClient({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{t('title')}</h1>
           <HelpTooltip content={tGuide('dashboard')} />
         </div>
-        <p className="text-agora-muted">{t('subtitle')}</p>
+        <p className="text-sm md:text-base text-agora-muted dark:text-agora-dark-muted">{t('subtitle')}</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid - 2x2 on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <StatsCard
           title={statsConfig[0].title}
           value={statsConfig[0].value}
@@ -129,53 +129,53 @@ export function DashboardClient({
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         {/* Activity Feed */}
         <div className="lg:col-span-2">
-          <div className="rounded-lg border border-agora-border bg-agora-card p-4">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">
-              {t('activityFeed')}
-            </h2>
-            <div className="max-h-[500px] overflow-y-auto">
-              <ActivityFeed
-                initialData={initialActivities}
-                onActivityClick={setSelectedActivity}
-              />
-            </div>
-          </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base md:text-lg">{t('activityFeed')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] md:h-[500px]">
+                <ActivityFeed
+                  initialData={initialActivities}
+                  onActivityClick={setSelectedActivity}
+                />
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Agent Lobby Preview */}
         <div>
-          <div className="rounded-lg border border-agora-border bg-agora-card p-4">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">
-              {t('agentLobby')}
-            </h2>
-            <AgentLobbyPreview
-              initialData={initialAgents}
-              onAgentClick={setSelectedAgent}
-            />
-          </div>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base md:text-lg">{t('agentLobby')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AgentLobbyPreview
+                initialData={initialAgents}
+                onAgentClick={setSelectedAgent}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Activity Detail Modal */}
+      {/* Modals */}
       {selectedActivity && (
         <ActivityDetailModal
           activity={selectedActivity}
           onClose={() => setSelectedActivity(null)}
         />
       )}
-
-      {/* Agent Detail Modal */}
       {selectedAgent && (
         <AgentDetailModal
           agent={selectedAgent}
           onClose={() => setSelectedAgent(null)}
         />
       )}
-
-      {/* Stats Detail Modal */}
       {selectedStat && (
         <StatsDetailModal
           stat={selectedStat}

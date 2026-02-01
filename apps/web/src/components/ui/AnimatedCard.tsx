@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, CSSProperties } from 'react';
+import { cn } from '@/lib/utils';
 
 interface AnimatedCardProps {
   children: ReactNode;
@@ -32,7 +33,6 @@ export function AnimatedCard({
   onClick,
   className = '',
 }: AnimatedCardProps) {
-  // Calculate stagger delay based on index (max 500ms)
   const delayMs = Math.min(index * 75, 500);
 
   const style: CSSProperties = {
@@ -40,22 +40,16 @@ export function AnimatedCard({
     animationFillMode: 'backwards',
   };
 
-  const baseClasses = 'rounded-lg border border-agora-border bg-agora-card';
-  const animationClass = animationClasses[animation] || animationClasses['slide-up'];
-
-  const hoverClasses = hoverEffect
-    ? 'transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-agora-primary/10 hover:border-agora-primary/50'
-    : '';
-
-  const activeClasses = glowOnActive && isActive
-    ? 'ring-2 ring-agora-primary/30 border-agora-primary/50'
-    : '';
-
-  const clickableClasses = onClick ? 'cursor-pointer' : '';
-
   return (
     <div
-      className={`${baseClasses} ${animationClass} ${hoverClasses} ${activeClasses} ${clickableClasses} ${className}`}
+      className={cn(
+        'rounded-lg border border-agora-border dark:border-agora-dark-border bg-agora-card dark:bg-agora-dark-card',
+        animationClasses[animation] || animationClasses['slide-up'],
+        hoverEffect && 'transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-agora-primary/10 hover:border-agora-primary/50',
+        glowOnActive && isActive && 'ring-2 ring-agora-primary/30 border-agora-primary/50',
+        onClick && 'cursor-pointer',
+        className
+      )}
       style={style}
       onClick={onClick}
     >
@@ -64,7 +58,6 @@ export function AnimatedCard({
   );
 }
 
-// Simplified version for list items
 interface AnimatedListItemProps {
   children: ReactNode;
   index?: number;
@@ -85,7 +78,7 @@ export function AnimatedListItem({
 
   return (
     <div
-      className={`animate-slide-up ${className}`}
+      className={cn('animate-slide-up', className)}
       style={style}
     >
       {children}

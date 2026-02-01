@@ -3,7 +3,7 @@
 This file tracks the current development progress for continuity between sessions.
 
 **Last Updated**: 2026-02-01
-**Current Version**: 0.13.0
+**Current Version**: 0.13.1
 **Production URL**: https://algora.moss.land
 
 ---
@@ -246,6 +246,34 @@ See [docs/algora-v2-upgrade-plan.md](docs/algora-v2-upgrade-plan.md) for the com
         - OLLAMA_INSTALL_COMMANDS and OLLAMA_HARDWARE_REQUIREMENTS constants
   - [x] OllamaLLMProvider adapter for ModelRouter
   - [x] Factory functions: createOllamaModelRoutingSystem, createOllamaModelRoutingSystemWithDefaults
+
+### Phase 11: Shadcn UI Integration & Mobile Responsive (COMPLETED)
+- [x] **Shadcn UI (Radix UI) Component Library**
+  - [x] 14 base components: Button, Card, Dialog, Sheet, DropdownMenu, Tooltip, Tabs, Badge, Command, ScrollArea, Avatar, Separator, Popover, Toast
+  - [x] CVA (class-variance-authority) for component variants
+  - [x] Tailwind CSS variable theming mapped to agora brand colors
+  - [x] `tailwindcss-animate` plugin integration
+  - [x] `components.json` Shadcn config (New York style)
+- [x] **Layout Migration**
+  - [x] MobileNav → Shadcn Sheet (better animations, accessibility)
+  - [x] Header → Shadcn Tooltips for mobile status indicators
+  - [x] GlobalSearch → Shadcn CommandDialog (cmdk-based command palette)
+  - [x] AlertDropdown → Shadcn Popover + ScrollArea
+- [x] **Component Migration**
+  - [x] AccessibleModal → Shadcn Dialog wrapper (same external API)
+  - [x] AccessibleDropdown → Shadcn DropdownMenu wrapper
+  - [x] HelpTooltip → Shadcn Tooltip with self-contained TooltipProvider
+  - [x] StatsCard/AnimatedCard → dark mode support, responsive padding
+- [x] **Page-level Responsive Improvements**
+  - [x] Dashboard: 2x2 stats grid on mobile, Card+ScrollArea for activity feed
+  - [x] Agora: Sheet-based sidebars on mobile, iOS safe-area input support
+- [x] **i18n Updates**
+  - [x] Search namespace added (EN/KO)
+  - [x] Activity.types.PIPELINE added (EN/KO)
+- [x] **Accessibility**
+  - [x] DialogTitle for CommandDialog (screen reader support)
+  - [x] 44px minimum touch targets on mobile
+  - [x] Keyboard navigation via Radix primitives
 
 ### Phase 10.9: Governance Pipeline Automation (COMPLETED)
 - [x] **Proposal Auto-Progression** (`governance-os-bridge.ts`)

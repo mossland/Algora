@@ -2,35 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 15, 23, 42;
-  --background-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    --foreground-rgb: 15, 23, 42;
+    --background-rgb: 255, 255, 255;
 
-  /* moss.land inspired colors */
-  --moss-primary: #16f6ab;
-  --moss-secondary: #00c2c2;
-  --moss-tertiary: #0080e8;
+    /* moss.land inspired colors */
+    --moss-primary: #16f6ab;
+    --moss-secondary: #00c2c2;
+    --moss-tertiary: #0080e8;
 
-  /* Theme-aware colors */
-  --agora-dark: #ffffff;
-  --agora-darker: #f8fafc;
-  --agora-card: #ffffff;
-  --agora-border: #e2e8f0;
-  --agora-text: #0f172a;
-  --agora-muted: #64748b;
-}
+    /* Theme-aware colors */
+    --agora-dark: #ffffff;
+    --agora-darker: #f8fafc;
+    --agora-card: #ffffff;
+    --agora-border: #e2e8f0;
+    --agora-text: #0f172a;
+    --agora-muted: #64748b;
 
-.dark {
-  --foreground-rgb: 248, 250, 252;
-  --background-rgb: 15, 15, 20;
+    /* Shadcn CSS variables - Light */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 160 93% 53%;
+    --primary-foreground: 210 40% 10%;
+    --secondary: 180 100% 38%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 160 93% 53%;
+    --radius: 0.5rem;
+  }
 
-  /* Dark theme colors */
-  --agora-dark: #0f0f14;
-  --agora-darker: #0a0a0f;
-  --agora-card: #161621;
-  --agora-border: #2a2a3a;
-  --agora-text: #f8fafc;
-  --agora-muted: #94a3b8;
+  .dark {
+    --foreground-rgb: 248, 250, 252;
+    --background-rgb: 15, 15, 20;
+
+    /* Dark theme colors */
+    --agora-dark: #0f0f14;
+    --agora-darker: #0a0a0f;
+    --agora-card: #161621;
+    --agora-border: #2a2a3a;
+    --agora-text: #f8fafc;
+    --agora-muted: #94a3b8;
+
+    /* Shadcn CSS variables - Dark */
+    --background: 240 10% 6%;
+    --foreground: 210 40% 98%;
+    --card: 249 17% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 249 17% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 160 93% 53%;
+    --primary-foreground: 210 40% 10%;
+    --secondary: 180 100% 38%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 7% 16%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 240 7% 16%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 247 20% 19%;
+    --input: 247 20% 19%;
+    --ring: 160 93% 53%;
+  }
 }
 
 body {

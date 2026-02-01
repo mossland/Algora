@@ -15,6 +15,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.13.1] - 2026-02-01
+
+### Added
+- **Shadcn UI Component Library** - 14 Radix UI-based components (Button, Card, Dialog, Sheet, DropdownMenu, Tooltip, Tabs, Badge, Command, ScrollArea, Avatar, Separator, Popover, Toast)
+- **Command Palette** - cmdk-based global search replacing custom modal
+- **Sheet Navigation** - Radix Sheet for mobile sidebar (MobileNav, Agora sidebars)
+- **i18n: Search namespace** (EN/KO) and `Activity.types.PIPELINE` key
+
+### Changed
+- **MobileNav** migrated to Shadcn Sheet with improved animations and accessibility
+- **GlobalSearch** migrated to Shadcn CommandDialog
+- **AlertDropdown** migrated to Shadcn Popover + ScrollArea
+- **AccessibleModal** now wraps Shadcn Dialog (same external API preserved)
+- **AccessibleDropdown** now wraps Shadcn DropdownMenu
+- **HelpTooltip** migrated to Shadcn Tooltip with self-contained TooltipProvider
+- **Dashboard** stats grid: 2x2 on mobile, Card+ScrollArea for activity feed
+- **Agora page** full mobile rewrite: Sheet sidebars, iOS safe-area input
+- **StatsCard/AnimatedCard** added dark mode support and responsive padding
+- **Tailwind config** extended with Shadcn CSS variables, `tailwindcss-animate` plugin
+
+### Fixed
+- Missing `Activity.types.PIPELINE` i18n key causing console errors
+- Missing `Search` i18n namespace causing 500 on Korean locale
+- DialogContent accessibility warnings (missing DialogTitle)
+
+---
+
 ## [0.13.0] - 2026-02-01
 
 ### Added
